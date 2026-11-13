@@ -1,98 +1,82 @@
-# RKdash — Google Apps Script (GAS) Applications & Subdomains Hub
+# RKdash — Enterprise Gateway & Applications Portal
 
-A modern, high-performance, responsive web portal and application dashboard designed for hosting, launching, and managing **Google Apps Script (GAS) Web Applications**, webhooks, subdomains, and external portal links.
+A modern, high-performance, responsive web application gateway and services dashboard for **rkdash.in**.
 
-Designed with the exact modern aesthetic, viewport optimization, and administrative capabilities of enterprise portals: clean categorization, real-time search, deployment stage indicators (**Live**, **In Testing**, and **Restricted**), and a full-featured **Admin Console** for link updates, order management, and JSON backup/restore.
+Designed as a centralized, zero-trust gateway launchpad for internal tools, microservices, cloud consoles, webhooks, and executive dashboards. Built with React 18, Tailwind CSS, Plus Jakarta Sans, and client-side SHA-256 cryptographic security.
 
 ---
 
 ## 🌟 Key Features
 
-1. **Enterprise RKdash Branding**:
-   - Sleek, modern tech aesthetic built with Tailwind CSS, Plus Jakarta Sans, and JetBrains Mono.
-   - Designed specifically for **Google Apps Script** workflows, external portals, and internal subdomains.
-   - Clean slate, indigo, sky, and emerald security accents with ambient background gradients.
+1. **Enterprise Gateway Architecture**:
+   - Centralized access point for all company subdomains, APIs, webhooks, and dashboards under `rkdash.in`.
+   - Compact viewport optimization with 4-column responsive grid and instant telemetry.
+   - Real-time search across titles, subdomains, endpoints, and tags (`Ctrl+K` / `⌘K`).
 
-2. **No Long Scroll (Compact Viewport Optimization)**:
-   - Carefully structured 4-column responsive grid with compact, elegant cards.
-   - Subheader controls with quick filters: **All Applications**, **Live**, **In Testing**, and **Restricted**.
-   - Category filtering and real-time search across titles, descriptions, subdomains, and URLs.
+2. **Security & Zero-Trust Access Control**:
+   - **Production (`● Live`)**: Highlights production services with real-time health indicator.
+   - **Staging / Beta (`◐ Testing`)**: Clearly marks preview and pilot-stage services.
+   - **Restricted (`🔒 Restricted`)**: High-security services requiring administrator authentication before launching.
+   - **Brute-Force Lockout**: 5 failed password attempts triggers an automatic 30-second security cooldown.
 
-3. **Deployment Stage Indicators & Access Security**:
-   - **`● Live`**: Highlights verified production-ready services with green pulsing indicator.
-   - **`◐ In Testing`**: Clearly marks pilot, trial, or beta stage applications with an amber indicator.
-   - **`🔒 Restricted`**: Marks confidential, administrative, or vigilance portals with purple lock badge. **Requires the Administrator Passcode to unlock and launch the target URL**.
+3. **Production Administrator Console**:
+   - **Credential Management**: Update administrator username and password with live validation.
+   - **Password Recovery**: Dual recovery system using a **Master Recovery Key** or **Security Question & Answer**.
+   - **Emergency Key Generator**: One-click generation of randomized 16-character Master Recovery Keys.
+   - **Client-Side SHA-256 Cryptography**: Passwords and secrets are never stored in plaintext—only salted SHA-256 digests are stored locally.
+   - **Active Session Sign Out**: Session persists across tab refreshes during your browser session and can be signed out at any time.
 
-4. **Integrated RKdash Admin Console**:
-   - **Passcode Protected**: Secure admin modal with default passcode (`admin123`) and a **Quick Demo** button for rapid inspection.
-   - **Update Target URL & Subdomain**: Point cards to any GAS Exec URL (`https://script.google.com/macros/s/.../exec`), subdomain, or external link with an in-modal **Test URL** button.
-   - **Update Title & One-Sentence Description**: Keep metadata concise and readable.
-   - **Display Order Management**: Set custom numeric priorities or use the **`▲ Move Up` / `▼ Move Down`** buttons.
-   - **Tri-State Stage Toggle**: Cycle an application between *Live*, *Testing*, and *Restricted* with a single click.
-   - **Add / Remove Applications**: Dynamically register new GAS tools or remove obsolete ones.
-   - **JSON Backup & Restore**: One-click **Export JSON** and **Import JSON** to back up, restore, or migrate application catalogs.
+4. **Service Lifecycle & Registry**:
+   - Dynamically register, edit, or remove services.
+   - Priority re-ordering (`▲` / `▼`) and one-click stage cycling.
+   - Card gradient themes and SVG icon selections.
+   - Integrated endpoint tester (`Test Endpoint`).
 
-5. **Client-Side Persistence & Portability**:
-   - Changes made in the Admin Console save directly to browser `localStorage` under `rkdash_catalog_v1`.
-   - 100% standalone — can run directly by opening `index.html` in any modern web browser or served via internal intranet.
-   - Includes optional **`Code.gs`** script to deploy directly within Google Apps Script as a native cloud web app!
-
----
-
-## 🚀 Quick Start
-
-### Method 1: Direct Browser Launch (Easiest)
-1. Navigate to:
-   ```
-   C:\Users\Director\.gemini\antigravity\scratch\rkdash\
-   ```
-2. Double-click **`index.html`** to open it in Chrome, Edge, Brave, or any modern browser.
-
-### Method 2: Local HTTP Server (PowerShell)
-Right-click on **`start-server.ps1`** and choose **Run with PowerShell**, or open PowerShell in the directory and run:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\start-server.ps1
-```
-This serves the application on `http://localhost:8080/` and automatically opens your browser.
-
-### Method 3: Deploy Directly to Google Apps Script (Cloud)
-1. Visit [script.google.com](https://script.google.com) and create a new project named **RKdash**.
-2. Paste the contents of `Code.gs` into the script editor.
-3. Create an HTML file named `index.html` and paste the contents of `index.html`.
-4. Click **Deploy > New deployment > Web app**:
-   - Execute as: *Me*
-   - Who has access: *Anyone with Google Account* (or *Anyone*)
-5. Your RKdash portal will run on Google's cloud infrastructure at zero cost!
+5. **Backup, Migration & Portability**:
+   - **Export JSON**: Download a complete timestamped backup of your service catalog.
+   - **Import JSON**: Restore or migrate services across environments.
+   - **Factory Reset**: Revert back to the baseline catalog with 1 click.
 
 ---
 
-## 🔐 Security & Access Management
+## 🔐 Default Credentials (Initial Setup)
 
-### Launching a Restricted Application:
-1. When a user clicks **`🔒 Unlock`** on any Restricted application card:
-2. The portal presents a security authentication dialog requesting the administrator passcode.
-3. Once verified (`admin123`), the browser automatically opens the target application URL in a secure new tab.
-4. If an administrator is already logged into the Admin Console within the current session, access is granted automatically without re-prompting.
+On first run, the gateway initializes with these default credentials:
 
-### Accessing the Admin Console:
-1. Click the **`Admin Console`** button in the top right of the header.
-2. Enter the administrator passcode:
-   - **Default Passcode**: `admin123`
-   - *(A **Quick Demo** button is also available for rapid inspection).*
-3. In the Admin Console:
-   - Use the **Application Registry** table to re-order apps (`▲` / `▼`), cycle deployment stages (Live / Testing / Restricted), edit details, or delete entries.
-   - Click **`+ Add New Application`** or **`Edit`** to update titles, subdomains, descriptions, target URLs, and icons.
-   - Use **`Export JSON`** to generate a timestamped catalog file for backup or deployment.
+* **Username**: `admin`
+* **Default Password**: `admin`
+* **Default Master Recovery Key**: `RKDASH-RECOVER-2026-KEY`
+* **Default Security Question**: *"What is your primary gateway domain?"* &rarr; **Answer**: `rkdash.in`
+
+> [!IMPORTANT]
+> Immediately upon logging in, open **Admin Console &rarr; Admin & Security** to set your personal password and copy or generate your personal Master Recovery Key.
 
 ---
 
-## 📁 Project Structure
+## 🚀 How to Deploy Updates to GitHub Pages (`rkdash.in`)
+
+Because your domain `rkdash.in` is already hooked up to your GitHub repository and GitHub Pages, updating your live website takes less than 1 minute:
+
+### Option A: Upload via GitHub Web (Easiest)
+1. Go to your repository on [github.com](https://github.com/) (e.g. `github.com/<your-username>/rkdash`).
+2. Click **Add file &rarr; Upload files**.
+3. Drag and drop the updated files from your desktop folder:
+   - `index.html`
+   - `apps-data.json`
+   - `README.md`
+4. Enter commit message: `Update: Enterprise gateway with auth and password recovery`.
+5. Click **Commit changes**.
+6. GitHub Pages will build and deploy the update automatically within 30–60 seconds!
+
+---
+
+## 📁 Repository Structure
 
 ```
 rkdash/
-├── index.html         # Main standalone SPA web application with embedded UI & Admin Console (React 18)
-├── apps-data.json     # Pre-configured baseline Google Apps Script applications catalog
-├── start-server.ps1   # Zero-dependency PowerShell HTTP server script (auto-launches on localhost:8080)
-├── Code.gs            # Ready-to-paste Google Apps Script backend for native cloud deployment
-└── README.md          # Documentation & operational guide
+├── index.html         # Standalone SPA gateway portal with embedded auth & admin console (React 18)
+├── apps-data.json     # Baseline enterprise service catalog
+├── CNAME              # Custom domain configuration for GitHub Pages (rkdash.in)
+├── start-server.ps1   # Local PowerShell HTTP testing server
+└── README.md          # Gateway operational documentation & security guide
 ```
