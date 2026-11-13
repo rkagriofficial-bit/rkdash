@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RKdash | Google Apps Script Applications & Subdomains Hub</title>
+  <meta name="description" content="Official enterprise application store and Google Apps Script portal for RKdash.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+              950: '#1e1b4b',
+            },
+            gas: {
+              50: '#ecfdf5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            }
+          },
+          boxShadow: {
+            'glow-brand': '0 0 25px -5px rgba(99, 102, 241, 0.35)',
+            'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.35)',
+            'card-hover': '0 20px 30px -10px rgba(15, 23, 42, 0.12), 0 10px 10px -5px rgba(15, 23, 42, 0.04)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18, ReactDOM & Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* Custom sleek scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.7);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Ambient Background Mesh */
+    .bg-mesh {
+      background-color: #f8fafc;
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 90%, rgba(168, 85, 247, 0.06) 0px, transparent 50%),
+        radial-gradient(at 80% 50%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+    }
+
+    /* Subtle Glassmorphism Card */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .glass-header {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+    }
+
+    /* Card Micro-Animations */
+    .app-card {
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .app-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(99, 102, 241, 0.45);
+      box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.09), 0 0 0 1px rgba(99, 102, 241, 0.2);
+    }
+    .app-card:hover .card-launch-btn {
+      background-color: #4338ca;
+      color: #ffffff;
+      transform: translateX(1px);
+    }
+    .app-card:hover .app-icon-box {
+      transform: scale(1.08) rotate(-2deg);
+    }
+
+    .line-clamp-1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="bg-mesh text-slate-800 font-sans antialiased h-screen overflow-hidden flex flex-col selection:bg-brand-500 selection:text-white">
+
+  <!-- React Root Container -->
+  <div id="root" class="h-full flex flex-col"></div>
+
+  <!-- React 18 Application Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    const STORAGE_KEY = "rkdash_catalog_v1";
+    const ADMIN_PIN = "admin123";
+
+    // Default Seed Catalog for Google Apps Script & Subdomains
+    const INITIAL_APPS = [
+      {
+        id: "app-001",
+        title: "Automated Invoice & Billing Engine",
+        subdomain: "billing.rkdash.internal",
+        targetUrl: "https://script.google.com/macros/s/AKfycbxExampleInvoiceApp/exec",
+        description: "Automated GST/VAT invoice generation from Google Sheets with one-click PDF generation and email delivery.",
+        order: 1,
+        status: "live",
+        category: "Finance",
+        icon: "chart",
+        color: "from-emerald-600 to-teal-700",
+        version: "v3.2"
+      },
+      {
+        id: "app-002",
+        title: "Employee Leave & Attendance Portal",
+        subdomain: "leave.rkdash.internal",
+        targetUrl: "https://script.google.com/macros/s/AKfycbxLeavePortalExample/exec",
+        description: "Staff leave applications, multi-tier supervisor approval matrix, and real-time quota deduction engine.",
+        order: 2,
+        status: "live",
+        category: "HR & Operations",
+        icon: "shield",
+        color: "from-indigo-600 to-blue-700",
+        version: "v2.5"
+      },
+      {
+        id: "app-003",
+        title: "Inventory Barcode & Asset Scanner",
+        subdomain: "inventory.rkdash.internal",
+        targetUrl: "https://script.google.com/macros/s/AKfycbxInventoryBarcodeScanner/exec",
+        description: "Real-time warehouse stock tracking with mobile camera barcode scanner and low-inventory threshold triggers.",
+        order: 3,
+        status: "testing",
+        category: "Operations",
+        icon: "building",
+        color: "from-amber-500 to-orange-700",
+        version: "v1.8-beta"
+      },
+      {
+        id: "app-004",
+        title: "Bulk Mail Merge & Campaign Dispatcher",
+        subdomain: "mailer.rkdash.internal",
+        targetUrl: "https://script.google.com/macros/s/AKfycbxBulkMailerApp/exec",
+        description: "Personalized high-volume email dispatch through Gmail API with delivery logging and bounce tracking.",
+        order: 4,
+        status: "live",
+        category: "Automation",
+        icon: "mail",
+        color: "from-sky-500 to-blue-600",
+        version: "v4.0"
+      },
+      {
+        id: "app-005",
+        title: "Form Ingestion & CRM Lead Router",
+        subdomain: "crm-sync.rkdash.internal",
+        targetUrl: "https://script.google.com/macros/s/AKfycbxFormSyncApp/exec",
+        description: "Captures Google Forms submissions, validates applicant payload, and routes leads to CRM with WhatsApp alerts.",
+        order: 5,
+        status: "live",
+        category: "Automation",
+        icon: "webhook",
+        color: "from-purple-600 to-indigo-700",
+        version: "v2.1"
+      },
+      {
+        id: "app-006",
+        title: "Executive KPI & Performance Dashboard",
+        subdomain: "kpi.rkdash.internal",
+        targetUrl: "https://script.google.com/macros/s/AKfycbxExecutiveReportApp/exec",
+        description: "Consolidated monthly performance analytics, revenue projections, and department scorecard visualizations.",
+        order: 6,
+        status: "testing",
+        category: "Reporting",
+        icon: "chart",
+        color: "from-cyan-600 to-teal-700",
+        version: "v1.4"
+      },
+      {
+        id: "app-007",
+        title: "Department Audit Logs & Vigilance Console",
+        subdomain: "vigilance.rkdash.internal",
+        targetUrl: "https://script.google.com/macros/s/AKfycbxAdminSecurityLogApp/exec",
+        description: "Confidential security audit trails, script execution logs, and restricted administrative permissions manager.",
+        order: 7,
+        status: "restricted",
+        category: "Governance",
+        icon: "lock",
+        color: "from-rose-600 to-red-800",
+        version: "v2.0"
+      },
+      {
+        id: "app-008",
+        title: "Automated PDF Document Signer & Drive Archiver",
+        subdomain: "docs.rkdash.internal",
+        targetUrl: "https://script.google.com/macros/s/AKfycbxPdfSignerArchiverApp/exec",
+        description: "Generates certificates and contracts from Google Docs templates with digital signature stamps and Drive storage.",
+        order: 8,
+        status: "live",
+        category: "Utilities",
+        icon: "file-text",
+        color: "from-emerald-600 to-teal-800",
+        version: "v3.1"
+      }
+    ];
+
+    // SVG Icon Dictionary
+    const Icons = {
+      chart: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      ),
+      shield: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      ),
+      building: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="16" height="20" x="4" y="2" rx="2" ry="2"/>
+          <path d="M9 22v-4h6v4"/>
+          <path d="M8 6h.01"/>
+          <path d="M16 6h.01"/>
+          <path d="M8 10h.01"/>
+          <path d="M16 10h.01"/>
+          <path d="M8 14h.01"/>
+          <path d="M16 14h.01"/>
+        </svg>
+      ),
+      mail: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="20" height="16" x="2" y="4" rx="2"/>
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+        </svg>
+      ),
+      webhook: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"/>
+          <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1A4 4 0 1 1 14.86 6"/>
+          <circle cx="18" cy="17" r="3"/>
+          <circle cx="6" cy="17" r="3"/>
+          <circle cx="12" cy="7" r="3"/>
+        </svg>
+      ),
+      lock: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      ),
+      'file-text': (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+          <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+          <path d="M10 9H8"/>
+          <path d="M16 13H8"/>
+          <path d="M16 17H8"/>
+        </svg>
+      ),
+      database: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M3 5V19A9 3 0 0 0 21 19V5"/>
+          <path d="M3 12A9 3 0 0 0 21 12"/>
+        </svg>
+      ),
+      code: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="16 18 22 12 16 6"/>
+          <polyline points="8 6 2 12 8 18"/>
+        </svg>
+      ),
+      cloud: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+        </svg>
+      ),
+      bot: (
+        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="18" height="12" x="3" y="6" rx="2"/>
+          <path d="M9 12h.01"/>
+          <path d="M15 12h.01"/>
+          <path d="M12 2v4"/>
+        </svg>
+      )
+    };
+
+    // Main React Application Component
+    function RKdashApp() {
+      // Application State
+      const [apps, setApps] = useState(() => {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          return saved ? JSON.parse(saved) : INITIAL_APPS;
+        } catch (e) {
+          return INITIAL_APPS;
+        }
+      });
+
+      const [statusFilter, setStatusFilter] = useState('all');
+      const [categoryFilter, setCategoryFilter] = useState('All');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [sortBy, setSortBy] = useState('order');
+      const [isAdminOpen, setIsAdminOpen] = useState(false);
+      const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+      const [adminTab, setAdminTab] = useState('list'); // 'list' | 'form'
+      const [editingApp, setEditingApp] = useState(null);
+      const [restrictedTargetApp, setRestrictedTargetApp] = useState(null);
+      const [toast, setToast] = useState(null);
+
+      // Persist to localStorage
+      useEffect(() => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(apps));
+        } catch (e) {
+          console.error("Storage save failed", e);
+        }
+      }, [apps]);
+
+      // Toast Notification Helper
+      const showToast = (message, type = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+      };
+
+      // Available Categories
+      const categories = useMemo(() => {
+        const set = new Set(apps.map(a => a.category).filter(Boolean));
+        return ['All', ...Array.from(set)];
+      }, [apps]);
+
+      // Filtered and Sorted Applications
+      const filteredApps = useMemo(() => {
+        let result = [...apps];
+
+        // Status Filter
+        if (statusFilter !== 'all') {
+          result = result.filter(a => a.status === statusFilter);
+        }
+
+        // Category Filter
+        if (categoryFilter !== 'All') {
+          result = result.filter(a => a.category === categoryFilter);
+        }
+
+        // Search Filter
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          result = result.filter(a =>
+            (a.title && a.title.toLowerCase().includes(q)) ||
+            (a.description && a.description.toLowerCase().includes(q)) ||
+            (a.category && a.category.toLowerCase().includes(q)) ||
+            (a.subdomain && a.subdomain.toLowerCase().includes(q)) ||
+            (a.targetUrl && a.targetUrl.toLowerCase().includes(q))
+          );
+        }
+
+        // Sorting
+        if (sortBy === 'order') {
+          result.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+        } else if (sortBy === 'title-asc') {
+          result.sort((a, b) => a.title.localeCompare(b.title));
+        } else if (sortBy === 'status') {
+          const rank = { live: 1, testing: 2, restricted: 3 };
+          result.sort((a, b) => (rank[a.status] || 9) - (rank[b.status] || 9));
+        }
+
+        return result;
+      }, [apps, statusFilter, categoryFilter, searchQuery, sortBy]);
+
+      // Stats Telemetry
+      const liveCount = useMemo(() => apps.filter(a => a.status === 'live').length, [apps]);
+      const testingCount = useMemo(() => apps.filter(a => a.status === 'testing').length, [apps]);
+      const restrictedCount = useMemo(() => apps.filter(a => a.status === 'restricted').length, [apps]);
+
+      // Launch Handler
+      const handleLaunch = (app) => {
+        if (app.status === 'restricted') {
+          if (isAdminAuthenticated) {
+            showToast(`Administrator Authorized: Launching ${app.title}`);
+            window.open(app.targetUrl, '_blank');
+          } else {
+            setRestrictedTargetApp(app);
+          }
+        } else {
+          window.open(app.targetUrl, '_blank');
+        }
+      };
+
+      // Admin Handlers
+      const handleSaveApp = (formData) => {
+        if (formData.id) {
+          // Update
+          setApps(prev => prev.map(a => a.id === formData.id ? { ...a, ...formData } : a));
+          showToast(`Application "${formData.title}" updated`);
+        } else {
+          // Create
+          const newApp = {
+            ...formData,
+            id: 'app-' + Date.now().toString(36),
+            order: Number(formData.order) || (apps.length + 1)
+          };
+          setApps(prev => [...prev, newApp]);
+          showToast(`Application "${formData.title}" registered`);
+        }
+        setEditingApp(null);
+        setAdminTab('list');
+      };
+
+      const handleDeleteApp = (id, title) => {
+        if (window.confirm(`Are you sure you want to remove "${title}"?`)) {
+          setApps(prev => prev.filter(a => a.id !== id));
+          showToast(`Application "${title}" deleted`, 'info');
+        }
+      };
+
+      const handleMoveOrder = (id, delta) => {
+        const sorted = [...apps].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+        const index = sorted.findIndex(a => a.id === id);
+        if (index === -1) return;
+        const targetIndex = index + delta;
+        if (targetIndex < 0 || targetIndex >= sorted.length) return;
+
+        const temp = sorted[index].order;
+        sorted[index].order = sorted[targetIndex].order;
+        sorted[targetIndex].order = temp;
+
+        sorted.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+        sorted.forEach((item, i) => item.order = i + 1);
+
+        setApps([...sorted]);
+        showToast("Display order updated");
+      };
+
+      const handleCycleStatus = (id) => {
+        setApps(prev => prev.map(a => {
+          if (a.id === id) {
+            const nextStatus = a.status === 'live' ? 'testing' : a.status === 'testing' ? 'restricted' : 'live';
+            return { ...a, status: nextStatus };
+          }
+          return a;
+        }));
+        showToast("Deployment stage updated");
+      };
+
+      const handleExportJSON = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apps, null, 2));
+        const anchor = document.createElement('a');
+        anchor.setAttribute("href", dataStr);
+        anchor.setAttribute("download", `rkdash_catalog_${new Date().toISOString().slice(0, 10)}.json`);
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        showToast("Catalog exported to JSON");
+      };
+
+      const handleImportJSON = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const imported = JSON.parse(event.target.result);
+            if (Array.isArray(imported)) {
+              setApps(imported);
+              showToast(`Imported ${imported.length} applications`);
+            } else {
+              alert("Invalid JSON format. Expected an array of application objects.");
+            }
+          } catch (err) {
+            alert("Error parsing JSON: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      const handleResetDefaults = () => {
+        if (window.confirm("Reset back to standard RKdash Google Apps Script catalog?")) {
+          setApps(INITIAL_APPS);
+          showToast("Reset to default RKdash catalog");
+        }
+      };
+
+      return (
+        <div className="flex flex-col h-screen overflow-hidden">
+          
+          {/* ================= HEADER BAR ================= */}
+          <header className="glass-header z-30 shrink-0">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16">
+                
+                {/* Brand Logo & RKdash Emblem */}
+                <div className="flex items-center space-x-3.5">
+                  <div className="relative group cursor-pointer">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-sky-400 text-white flex items-center justify-center shadow-md shadow-brand-600/30 transition-transform group-hover:scale-105">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                      </svg>
+                    </div>
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-brand-500 border-2 border-white rounded-full animate-ping"></span>
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-brand-500 border-2 border-white rounded-full"></span>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h1 className="text-xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+                        <span>RKdash</span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/90 shadow-2xs">
+                          GAS Hub v3.0
+                        </span>
+                      </h1>
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium tracking-wide">
+                      Google Apps Script Applications &amp; Subdomains Portal
+                    </p>
+                  </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="hidden md:flex flex-1 max-w-md mx-6">
+                  <div className="relative w-full">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search GAS applications, subdomains, tags..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-8 py-2 text-xs bg-slate-100/90 hover:bg-slate-100 focus:bg-white text-slate-800 placeholder-slate-400 rounded-xl border border-slate-200/80 focus:border-brand-500 focus:outline-none focus:ring-3 focus:ring-brand-500/15 transition-all shadow-2xs"
+                    />
+                    {searchQuery && (
+                      <button 
+                        onClick={() => setSearchQuery('')}
+                        className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Stage Telemetry & Admin Button */}
+                <div className="flex items-center space-x-3">
+                  
+                  {/* Status Telemetry Pills */}
+                  <div className="hidden lg:flex items-center space-x-2 text-[11px] bg-slate-100/80 border border-slate-200/80 px-3 py-1.5 rounded-xl font-medium text-slate-600 shadow-2xs">
+                    <span className="inline-flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                      <strong className="text-slate-900 font-bold mr-1">{liveCount}</strong> Live
+                    </span>
+                    <span className="text-slate-300">|</span>
+                    <span className="inline-flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>
+                      <strong className="text-slate-900 font-bold mr-1">{testingCount}</strong> Testing
+                    </span>
+                    <span className="text-slate-300">|</span>
+                    <span className="inline-flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>
+                      <strong className="text-slate-900 font-bold mr-1">{restrictedCount}</strong> Restricted
+                    </span>
+                  </div>
+
+                  {/* Admin Console Toggle */}
+                  <button
+                    onClick={() => setIsAdminOpen(true)}
+                    className="flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-slate-700/50"
+                  >
+                    <svg className="w-3.5 h-3.5 text-brand-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <span>Admin Console</span>
+                    {isAdminAuthenticated && (
+                      <span className="ml-1 px-1.5 py-0.2 bg-brand-500 text-[10px] text-white rounded font-bold uppercase tracking-wider">
+                        Active
+                      </span>
+                    )}
+                  </button>
+
+                </div>
+
+              </div>
+            </div>
+          </header>
+
+          {/* ================= HERO / SPOTLIGHT BAR ================= */}
+          <section className="bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 text-white px-4 sm:px-6 lg:px-8 py-3.5 shadow-inner shrink-0 relative overflow-hidden">
+            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-brand-500/10 via-transparent to-transparent pointer-events-none"></div>
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+              
+              <div className="flex items-center space-x-3">
+                <span className="px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-400/30 text-[10px] font-bold uppercase tracking-wider">
+                  Featured Portal
+                </span>
+                <p className="text-xs text-slate-200">
+                  <strong className="text-white font-semibold">RKdash v3.0:</strong> Unified access to all Google Apps Script (GAS) enterprise applications, webhooks, subdomains &amp; dashboards.
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-4 text-[11px] text-slate-300">
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  Google Cloud / GAS Secured
+                </span>
+                <span className="text-slate-600">&bull;</span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  Instant Web App Launch
+                </span>
+              </div>
+
+            </div>
+          </section>
+
+          {/* ================= SUBHEADER / FILTER CONTROLS ================= */}
+          <section className="bg-white/80 border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 py-2.5 shrink-0">
+            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+              
+              {/* Filter Pills */}
+              <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl border border-slate-200/70">
+                {[
+                  { id: 'all', label: 'All Applications', count: apps.length },
+                  { id: 'live', label: 'Live', count: liveCount, dot: 'bg-emerald-500' },
+                  { id: 'testing', label: 'In Testing', count: testingCount, dot: 'bg-amber-500' },
+                  { id: 'restricted', label: 'Restricted', count: restrictedCount, dot: 'bg-purple-500' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setStatusFilter(tab.id)}
+                    className={`px-3 py-1 rounded-lg font-semibold transition-all flex items-center gap-1.5 ${
+                      statusFilter === tab.id
+                        ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {tab.dot && <span className={`w-1.5 h-1.5 rounded-full ${tab.dot}`}></span>}
+                    <span>{tab.label}</span>
+                    <span className="text-[10px] opacity-60">({tab.count})</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Category, Sorting and Helper text */}
+              <div className="flex items-center space-x-3 text-slate-500 text-xs">
+                
+                {/* Category Dropdown */}
+                <div className="flex items-center space-x-1.5">
+                  <label className="text-slate-400 font-medium">Category:</label>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-2xs font-medium cursor-pointer"
+                  >
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <span className="text-slate-200">|</span>
+
+                {/* Sort Selector */}
+                <div className="flex items-center space-x-1.5">
+                  <label className="text-slate-400 font-medium">Sort By:</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-2xs font-medium cursor-pointer"
+                  >
+                    <option value="order">Custom Display Order</option>
+                    <option value="title-asc">Title (A-Z)</option>
+                    <option value="status">Status Priority</option>
+                  </select>
+                </div>
+
+                <span className="text-slate-200">|</span>
+                <span className="text-slate-400 text-[11px] hidden sm:inline-flex items-center gap-1">
+                  🔒 Restricted portals require admin passcode
+                </span>
+              </div>
+
+            </div>
+          </section>
+
+          {/* ================= MAIN APPLICATION CARDS GRID ================= */}
+          <main className="flex-1 overflow-y-auto max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-between">
+            
+            {filteredApps.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <h3 className="text-base font-bold text-slate-800">No applications match your criteria</h3>
+                <p className="text-xs text-slate-400 max-w-sm mt-1 mb-4">
+                  Try clearing your search query or switching the category/status filter tabs to view all available applications.
+                </p>
+                <button
+                  onClick={() => { setSearchQuery(''); setStatusFilter('all'); setCategoryFilter('All'); }}
+                  className="text-xs font-semibold px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-xs transition-colors"
+                >
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-max">
+                {filteredApps.map(app => {
+                  const isLive = app.status === 'live';
+                  const isTesting = app.status === 'testing';
+                  const isRestricted = app.status === 'restricted';
+
+                  return (
+                    <div
+                      key={app.id}
+                      className="app-card glass-card rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group shadow-2xs"
+                    >
+                      {/* Top Accent Gradient Bar */}
+                      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${app.color || 'from-indigo-600 to-sky-600'}`}></div>
+
+                      <div>
+                        {/* Card Top: Icon Box + Status Stage Badge */}
+                        <div className="flex items-center justify-between mb-3 pt-1">
+                          
+                          {/* Colorful Icon Container */}
+                          <div className={`app-icon-box w-10 h-10 rounded-xl bg-gradient-to-tr ${app.color || 'from-indigo-600 to-sky-600'} flex items-center justify-center shadow-sm transition-transform duration-300`}>
+                            {Icons[app.icon] || Icons.code}
+                          </div>
+
+                          {/* Order & Stage Badge */}
+                          <div className="flex items-center space-x-1.5">
+                            <span className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                              #{app.order}
+                            </span>
+
+                            {isLive && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/90 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Live
+                              </span>
+                            )}
+
+                            {isTesting && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/90 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                Testing
+                              </span>
+                            )}
+
+                            {isRestricted && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200/90 shadow-2xs">
+                                <svg className="w-3 h-3 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                Restricted
+                              </span>
+                            )}
+                          </div>
+
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-brand-700 transition-colors tracking-tight line-clamp-1" title={app.title}>
+                          {app.title}
+                        </h3>
+
+                        {/* Description (1-2 sentences) */}
+                        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed line-clamp-2" title={app.description}>
+                          {app.description}
+                        </p>
+                      </div>
+
+                      {/* Card Footer: Domain + Launch CTA Button */}
+                      <div className="pt-3.5 mt-3 border-t border-slate-100 flex items-center justify-between">
+                        
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-mono text-slate-400 truncate max-w-[110px]" title={app.subdomain || app.targetUrl}>
+                            {app.subdomain || extractDomain(app.targetUrl)}
+                          </span>
+                          <span className="text-[9px] text-brand-600 font-semibold flex items-center gap-0.5">
+                            <span>✓</span> Verified GAS App
+                          </span>
+                        </div>
+
+                        {isRestricted ? (
+                          <button
+                            type="button"
+                            onClick={() => handleLaunch(app)}
+                            className="card-launch-btn inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-700 hover:bg-purple-800 text-white transition-all shadow-xs"
+                          >
+                            <svg className="w-3 h-3 text-purple-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>Unlock</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleLaunch(app)}
+                            className="card-launch-btn inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 group-hover:bg-brand-700 text-white transition-all shadow-xs"
+                          >
+                            <span>Launch</span>
+                            <svg className="w-3 h-3 text-slate-300 group-hover:text-white transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                          </button>
+                        )}
+
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Bottom Footer */}
+            <footer className="mt-6 pt-4 border-t border-slate-200/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 shrink-0">
+              <div className="flex items-center space-x-2">
+                <span>RKdash &bull; Google Apps Script Applications Hub</span>
+                <span>&bull;</span>
+                <span className="font-mono text-[11px] text-slate-400">React 18 Engine</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <button onClick={handleExportJSON} className="text-slate-500 hover:text-slate-800 underline">Export Catalog</button>
+                <span>&bull;</span>
+                <button onClick={() => setIsAdminOpen(true)} className="text-slate-500 hover:text-slate-800 underline">Admin Console</button>
+              </div>
+            </footer>
+
+          </main>
+
+          {/* ================= RESTRICTED ACCESS PASSCODE GATE MODAL ================= */}
+          {restrictedTargetApp && (
+            <RestrictedModal
+              app={restrictedTargetApp}
+              onClose={() => setRestrictedTargetApp(null)}
+              onSuccess={() => {
+                showToast(`Passcode verified! Launching ${restrictedTargetApp.title}`);
+                window.open(restrictedTargetApp.targetUrl, '_blank');
+                setRestrictedTargetApp(null);
+              }}
+            />
+          )}
+
+          {/* ================= ADMIN CONSOLE MODAL ================= */}
+          {isAdminOpen && (
+            <AdminModal
+              isOpen={isAdminOpen}
+              onClose={() => setIsAdminOpen(false)}
+              isAuthenticated={isAdminAuthenticated}
+              onAuthenticate={() => setIsAdminAuthenticated(true)}
+              apps={apps}
+              tab={adminTab}
+              setTab={setAdminTab}
+              editingApp={editingApp}
+              setEditingApp={setEditingApp}
+              onSave={handleSaveApp}
+              onDelete={handleDeleteApp}
+              onMoveOrder={handleMoveOrder}
+              onCycleStatus={handleCycleStatus}
+              onExport={handleExportJSON}
+              onImport={handleImportJSON}
+              onReset={handleResetDefaults}
+            />
+          )}
+
+          {/* ================= FLOATING TOAST NOTIFICATION ================= */}
+          {toast && (
+            <div className="fixed bottom-5 right-5 z-50 flex items-center space-x-2.5 px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold bg-slate-900 text-white border border-slate-800 animate-in fade-in slide-in-from-bottom-3 duration-200">
+              <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
+              <span>{toast.message}</span>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    // ================= RESTRICTED PASSCODE MODAL COMPONENT =================
+    function RestrictedModal({ app, onClose, onSuccess }) {
+      const [pin, setPin] = useState('');
+      const [error, setError] = useState(false);
+      const inputRef = useRef(null);
+
+      useEffect(() => {
+        if (inputRef.current) inputRef.current.focus();
+      }, []);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (pin === ADMIN_PIN) {
+          onSuccess();
+        } else {
+          setError(true);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+            
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center shadow-xs">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+              <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                Restricted GAS Application
+              </span>
+              <h3 className="text-base font-extrabold text-slate-900">{app.title}</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                This portal contains confidential security audit trails and administrative controls. Enter the administrator passcode to proceed.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Administrator Passcode</label>
+                <input
+                  ref={inputRef}
+                  type="password"
+                  placeholder="Enter passcode (default: admin123)"
+                  value={pin}
+                  onChange={(e) => { setPin(e.target.value); setError(false); }}
+                  className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono text-center tracking-widest"
+                  required
+                />
+                {error && (
+                  <p className="text-xs text-rose-500 font-semibold mt-1.5 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Incorrect administrator passcode. Access denied.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <p className="text-[11px] text-slate-400">Default PIN: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-slate-700">admin123</code></p>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                  >
+                    <span>Verify &amp; Launch</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                  </button>
+                </div>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      );
+    }
+
+    // ================= ADMIN MODAL COMPONENT =================
+    function AdminModal({
+      isOpen, onClose, isAuthenticated, onAuthenticate,
+      apps, tab, setTab, editingApp, setEditingApp,
+      onSave, onDelete, onMoveOrder, onCycleStatus,
+      onExport, onImport, onReset
+    }) {
+      const [pinInput, setPinInput] = useState('');
+      const [authError, setAuthError] = useState(false);
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        if (pinInput === ADMIN_PIN) {
+          onAuthenticate();
+          setAuthError(false);
+        } else {
+          setAuthError(true);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            
+            {/* Header */}
+            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-xl bg-brand-600 text-white shadow-sm">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+                    <span>RKdash Admin Console</span>
+                    <span className="text-[10px] font-mono bg-slate-800 text-brand-300 px-2 py-0.5 rounded border border-slate-700">
+                      v3.0
+                    </span>
+                  </h2>
+                  <p className="text-xs text-slate-400">Manage GAS application links, subdomains, display order, and stages.</p>
+                </div>
+              </div>
+
+              <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            {/* If Locked: Passcode prompt */}
+            {!isAuthenticated ? (
+              <div className="p-8 text-center flex-1 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-3 shadow-xs">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">Administrator Passcode Verification</h3>
+                <p className="text-xs text-slate-500 max-w-sm mt-1 mb-5">
+                  Enter your administrator passcode to configure Google Apps Script endpoints, subdomains, order, and deployment stages.
+                </p>
+
+                <form onSubmit={handleLogin} className="w-full max-w-xs space-y-3">
+                  <div>
+                    <input
+                      type="password"
+                      placeholder="Enter passcode (default: admin123)"
+                      value={pinInput}
+                      onChange={(e) => { setPinInput(e.target.value); setAuthError(false); }}
+                      className="w-full text-center px-4 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono tracking-widest"
+                      autoFocus
+                    />
+                  </div>
+                  {authError && <p className="text-xs text-rose-500 font-medium">Incorrect passcode. Try again.</p>}
+                  
+                  <div className="flex gap-2">
+                    <button type="submit" className="flex-1 py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition-all">
+                      Unlock Console
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onAuthenticate}
+                      className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs"
+                    >
+                      Quick Demo
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Default PIN: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">admin123</code></p>
+                </form>
+              </div>
+            ) : (
+              /* If Unlocked: Tabbed Panel */
+              <div className="flex-1 flex flex-col overflow-hidden">
+                
+                {/* Tabs & Quick Actions */}
+                <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => { setTab('list'); setEditingApp(null); }}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        tab === 'list'
+                          ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                          : 'text-slate-600 hover:bg-slate-200/60'
+                      }`}
+                    >
+                      Application Registry ({apps.length})
+                    </button>
+                    <button
+                      onClick={() => { setEditingApp(null); setTab('form'); }}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        tab === 'form' && !editingApp
+                          ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                          : 'text-slate-600 hover:bg-slate-200/60'
+                      }`}
+                    >
+                      + Add New Application
+                    </button>
+                  </div>
+
+                  <div className="flex items-center space-x-2 text-xs">
+                    <button onClick={onExport} className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1 shadow-2xs">
+                      Export JSON
+                    </button>
+                    <label className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold flex items-center gap-1 shadow-2xs cursor-pointer">
+                      Import JSON
+                      <input type="file" accept=".json" onChange={onImport} className="hidden"/>
+                    </label>
+                    <button onClick={onReset} className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 font-semibold">
+                      Reset Defaults
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  {tab === 'list' ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-slate-500">
+                          Use the <strong>▲ / ▼</strong> arrows to reorder. Click any stage pill to cycle between <strong>Live</strong>, <strong>Testing</strong>, and <strong>Restricted</strong>.
+                        </p>
+                      </div>
+
+                      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                              <th className="py-2.5 px-3 w-16 text-center">Order</th>
+                              <th className="py-2.5 px-4">Application Details</th>
+                              <th className="py-2.5 px-4 w-36">Deployment Stage</th>
+                              <th className="py-2.5 px-4 w-44">Target Endpoint</th>
+                              <th className="py-2.5 px-4 text-right w-28">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {[...apps].sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0)).map((app, idx, arr) => (
+                              <tr key={app.id} className="hover:bg-slate-50/80 transition-colors">
+                                <td className="py-2.5 px-3 text-center">
+                                  <div className="flex items-center justify-center space-x-1">
+                                    <span className="font-bold font-mono text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[11px]">{app.order}</span>
+                                    <div className="flex flex-col">
+                                      <button onClick={() => onMoveOrder(app.id, -1)} className={`text-slate-400 hover:text-slate-700 text-[10px] leading-none ${idx === 0 ? 'opacity-30' : ''}`}>▲</button>
+                                      <button onClick={() => onMoveOrder(app.id, 1)} className={`text-slate-400 hover:text-slate-700 text-[10px] leading-none ${idx === arr.length - 1 ? 'opacity-30' : ''}`}>▼</button>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="py-2.5 px-4">
+                                  <div className="font-bold text-slate-900">{app.title}</div>
+                                  <div className="text-[11px] text-slate-500 line-clamp-1">{app.description}</div>
+                                  {app.subdomain && (
+                                    <div className="text-[10px] font-mono text-brand-600">{app.subdomain}</div>
+                                  )}
+                                </td>
+
+                                <td className="py-2.5 px-4">
+                                  <button
+                                    onClick={() => onCycleStatus(app.id)}
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${
+                                      app.status === 'live'
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                        : app.status === 'testing'
+                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                        : 'bg-purple-50 text-purple-700 border-purple-200'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${app.status === 'live' ? 'bg-emerald-500 animate-pulse' : app.status === 'testing' ? 'bg-amber-500' : 'bg-purple-500'}`}></span>
+                                    <span className="capitalize">{app.status}</span>
+                                  </button>
+                                </td>
+
+                                <td className="py-2.5 px-4 font-mono text-[11px] text-slate-500 truncate max-w-[180px]">
+                                  <a href={app.targetUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-600 hover:underline">
+                                    {app.targetUrl}
+                                  </a>
+                                </td>
+
+                                <td className="py-2.5 px-4 text-right space-x-1 whitespace-nowrap">
+                                  <button
+                                    onClick={() => { setEditingApp(app); setTab('form'); }}
+                                    className="px-2.5 py-1 text-slate-700 hover:text-brand-700 hover:bg-brand-50 rounded-lg font-semibold transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => onDelete(app.id, app.title)}
+                                    className="px-2.5 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg font-semibold transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Add / Edit Form */
+                    <AdminAppForm
+                      initialData={editingApp}
+                      totalCount={apps.length}
+                      onCancel={() => { setTab('list'); setEditingApp(null); }}
+                      onSave={onSave}
+                    />
+                  )}
+                </div>
+
+              </div>
+            )}
+
+          </div>
+        </div>
+      );
+    }
+
+    // ================= APP FORM COMPONENT =================
+    function AdminAppForm({ initialData, totalCount, onCancel, onSave }) {
+      const [title, setTitle] = useState(initialData ? initialData.title : '');
+      const [subdomain, setSubdomain] = useState(initialData ? initialData.subdomain || '' : '');
+      const [description, setDescription] = useState(initialData ? initialData.description : '');
+      const [targetUrl, setTargetUrl] = useState(initialData ? initialData.targetUrl : '');
+      const [order, setOrder] = useState(initialData ? initialData.order : totalCount + 1);
+      const [status, setStatus] = useState(initialData ? initialData.status : 'live');
+      const [category, setCategory] = useState(initialData ? initialData.category || 'Automation' : 'Automation');
+      const [icon, setIcon] = useState(initialData ? initialData.icon : 'chart');
+      const [color, setColor] = useState(initialData ? initialData.color || 'from-indigo-600 to-sky-600' : 'from-indigo-600 to-sky-600');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        let url = targetUrl.trim();
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+        onSave({
+          id: initialData ? initialData.id : null,
+          title: title.trim(),
+          subdomain: subdomain.trim(),
+          description: description.trim(),
+          targetUrl: url,
+          order: Number(order) || 1,
+          status,
+          category: category.trim() || 'General',
+          icon,
+          color
+        });
+      };
+
+      return (
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+            <h3 className="text-sm font-extrabold text-slate-900">
+              {initialData ? `Edit Application: ${initialData.title}` : 'Add New GAS / Subdomain Application'}
+            </h3>
+            <button type="button" onClick={onCancel} className="text-xs text-slate-500 hover:text-slate-800">
+              Cancel
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Application Title <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Leave Approval Portal"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Subdomain or Short Identifier
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. leave.rkdash.internal"
+                value={subdomain}
+                onChange={(e) => setSubdomain(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              One-Sentence Description <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              maxLength={160}
+              placeholder="e.g. Staff leave applications, multi-tier supervisor approval matrix, and real-time quota deduction engine."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+            <p className="text-[10px] text-slate-400 mt-1">Keep it concise (1 clear sentence).</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Target URL (GAS Exec URL or Subdomain Link) <span className="text-rose-500">*</span>
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                required
+                placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                className="flex-1 px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (targetUrl) {
+                    let u = targetUrl;
+                    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+                    window.open(u, '_blank');
+                  }
+                }}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold shrink-0"
+              >
+                Test URL
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Display Order (#) <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                required
+                value={order}
+                onChange={(e) => setOrder(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Deployment Stage <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="live">● Live (Production)</option>
+                <option value="testing">◐ Testing Stage (Beta)</option>
+                <option value="restricted">🔒 Restricted (Admin Passcode Required)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Category
+              </label>
+              <input
+                type="text"
+                placeholder="Finance, HR, Automation..."
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Application Icon
+              </label>
+              <select
+                value={icon}
+                onChange={(e) => setIcon(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="chart">📊 Chart / Analytics / Sheet</option>
+                <option value="shield">🛡️ Shield / Security / HR</option>
+                <option value="building">🏢 Building / Operations</option>
+                <option value="mail">✉️ Mail / Gmail API</option>
+                <option value="webhook">⚡ Webhook / Router</option>
+                <option value="lock">🔒 Lock / Vigilance</option>
+                <option value="file-text">📝 Document / Drive PDF</option>
+                <option value="database">💾 Database / Storage</option>
+                <option value="code">💻 Code / Script Backend</option>
+                <option value="cloud">☁️ Cloud / Google Workspace</option>
+                <option value="bot">🤖 Bot / Automation</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Card Gradient Theme
+              </label>
+              <select
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="from-indigo-600 to-sky-600">Indigo to Sky (Classic)</option>
+                <option value="from-emerald-600 to-teal-700">Emerald to Teal (Finance/Success)</option>
+                <option value="from-amber-500 to-orange-700">Amber to Orange (Operations)</option>
+                <option value="from-purple-600 to-indigo-700">Purple to Indigo (Automation)</option>
+                <option value="from-rose-600 to-red-800">Rose to Red (Security/Restricted)</option>
+                <option value="from-cyan-600 to-teal-700">Cyan to Teal (Reporting)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-xs"
+            >
+              Save Application
+            </button>
+          </div>
+        </form>
+      );
+    }
+
+    // Helpers
+    function extractDomain(url) {
+      try {
+        const parsed = new URL(url);
+        return parsed.hostname + (parsed.pathname !== '/' ? parsed.pathname.substring(0, 15) : '');
+      } catch (e) {
+        return url ? url.substring(0, 20) : '';
+      }
+    }
+
+    // Mount React App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<RKdashApp />);
+  </script>
+</body>
+</html>
