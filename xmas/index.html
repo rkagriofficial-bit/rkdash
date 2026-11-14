@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎄 Xmas Friend Finder | Secret Scratch & Find</title>
+  <meta name="description" content="Festive Secret Santa Scratch and Find Friend Finder. Hostable on GitHub Pages subdirectory with WhatsApp integration and private passkeys.">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <!-- Falling Snow Layer -->
+  <div id="snowContainer" class="snow-container"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="title-badge">🎅 Holiday Gift Exchange 2026</div>
+    <h1>Xmas Friend Finder</h1>
+    <p class="subtitle">
+      Scratch and find your secret Xmas friend! Enter your private passkey to unlock your card.
+    </p>
+
+    <!-- Top Action Bar -->
+    <div class="top-action-bar">
+      <button id="openAdminBtn" class="btn btn-secondary" title="Admin Settings & Allotment Control">
+        🔒 Admin Panel
+      </button>
+      <button id="soundToggleBtn" class="icon-pill" title="Toggle Sound Effects">
+        🔔
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main>
+    <!-- Status Banner -->
+    <section id="statusBanner" class="status-banner">
+      <!-- Injected via JavaScript -->
+    </section>
+
+    <!-- Friends Grid Section -->
+    <section class="friends-grid-section">
+      <div class="section-header">
+        <h2>🎁 Participants (<span id="participantCount">13</span> Friends)</h2>
+        <p style="font-size:0.9rem; color:var(--text-muted);">
+          Tap your card below to scratch and find your friend. You cannot be allotted to yourself!
+        </p>
+      </div>
+      <div id="friendsGrid" class="friends-grid">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================================
+       Friend Personal Secret Key Verification Modal
+       ========================================================================= -->
+  <div id="friendKeyModal" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width:400px; text-align:center;">
+      <div style="font-size:2.8rem; margin-bottom:0.4rem;">🗝️</div>
+      <h3 id="friendKeyTitle" style="font-size:1.35rem; margin-bottom:0.4rem; color:var(--festive-gold);">Enter Secret Passkey</h3>
+      <p id="friendKeySubtitle" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.2rem;">
+        Please enter the private key given to you by the Admin to unlock your card.
+      </p>
+
+      <input type="text" id="friendKeyInput" class="name-input key-input-box" placeholder="ENTER KEY" maxlength="12" autocomplete="off" style="width:100%; margin-bottom:0.8rem;">
+      <div id="friendKeyError" style="color:#f87171; font-size:0.85rem; margin-bottom:1rem; min-height:1.2rem;"></div>
+
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button id="friendKeyCancelBtn" class="btn btn-secondary" style="flex:1;">Cancel</button>
+        <button id="friendKeySubmitBtn" class="btn btn-primary" style="flex:1;">✨ Unlock & Scratch</button>
+      </div>
+      <div style="margin-top:1rem; font-size:0.75rem; color:#64748b;">
+        🔒 Kept private until Admin finishes the game.
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Scratch Card Interactive Modal (Scratch and Find)
+       ========================================================================= -->
+  <div id="scratchModal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <button id="closeScratchBtn" class="modal-close-btn" title="Close Card">&times;</button>
+      
+      <div style="text-align:center;">
+        <span style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--festive-gold);">🎄 Secret Holiday Mission 🎄</span>
+        <h2 id="modalFriendTitle" style="font-size:1.6rem; color:#ffffff; margin:4px 0 8px;">Scratch & Find</h2>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+          Swipe or drag across the golden foil to discover who you are gifting to!
+        </p>
+      </div>
+
+      <!-- Scratch Box -->
+      <div class="scratch-box-wrapper">
+        <div class="scratch-stage">
+          <!-- Revealed Content Underneath -->
+          <div class="scratch-underlayer">
+            <div class="underlayer-icon">🎁</div>
+            <div class="underlayer-subtitle">Your Xmas Friend Is</div>
+            <div id="revealedReceiverName" class="underlayer-name">Secret Friend</div>
+            <div class="underlayer-wish">
+              🌟 You are their Secret Santa! Keep it a surprise until gift day! 🎄
+            </div>
+          </div>
+          <!-- Scratchable Canvas Overlay -->
+          <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Progress Meter (Clearly labeled so user knows what the % is for) -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem; font-size:0.82rem; color:var(--text-muted);">
+        <span>🪙 Foil Scratch Progress:</span>
+        <span id="scratchProgressText" class="progress-label" style="font-weight:700; color:var(--festive-gold);">0%</span>
+      </div>
+      <div class="scratch-progress-box">
+        <div class="progress-track">
+          <div id="scratchProgressFill" class="progress-fill"></div>
+        </div>
+      </div>
+      <div style="font-size:0.75rem; color:#64748b; text-align:center; margin-top:4px;">
+        (Card reveals automatically once 40% of the foil is scratched!)
+      </div>
+
+      <!-- Revealed / Locked Notice -->
+      <div id="alreadyRevealedNotice" class="already-revealed-notice" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Admin PIN Verification Modal
+       ========================================================================= -->
+  <div id="adminPinModal" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width:380px; text-align:center;">
+      <div style="font-size:2.5rem; margin-bottom:0.5rem;">🔐</div>
+      <h3 style="font-size:1.3rem; margin-bottom:0.4rem; color:var(--festive-gold);">Admin Authorization</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.2rem;">
+        Enter your admin PIN to manage friend allotments, view secret keys, finish game, or reset.
+      </p>
+
+      <input type="password" id="adminPinInput" class="name-input" placeholder="Enter PIN (Default: 1225)" style="text-align:center; font-size:1.1rem; width:100%; margin-bottom:0.8rem;" maxlength="8">
+      <div id="adminPinError" style="color:#f87171; font-size:0.85rem; margin-bottom:1rem; min-height:1.2rem;"></div>
+
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button id="adminPinCancelBtn" class="btn btn-secondary" style="flex:1;">Cancel</button>
+        <button id="adminPinSubmitBtn" class="btn btn-primary" style="flex:1;">Unlock</button>
+      </div>
+      <div style="margin-top:1rem; font-size:0.75rem; color:#64748b;">Hint: Default passcode is <strong>1225</strong></div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Admin Control Dashboard Modal
+       ========================================================================= -->
+  <div id="adminModal" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width:680px;">
+      <button id="closeAdminBtn" class="modal-close-btn" title="Close Admin">&times;</button>
+      
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem;">
+        <span style="font-size:1.8rem;">⚙️</span>
+        <div>
+          <h2 style="font-size:1.4rem; color:var(--festive-gold);">Admin Control Center</h2>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Manage members, WhatsApp numbers, keys, finish the game, or reset.</p>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="tabDraw">🎲 Allotment & Members</button>
+        <button class="tab-btn" data-tab="tabMaster">📋 Master List</button>
+        <button class="tab-btn" data-tab="tabShare">💬 WhatsApp & Keys</button>
+        <button class="tab-btn" data-tab="tabSettings">⚙️ PIN & Settings</button>
+      </div>
+
+      <!-- Tab 1: Allotment & Names -->
+      <div id="tabDraw" class="tab-content" style="display:block;">
+        <div id="adminDrawStatusNote"></div>
+
+        <!-- Admin Exclusivity Option -->
+        <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:10px 14px; margin-bottom:1rem; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <strong style="color:var(--festive-gold); font-size:0.92rem;">🛡️ Admin Role (Exclusivity)</strong>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+              Mark whether Admin participates in the exchange or is strictly organizer.
+            </p>
+          </div>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; font-weight:600; color:#fff;">
+            <input type="checkbox" id="adminExcludedCheckbox" style="width:18px; height:18px; accent-color:var(--festive-gold);">
+            <span>Exclude Admin from Draw (Organizer Only)</span>
+          </label>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:8px;">
+          <div>
+            <h4 style="font-size:0.95rem; color:#f1f5f9;">Members & WhatsApp Numbers (<span id="adminMemberCount">13</span>)</h4>
+            <p style="font-size:0.8rem; color:var(--text-muted);">Enter name and phone number (e.g. +919876543210) for direct WhatsApp sending.</p>
+          </div>
+          <button id="addMemberBtn" class="btn btn-secondary btn-sm" style="background:rgba(34, 197, 94, 0.2); border-color:#22c55e; color:#4ade80;">
+            ➕ Add Member
+          </button>
+        </div>
+
+        <div id="adminNamesGrid" class="admin-names-grid">
+          <!-- Populated via JavaScript -->
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <button id="saveNamesBtn" class="btn btn-secondary">💾 Save Names & Numbers</button>
+          <button id="triggerDrawBtn" class="btn btn-gold">🎅 Set & Seal Allotments</button>
+          <button id="finishGameBtn" class="btn btn-gold" style="display:none;">🏁 Finish Game (No Keys Needed)</button>
+          <button id="reopenGameBtn" class="btn btn-secondary" style="display:none;">🔒 Re-lock with Keys</button>
+          <button id="resetDrawBtn" class="btn btn-danger" style="display:none;">⚠️ Reset Allotment</button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Master List (Spoiler protected) -->
+      <div id="tabMaster" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+          <h4 style="font-size:0.95rem; color:#f1f5f9;">Confidential Pairings & Keys</h4>
+          <button id="toggleAllSpoilersBtn" class="btn btn-secondary btn-sm">👁️ Reveal All Matches</button>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.8rem;">
+          Matches are blurred to protect surprises. Tap on any blurred cell to inspect.
+        </p>
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th>Friend (Giver)</th>
+              <th>Secret Key</th>
+              <th>Assigned Match (Receiver)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="masterTableBody">
+            <!-- Populated via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 3: Shareable Keys & WhatsApp -->
+      <div id="tabShare" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:8px;">
+          <h4 style="font-size:0.95rem; color:#f1f5f9;">Distribute Keys via WhatsApp</h4>
+          <button id="copyAllKeysSummaryBtn" class="btn btn-gold btn-sm">📋 Copy All Keys Cheat-Sheet</button>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">
+          Send each friend their secret passkey. Clicking the WhatsApp button opens chat directly with their phone number!
+        </p>
+        <div id="shareLinksList" class="share-links-list">
+          <!-- Populated via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Tab 4: Settings & Admin PIN -->
+      <div id="tabSettings" class="tab-content" style="display:none;">
+        <h4 style="font-size:0.95rem; color:#f1f5f9; margin-bottom:0.6rem;">Admin Security & PIN Change</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.2rem;">
+          Change your admin passcode to keep the control center secure.
+        </p>
+
+        <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:1.2rem; max-width:440px;">
+          <div style="margin-bottom:1rem;">
+            <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:4px;">Current Active PIN</label>
+            <div id="currentPinDisplay" style="font-family:monospace; font-size:1.2rem; color:var(--festive-gold); font-weight:700;">1225</div>
+          </div>
+
+          <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Enter New PIN (at least 4 digits/characters):</label>
+          <div style="display:flex; gap:8px; margin-bottom:0.8rem;">
+            <input type="text" id="newAdminPinInput" class="name-input" placeholder="e.g. 2026" maxlength="12" style="flex:1; font-family:monospace; font-size:1.1rem; text-align:center;">
+            <button id="saveNewPinBtn" class="btn btn-gold">Update PIN</button>
+          </div>
+          <div id="pinChangeNotice" style="font-size:0.85rem; color:#4ade80; min-height:1.2rem;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notice -->
+  <div id="toastNotice" class="toast-notice">Notice message</div>
+
+  <!-- Scripts: Relative paths for GitHub Pages subfolder compatibility -->
+  <script src="./confetti.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
