@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RKdash — Enterprise Gateway & Applications Portal</title>
   <meta name="description" content="Official enterprise application gateway and services portal for rkdash.in.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
@@ -129,8 +132,8 @@
     const SESSION_STORAGE_KEY = "rkdash_gateway_session_v2";
     const DB_URL_STORAGE_KEY = "rkdash_gateway_db_url_v2";
 
-    // Optional hardcoded default Web App URL (can be filled or left to localStorage)
-    const DEFAULT_DB_URL = "";
+    // Central Google Sheets Database Web App URL (Pre-configured for all devices)
+    const DEFAULT_DB_URL = "https://script.google.com/macros/s/AKfycbyUZ3OcbogBdVG2CzIVImHK1yHoO4UATxsHlmBOLiUt-XCk7xg5X2Pt3RtoL4Dxpd9b6A/exec";
 
     // Cryptographic SHA-256 Digest Helper (with standard fallback)
     async function sha256(message) {
@@ -386,8 +389,20 @@
       // Services Catalog State
       const [apps, setApps] = useState(() => {
         try {
+          // Purge legacy storage from early testing
+          localStorage.removeItem("rkdash_catalog_v1");
           const saved = localStorage.getItem(CATALOG_STORAGE_KEY);
-          return saved ? JSON.parse(saved) : INITIAL_SERVICES;
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            const hasLegacy = Array.isArray(parsed) && parsed.some(item => 
+              (item.subdomain && item.subdomain.includes(".internal")) || 
+              (item.targetUrl && item.targetUrl.includes("ExampleInvoiceApp"))
+            );
+            if (!hasLegacy && Array.isArray(parsed) && parsed.length > 0) {
+              return parsed;
+            }
+          }
+          return INITIAL_SERVICES;
         } catch (e) {
           return INITIAL_SERVICES;
         }
@@ -406,9 +421,14 @@
       // Google Sheets Database Web App URL
       const [dbUrl, setDbUrl] = useState(() => {
         try {
-          return localStorage.getItem(DB_URL_STORAGE_KEY) || DEFAULT_DB_URL || "";
+          const stored = localStorage.getItem(DB_URL_STORAGE_KEY);
+          if (!stored || stored.includes("WAW08w")) {
+            localStorage.setItem(DB_URL_STORAGE_KEY, DEFAULT_DB_URL);
+            return DEFAULT_DB_URL;
+          }
+          return stored || DEFAULT_DB_URL;
         } catch (e) {
-          return DEFAULT_DB_URL || "";
+          return DEFAULT_DB_URL;
         }
       });
 
@@ -492,6 +512,9 @@
           const data = await res.json();
           if (data && data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
             setApps(data.data);
+            try {
+              localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(data.data));
+            } catch(e) {}
             setDbStatus('connected');
             setLastSyncTime(Date.now());
             console.log("Loaded live catalog from Google Sheets:", data.data.length, "services");
