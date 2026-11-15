@@ -1,8 +1,8 @@
 /**
  * Christmas Friend Finder - Core Application Logic
  * Pure client-side, zero build step, GitHub Pages subdirectory compatible.
- * With 13+ Flexible Members, WhatsApp Numbers, Fresh Keys per Allotment,
- * Admin Exclusivity, and "Scratch & Find".
+ * With Google Sheets Database Cloud Sync, 13+ Flexible Members,
+ * WhatsApp Numbers, Fresh Keys per Allotment, Admin Exclusivity, and "Scratch & Find".
  */
 
 (function () {
@@ -94,9 +94,12 @@
     'Friend 13'
   ];
 
+  const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxjbZpuBkodzz2MudPoO87n1Qn__8RulIK3qUJBUgAl-uLndvjp6DDREhBKxZjxWAW08w/exec';
+
   const state = {
     adminPin: '1225',
     adminExcluded: true, // Admin is organizer only (exclusive of activities)
+    sheetUrl: DEFAULT_SHEET_URL, // Google Apps Script Web App URL
     isAllotted: false,
     allottedAt: null,
     isFinished: false,   // Once true, no keys are asked, cards are publicly revealed
@@ -107,6 +110,7 @@
     pairs: {},      // giverName -> receiverName
     scratched: {},  // giverName -> boolean
     scratchedAt: {},
+    wishlists: {},  // memberName -> Array of up to 5 gift idea strings
     salt: Math.random().toString(36).substring(2, 10)
   };
 
@@ -117,6 +121,7 @@
   function ensureKeysExist() {
     if (!state.keys) state.keys = {};
     if (!state.phones) state.phones = {};
+    if (!state.wishlists) state.wishlists = {};
     const used = new Set(Object.values(state.keys));
     state.names.forEach(name => {
       if (!state.keys[name]) {
@@ -126,6 +131,9 @@
         } while (used.has(pin));
         used.add(pin);
         state.keys[name] = pin;
+      }
+      if (!state.wishlists[name]) {
+        state.wishlists[name] = [];
       }
     });
   }
@@ -140,6 +148,12 @@
     } catch (e) {
       console.warn('Could not load stored state:', e);
     }
+    if (!state.sheetUrl) {
+      state.sheetUrl = DEFAULT_SHEET_URL;
+    }
+    if (!state.wishlists) {
+      state.wishlists = {};
+    }
     ensureKeysExist();
   }
 
@@ -148,6 +162,64 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
       console.warn('Could not save state:', e);
+    }
+  }
+
+  // --- Google Sheets Cloud Sync Engine ---
+  async function syncFromGoogleSheet(silent = false) {
+    if (!state.sheetUrl) return false;
+    try {
+      if (!silent) showToast('🔄 Syncing with Google Sheet...');
+      const res = await fetch(state.sheetUrl, { method: 'GET' });
+      const data = await res.json();
+
+      if (data && data.status === 'success' && data.state) {
+        const s = data.state;
+        if (s.names && s.names.length > 0) {
+          state.names = s.names;
+        }
+        if (s.pairs && Object.keys(s.pairs).length > 0) {
+          state.pairs = s.pairs;
+          state.isAllotted = s.isAllotted;
+        }
+        if (s.keys) state.keys = s.keys;
+        if (s.phones) state.phones = s.phones;
+        if (s.scratched) state.scratched = s.scratched;
+        if (s.scratchedAt) state.scratchedAt = s.scratchedAt;
+        if (s.wishlists) state.wishlists = s.wishlists;
+        if (typeof s.isFinished !== 'undefined') state.isFinished = s.isFinished;
+        if (typeof s.adminExcluded !== 'undefined') state.adminExcluded = s.adminExcluded;
+
+        saveState();
+        renderStatusBanner();
+        renderFriendsGrid();
+        if (!silent) showToast('✅ Synced with Google Sheet!');
+        return true;
+      }
+    } catch (err) {
+      console.warn('Google Sheet sync error:', err);
+      if (!silent) showToast('⚠️ Could not sync with Google Sheet. Using local data.');
+    }
+    return false;
+  }
+
+  async function syncToGoogleSheet(action, extraData = {}) {
+    if (!state.sheetUrl) return;
+    try {
+      const payload = Object.assign({
+        action: action,
+        state: state
+      }, extraData);
+
+      await fetch(state.sheetUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      console.log('Synced action to Google Sheet:', action);
+    } catch (err) {
+      console.warn('Failed to update Google Sheet:', err);
     }
   }
 
@@ -227,6 +299,29 @@
   const alreadyRevealedNotice = document.getElementById('alreadyRevealedNotice');
   const closeScratchBtn = document.getElementById('closeScratchBtn');
 
+  // Modal Tabs & Wishlist Elements
+  const modalTabReveal = document.getElementById('modalTabReveal');
+  const modalTabWishlist = document.getElementById('modalTabWishlist');
+  const scratchTabContent = document.getElementById('scratchTabContent');
+  const wishlistTabContent = document.getElementById('wishlistTabContent');
+  const myWishlistBadgeCount = document.getElementById('myWishlistBadgeCount');
+
+  // Receiver Wishlist
+  const receiverWishlistCard = document.getElementById('receiverWishlistCard');
+  const receiverWishlistFriendName = document.getElementById('receiverWishlistFriendName');
+  const receiverWishlistContent = document.getElementById('receiverWishlistContent');
+
+  // My Wishlist
+  const myWishlistItemsList = document.getElementById('myWishlistItemsList');
+  const newWishlistItemInput = document.getElementById('newWishlistItemInput');
+  const addWishlistItemBtn = document.getElementById('addWishlistItemBtn');
+  const wishlistNotice = document.getElementById('wishlistNotice');
+  const myWishlistCountText = document.getElementById('myWishlistCountText');
+  const saveMyWishlistBtn = document.getElementById('saveMyWishlistBtn');
+
+  // Admin Wishlist Grid
+  const adminWishlistsGrid = document.getElementById('adminWishlistsGrid');
+
   let activeScratcher = null;
   let activeReceiver = null;
   let isScratching = false;
@@ -269,6 +364,7 @@
     const isFinished = state.isFinished;
     const total = state.names.length;
     const scratchedCount = Object.keys(state.scratched).filter(k => state.scratched[k]).length;
+    const isCloudConnected = !!state.sheetUrl;
 
     if (participantCountEl) {
       participantCountEl.textContent = total;
@@ -288,7 +384,7 @@
       `;
     } else if (isReady) {
       bannerTitle = `🎅 Allotment Sealed (${total} Members)`;
-      bannerDesc = `${scratchedCount} of ${total} friends have scratched and found their secret friend using their private key.`;
+      bannerDesc = `${scratchedCount} of ${total} friends have scratched and found their secret friend. ${isCloudConnected ? '(📊 Google Sheet Synced)' : ''}`;
       actionBtnHtml = `
         <button id="bannerShareBtn" class="btn btn-gold btn-sm">
           💬 WhatsApp & Keys
@@ -296,7 +392,7 @@
       `;
     } else {
       bannerTitle = `⏳ Waiting for Admin to Set Allotments (${total} Members)`;
-      bannerDesc = 'Friends cannot scratch their card until the Admin sets and seals the draw.';
+      bannerDesc = `Friends cannot scratch their card until the Admin sets and seals the draw. ${isCloudConnected ? '(📊 Google Sheet Connected)' : ''}`;
       actionBtnHtml = `
         <button id="bannerSetupBtn" class="btn btn-primary btn-sm">
           ⚙️ Admin Setup
@@ -370,6 +466,10 @@
       }
 
       const avatarIcon = avatars[idx % avatars.length];
+      const wishList = (state.wishlists && state.wishlists[name]) ? state.wishlists[name] : [];
+      const wishBadge = wishList.length > 0 
+        ? `<div class="wishlist-pill">📝 ${wishList.length} ${wishList.length === 1 ? 'wish' : 'wishes'}</div>` 
+        : '';
 
       card.innerHTML = `
         <div class="friend-avatar">
@@ -378,6 +478,7 @@
         </div>
         <div class="friend-name">${escapeHtml(name)}</div>
         ${badgeHtml}
+        ${wishBadge}
         <button class="btn ${isScratched || isFinished ? 'btn-secondary' : 'btn-primary'} card-action-btn">
           ${btnText}
         </button>
@@ -464,6 +565,10 @@
     activeScratcher = name;
     sound.init();
 
+    switchModalTab('reveal');
+    const myWishes = (state.wishlists && state.wishlists[name]) ? state.wishlists[name] : [];
+    if (myWishlistBadgeCount) myWishlistBadgeCount.textContent = myWishes.length;
+
     const receiver = forcedReceiver || state.pairs[name];
     if (!receiver) {
       showToast('⚠️ No allotment found for ' + name + '. Please check with Admin.');
@@ -505,10 +610,12 @@
           <p style="font-size:0.8rem; margin-top:4px; color:#cbd5e1;">(Once allotted, your friend cannot be changed. Keep it a surprise! 🤫)</p>
         `;
       }
+      renderReceiverWishlist(receiver);
     } else {
       scratchCanvas.style.display = 'block';
       scratchCanvas.style.opacity = '1';
       alreadyRevealedNotice.style.display = 'none';
+      if (receiverWishlistCard) receiverWishlistCard.style.display = 'none';
       scratchProgressFill.style.width = '0%';
       scratchProgressText.textContent = '0%';
       
@@ -681,9 +788,13 @@
   function completeScratchReveal() {
     if (state.scratched[activeScratcher]) return;
 
+    const now = new Date().toISOString();
     state.scratched[activeScratcher] = true;
-    state.scratchedAt[activeScratcher] = new Date().toISOString();
+    state.scratchedAt[activeScratcher] = now;
     saveState();
+
+    // Async sync to Google Sheet in background
+    syncToGoogleSheet('markScratched', { name: activeScratcher, timestamp: now });
 
     scratchCanvas.style.transition = 'opacity 0.6s ease';
     scratchCanvas.style.opacity = '0';
@@ -694,6 +805,7 @@
         <p>🎉 <strong>Secret Friend Found!</strong> You are buying a gift for <strong>${escapeHtml(activeReceiver || state.pairs[activeScratcher])}</strong>!</p>
         <p style="font-size:0.8rem; margin-top:4px; color:#cbd5e1;">(Cannot be re-allotted. Your assignment is permanently saved!)</p>
       `;
+      renderReceiverWishlist(activeReceiver || state.pairs[activeScratcher]);
     }, 600);
 
     scratchProgressFill.style.width = '100%';
@@ -712,6 +824,152 @@
   closeScratchBtn.addEventListener('click', () => {
     scratchModalEl.classList.remove('show');
   });
+
+  // --- Wishlist Management Logic (Max 5 items per member) ---
+  function switchModalTab(tabName) {
+    if (tabName === 'reveal') {
+      if (modalTabReveal) modalTabReveal.classList.add('active');
+      if (modalTabWishlist) modalTabWishlist.classList.remove('active');
+      if (scratchTabContent) scratchTabContent.style.display = 'block';
+      if (wishlistTabContent) wishlistTabContent.style.display = 'none';
+    } else {
+      if (modalTabReveal) modalTabReveal.classList.remove('active');
+      if (modalTabWishlist) modalTabWishlist.classList.add('active');
+      if (scratchTabContent) scratchTabContent.style.display = 'none';
+      if (wishlistTabContent) wishlistTabContent.style.display = 'block';
+      renderMyWishlist();
+    }
+  }
+
+  if (modalTabReveal) modalTabReveal.addEventListener('click', () => switchModalTab('reveal'));
+  if (modalTabWishlist) modalTabWishlist.addEventListener('click', () => switchModalTab('wishlist'));
+
+  function renderReceiverWishlist(receiverName) {
+    if (!receiverWishlistCard || !receiverWishlistContent) return;
+    if (receiverWishlistFriendName) receiverWishlistFriendName.textContent = receiverName;
+    const items = (state.wishlists && state.wishlists[receiverName]) ? state.wishlists[receiverName] : [];
+
+    if (!items || items.length === 0) {
+      receiverWishlistContent.innerHTML = `
+        <div class="receiver-wishlist-empty">
+          🎁 ${escapeHtml(receiverName)} hasn't listed any wishlist ideas yet.<br>
+          Surprise them with a thoughtful holiday gift! 🎄
+        </div>
+      `;
+    } else {
+      receiverWishlistContent.innerHTML = items.map((item, idx) => `
+        <div class="receiver-wishlist-item">
+          <span style="color:var(--festive-gold); font-weight:700;">#${idx + 1}</span>
+          <span>${escapeHtml(item)}</span>
+        </div>
+      `).join('');
+    }
+    receiverWishlistCard.style.display = 'block';
+  }
+
+  function renderMyWishlist() {
+    if (!myWishlistItemsList || !activeScratcher) return;
+    if (!state.wishlists) state.wishlists = {};
+    if (!state.wishlists[activeScratcher]) state.wishlists[activeScratcher] = [];
+
+    const items = state.wishlists[activeScratcher];
+    const count = items.length;
+
+    if (myWishlistBadgeCount) myWishlistBadgeCount.textContent = count;
+    if (myWishlistCountText) myWishlistCountText.textContent = count;
+
+    if (count === 0) {
+      myWishlistItemsList.innerHTML = `
+        <div style="text-align:center; color:var(--text-muted); font-style:italic; padding:1.2rem 0;">
+          No wishlist items added yet. Enter a gift idea below to help your Secret Santa! 🎁
+        </div>
+      `;
+    } else {
+      myWishlistItemsList.innerHTML = items.map((item, idx) => `
+        <div class="my-wishlist-item-row">
+          <span class="wishlist-item-num">#${idx + 1}</span>
+          <span class="wishlist-item-text">${escapeHtml(item)}</span>
+          <button class="wishlist-item-delete-btn" data-index="${idx}" title="Remove Item">✖</button>
+        </div>
+      `).join('');
+
+      myWishlistItemsList.querySelectorAll('.wishlist-item-delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+          deleteWishlistItem(index);
+        });
+      });
+    }
+
+    const addRow = document.getElementById('myWishlistAddRow');
+    if (count >= 5) {
+      if (addRow) addRow.style.display = 'none';
+      if (wishlistNotice) {
+        wishlistNotice.textContent = '🌟 You have added all 5 wishlist items!';
+        wishlistNotice.style.color = '#fbbf24';
+      }
+    } else {
+      if (addRow) addRow.style.display = 'flex';
+      if (wishlistNotice) {
+        wishlistNotice.textContent = `You can add ${5 - count} more ${5 - count === 1 ? 'item' : 'items'}.`;
+        wishlistNotice.style.color = 'var(--text-muted)';
+      }
+    }
+  }
+
+  function addWishlistItem() {
+    if (!activeScratcher) return;
+    if (!state.wishlists) state.wishlists = {};
+    if (!state.wishlists[activeScratcher]) state.wishlists[activeScratcher] = [];
+
+    const items = state.wishlists[activeScratcher];
+    if (items.length >= 5) {
+      showToast('⚠️ Maximum of 5 wishlist items allowed!');
+      return;
+    }
+
+    if (!newWishlistItemInput) return;
+    const val = newWishlistItemInput.value.trim();
+    if (!val) {
+      newWishlistItemInput.focus();
+      return;
+    }
+
+    items.push(val);
+    newWishlistItemInput.value = '';
+    renderMyWishlist();
+    saveState();
+    showToast(`Added: "${val}" — Click "Save Wishlist" to save!`);
+  }
+
+  function deleteWishlistItem(index) {
+    if (!activeScratcher || !state.wishlists || !state.wishlists[activeScratcher]) return;
+    state.wishlists[activeScratcher].splice(index, 1);
+    renderMyWishlist();
+    saveState();
+    showToast('Removed item. Remember to click "Save Wishlist"!');
+  }
+
+  async function saveMyWishlist() {
+    if (!activeScratcher) return;
+    saveState();
+    renderFriendsGrid();
+    showToast('💾 Saving wishlist to cloud database...');
+    await syncToGoogleSheet('saveWishlist', {
+      name: activeScratcher,
+      wishlist: state.wishlists[activeScratcher] || []
+    });
+    showToast('✅ Wishlist saved successfully!');
+    sound.playChime();
+  }
+
+  if (addWishlistItemBtn) addWishlistItemBtn.addEventListener('click', addWishlistItem);
+  if (newWishlistItemInput) {
+    newWishlistItemInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addWishlistItem();
+    });
+  }
+  if (saveMyWishlistBtn) saveMyWishlistBtn.addEventListener('click', saveMyWishlist);
 
   // --- Admin Flow ---
   function promptAdminLogin(onSuccess) {
@@ -819,11 +1077,28 @@
 
     renderMasterTable();
     renderShareLinks();
+    renderAdminWishlists();
 
     // PIN Display in Settings
     const currentPinDisplay = document.getElementById('currentPinDisplay');
     if (currentPinDisplay) {
       currentPinDisplay.textContent = state.adminPin;
+    }
+
+    // Google Sheet URL in Settings
+    const sheetApiUrlInput = document.getElementById('sheetApiUrlInput');
+    const sheetConnectionBadge = document.getElementById('sheetConnectionBadge');
+    if (sheetApiUrlInput) {
+      sheetApiUrlInput.value = state.sheetUrl || '';
+    }
+    if (sheetConnectionBadge) {
+      if (state.sheetUrl) {
+        sheetConnectionBadge.className = 'friend-badge badge-ready';
+        sheetConnectionBadge.textContent = '🟢 Google Sheet Connected';
+      } else {
+        sheetConnectionBadge.className = 'friend-badge badge-waiting';
+        sheetConnectionBadge.textContent = '⚪ LocalStorage Only';
+      }
     }
 
     const statusNote = document.getElementById('adminDrawStatusNote');
@@ -1008,6 +1283,40 @@
     }
   }
 
+  function renderAdminWishlists() {
+    if (!adminWishlistsGrid) return;
+    adminWishlistsGrid.innerHTML = '';
+
+    state.names.forEach((name, i) => {
+      const items = (state.wishlists && state.wishlists[name]) ? state.wishlists[name] : [];
+      const card = document.createElement('div');
+      card.className = 'admin-wishlist-card';
+
+      let itemsHtml = '';
+      if (items.length === 0) {
+        itemsHtml = `<div style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:6px 0;">No wishlist items added yet.</div>`;
+      } else {
+        itemsHtml = items.map((item, idx) => `
+          <div style="font-size:0.83rem; color:#f1f5f9; padding:4px 0; display:flex; gap:6px;">
+            <span style="color:var(--festive-gold); font-weight:700;">${idx + 1}.</span>
+            <span>${escapeHtml(item)}</span>
+          </div>
+        `).join('');
+      }
+
+      card.innerHTML = `
+        <div class="admin-wishlist-card-header">
+          <strong style="color:var(--festive-gold); font-size:0.92rem;">${escapeHtml(name)}</strong>
+          <span style="font-size:0.75rem; color:${items.length > 0 ? '#4ade80' : 'var(--text-muted)'}; font-weight:600;">
+            ${items.length}/5 items
+          </span>
+        </div>
+        ${itemsHtml}
+      `;
+      adminWishlistsGrid.appendChild(card);
+    });
+  }
+
   function switchAdminTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
@@ -1015,6 +1324,9 @@
     document.querySelectorAll('.tab-content').forEach(content => {
       content.style.display = content.id === tabId ? 'block' : 'none';
     });
+    if (tabId === 'tabWishlists') {
+      renderAdminWishlists();
+    }
   }
 
   // --- Admin Event Listeners ---
@@ -1081,7 +1393,7 @@
   });
 
   // Trigger Draw (Set & Seal Allotments)
-  // Ensures: 1. Completely randomized allotment 2. Fresh new keys generated for everyone
+  // Ensures: 1. Completely randomized allotment 2. Fresh new keys generated for everyone 3. Sync to Google Sheet
   document.getElementById('triggerDrawBtn').addEventListener('click', () => {
     if (state.names.length < 2) {
       showToast('⚠️ Need at least 2 friends for a Secret Santa draw.');
@@ -1124,6 +1436,9 @@
     state.salt = Math.random().toString(36).substring(2, 10);
     saveState();
 
+    // 3. Write directly to Google Sheet
+    syncToGoogleSheet('saveAllotment');
+
     sound.playChime();
     showToast(`🎉 Allotment complete! ${state.names.length} friends sealed with brand new keys!`);
     renderAdminModal();
@@ -1141,6 +1456,9 @@
       state.isFinished = true;
       state.finishedAt = new Date().toISOString();
       saveState();
+
+      // Sync to Google Sheet
+      syncToGoogleSheet('finishGame', { isFinished: true });
 
       sound.playChime();
       if (window.HolidayConfetti) {
@@ -1164,6 +1482,8 @@
       state.finishedAt = null;
       saveState();
 
+      syncToGoogleSheet('finishGame', { isFinished: false });
+
       showToast('🔒 Game re-locked: Keys are now required again.');
       renderAdminModal();
       renderStatusBanner();
@@ -1171,9 +1491,9 @@
     });
   }
 
-  // Reset Draw
+  // Reset Draw (For Next Year)
   document.getElementById('resetDrawBtn').addEventListener('click', () => {
-    const confirmText = prompt('⚠️ Type "RESET" to confirm wiping all current allotments, keys, and scratch statuses:');
+    const confirmText = prompt('⚠️ Type "RESET" to confirm wiping all current allotments, keys, scratch statuses, and member wishlists for the new year:');
     if (confirmText === 'RESET') {
       state.isAllotted = false;
       state.allottedAt = null;
@@ -1182,9 +1502,15 @@
       state.pairs = {};
       state.scratched = {};
       state.scratchedAt = {};
+      state.wishlists = {};
+      state.keys = {};
+      ensureKeysExist();
       saveState();
 
-      showToast('🔄 Allotments have been reset!');
+      // Sync to Google Sheet
+      syncToGoogleSheet('reset');
+
+      showToast('✨ All allotments, keys, and wishlists have been reset for the new year!');
       renderAdminModal();
       renderStatusBanner();
       renderFriendsGrid();
@@ -1203,6 +1529,45 @@
         cell.classList.toggle('spoiler-hidden', !allRevealed);
       });
       toggleAllSpoilersBtn.textContent = allRevealed ? '🙈 Hide All Matches' : '👁️ Reveal All Matches';
+    });
+  }
+
+  // Google Sheet URL Connect Button in Settings
+  const saveSheetUrlBtn = document.getElementById('saveSheetUrlBtn');
+  const sheetApiUrlInput = document.getElementById('sheetApiUrlInput');
+  const sheetSyncNotice = document.getElementById('sheetSyncNotice');
+  const testSheetBtn = document.getElementById('testSheetBtn');
+
+  if (saveSheetUrlBtn && sheetApiUrlInput) {
+    saveSheetUrlBtn.addEventListener('click', async () => {
+      const url = sheetApiUrlInput.value.trim();
+      state.sheetUrl = url;
+      saveState();
+
+      if (!url) {
+        sheetSyncNotice.style.color = '#f87171';
+        sheetSyncNotice.textContent = 'Disconnected: Using browser LocalStorage only.';
+        renderAdminModal();
+        return;
+      }
+
+      sheetSyncNotice.style.color = '#fcd34d';
+      sheetSyncNotice.textContent = 'Testing connection with Google Sheet...';
+      const success = await syncFromGoogleSheet(false);
+      if (success) {
+        sheetSyncNotice.style.color = '#4ade80';
+        sheetSyncNotice.textContent = '✅ Connected! Google Sheet is now your active database.';
+      } else {
+        sheetSyncNotice.style.color = '#f87171';
+        sheetSyncNotice.textContent = '⚠️ Could not connect. Ensure Apps Script is deployed as Web App (Access: Anyone).';
+      }
+      renderAdminModal();
+    });
+  }
+
+  if (testSheetBtn) {
+    testSheetBtn.addEventListener('click', async () => {
+      await syncFromGoogleSheet(false);
     });
   }
 
@@ -1275,11 +1640,17 @@
   }
 
   // --- App Initialization ---
-  function init() {
+  async function init() {
     loadState();
     createSnowflakes();
     renderStatusBanner();
     renderFriendsGrid();
+
+    // If Google Sheet is connected, silently sync latest state on startup
+    if (state.sheetUrl) {
+      await syncFromGoogleSheet(true);
+    }
+
     checkUrlForPersonalCard();
   }
 

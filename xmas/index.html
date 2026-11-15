@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🎄 Xmas Friend Finder | Secret Scratch & Find</title>
-  <meta name="description" content="Festive Secret Santa Scratch and Find Friend Finder. Hostable on GitHub Pages subdirectory with WhatsApp integration and private passkeys.">
+  <meta name="description" content="Festive Secret Santa Scratch and Find Friend Finder. Hostable on GitHub Pages subdirectory with WhatsApp integration and Google Sheets database.">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -76,53 +76,102 @@
   </div>
 
   <!-- =========================================================================
-       Scratch Card Interactive Modal (Scratch and Find)
+       Scratch Card Interactive Modal (Scratch and Find + Wishlists)
        ========================================================================= -->
   <div id="scratchModal" class="modal-backdrop">
     <div class="modal-dialog">
       <button id="closeScratchBtn" class="modal-close-btn" title="Close Card">&times;</button>
       
-      <div style="text-align:center;">
-        <span style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--festive-gold);">🎄 Secret Holiday Mission 🎄</span>
-        <h2 id="modalFriendTitle" style="font-size:1.6rem; color:#ffffff; margin:4px 0 8px;">Scratch & Find</h2>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
-          Swipe or drag across the golden foil to discover who you are gifting to!
-        </p>
+      <!-- Modal Tabs: Switch between Reveal Friend and My Wishlist -->
+      <div class="modal-tabs">
+        <button id="modalTabReveal" class="modal-tab-btn active">🎁 Secret Friend</button>
+        <button id="modalTabWishlist" class="modal-tab-btn">📝 My Wishlist (<span id="myWishlistBadgeCount">0</span>/5)</button>
       </div>
 
-      <!-- Scratch Box -->
-      <div class="scratch-box-wrapper">
-        <div class="scratch-stage">
-          <!-- Revealed Content Underneath -->
-          <div class="scratch-underlayer">
-            <div class="underlayer-icon">🎁</div>
-            <div class="underlayer-subtitle">Your Xmas Friend Is</div>
-            <div id="revealedReceiverName" class="underlayer-name">Secret Friend</div>
-            <div class="underlayer-wish">
-              🌟 You are their Secret Santa! Keep it a surprise until gift day! 🎄
+      <!-- Tab Content 1: Reveal / Scratch Card -->
+      <div id="scratchTabContent">
+        <div style="text-align:center;">
+          <span style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--festive-gold);">🎄 Secret Holiday Mission 🎄</span>
+          <h2 id="modalFriendTitle" style="font-size:1.6rem; color:#ffffff; margin:4px 0 8px;">Scratch & Find</h2>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+            Swipe or drag across the golden foil to discover who you are gifting to!
+          </p>
+        </div>
+
+        <!-- Scratch Box -->
+        <div class="scratch-box-wrapper">
+          <div class="scratch-stage">
+            <!-- Revealed Content Underneath -->
+            <div class="scratch-underlayer">
+              <div class="underlayer-icon">🎁</div>
+              <div class="underlayer-subtitle">Your Xmas Friend Is</div>
+              <div id="revealedReceiverName" class="underlayer-name">Secret Friend</div>
+              <div class="underlayer-wish">
+                🌟 You are their Secret Santa! Keep it a surprise until gift day! 🎄
+              </div>
             </div>
+            <!-- Scratchable Canvas Overlay -->
+            <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
           </div>
-          <!-- Scratchable Canvas Overlay -->
-          <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
+        </div>
+
+        <!-- Progress Meter (Clearly labeled so user knows what the % is for) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem; font-size:0.82rem; color:var(--text-muted);">
+          <span>🪙 Foil Scratch Progress:</span>
+          <span id="scratchProgressText" class="progress-label" style="font-weight:700; color:var(--festive-gold);">0%</span>
+        </div>
+        <div class="scratch-progress-box">
+          <div class="progress-track">
+            <div id="scratchProgressFill" class="progress-fill"></div>
+          </div>
+        </div>
+        <div style="font-size:0.75rem; color:#64748b; text-align:center; margin-top:4px;">
+          (Card reveals automatically once 40% of the foil is scratched!)
+        </div>
+
+        <!-- Revealed / Locked Notice -->
+        <div id="alreadyRevealedNotice" class="already-revealed-notice" style="display:none;"></div>
+
+        <!-- Receiver's Wishlist Display (Shown once revealed) -->
+        <div id="receiverWishlistCard" class="receiver-wishlist-box" style="display:none;">
+          <div class="receiver-wishlist-header">
+            <h4 class="receiver-wishlist-title">🎁 <span id="receiverWishlistFriendName">Friend</span>'s Wishlist</h4>
+            <span class="receiver-wishlist-badge">Max 5 ideas</span>
+          </div>
+          <div id="receiverWishlistContent">
+            <!-- Populated dynamically -->
+          </div>
         </div>
       </div>
 
-      <!-- Progress Meter (Clearly labeled so user knows what the % is for) -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem; font-size:0.82rem; color:var(--text-muted);">
-        <span>🪙 Foil Scratch Progress:</span>
-        <span id="scratchProgressText" class="progress-label" style="font-weight:700; color:var(--festive-gold);">0%</span>
-      </div>
-      <div class="scratch-progress-box">
-        <div class="progress-track">
-          <div id="scratchProgressFill" class="progress-fill"></div>
+      <!-- Tab Content 2: My Own Wishlist -->
+      <div id="wishlistTabContent" class="my-wishlist-panel" style="display:none;">
+        <div style="text-align:center; margin-bottom:1rem;">
+          <div style="font-size:2rem; margin-bottom:0.2rem;">📝</div>
+          <h3 style="font-size:1.25rem; color:var(--festive-gold); margin-bottom:0.3rem;">My Holiday Wishlist</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            Add up to 5 gift ideas you would love from your Secret Santa!
+          </p>
+        </div>
+
+        <div id="myWishlistItemsList" class="my-wishlist-items-list">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div id="myWishlistAddRow" style="display:flex; gap:8px; margin-top:1rem;">
+          <input type="text" id="newWishlistItemInput" class="name-input" placeholder="e.g. Coffee mug, warm socks, book..." maxlength="70" style="flex:1; font-size:0.9rem;">
+          <button id="addWishlistItemBtn" class="btn btn-secondary" style="background:rgba(34,197,94,0.2); border-color:#22c55e; color:#4ade80;">➕ Add</button>
+        </div>
+        <div id="wishlistNotice" style="font-size:0.8rem; margin-top:6px; min-height:1.2rem; color:var(--text-muted); text-align:center;"></div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1);">
+          <span style="font-size:0.8rem; color:var(--text-muted);"><span id="myWishlistCountText">0</span> of 5 items added</span>
+          <button id="saveMyWishlistBtn" class="btn btn-gold">💾 Save Wishlist</button>
+        </div>
+        <div style="font-size:0.75rem; color:#64748b; text-align:center; margin-top:0.6rem;">
+          💡 Your Secret Santa will see these gift ideas once they reveal your card!
         </div>
       </div>
-      <div style="font-size:0.75rem; color:#64748b; text-align:center; margin-top:4px;">
-        (Card reveals automatically once 40% of the foil is scratched!)
-      </div>
-
-      <!-- Revealed / Locked Notice -->
-      <div id="alreadyRevealedNotice" class="already-revealed-notice" style="display:none;"></div>
     </div>
   </div>
 
@@ -159,7 +208,7 @@
         <span style="font-size:1.8rem;">⚙️</span>
         <div>
           <h2 style="font-size:1.4rem; color:var(--festive-gold);">Admin Control Center</h2>
-          <p style="font-size:0.8rem; color:var(--text-muted);">Manage members, WhatsApp numbers, keys, finish the game, or reset.</p>
+          <p style="font-size:0.8rem; color:var(--text-muted);">Manage members, WhatsApp numbers, keys, Google Sheet database, or reset.</p>
         </div>
       </div>
 
@@ -167,8 +216,9 @@
       <div class="admin-tabs">
         <button class="tab-btn active" data-tab="tabDraw">🎲 Allotment & Members</button>
         <button class="tab-btn" data-tab="tabMaster">📋 Master List</button>
+        <button class="tab-btn" data-tab="tabWishlists">🎁 Wishlists</button>
         <button class="tab-btn" data-tab="tabShare">💬 WhatsApp & Keys</button>
-        <button class="tab-btn" data-tab="tabSettings">⚙️ PIN & Settings</button>
+        <button class="tab-btn" data-tab="tabSettings">⚙️ Database & PIN</button>
       </div>
 
       <!-- Tab 1: Allotment & Names -->
@@ -236,6 +286,20 @@
         </table>
       </div>
 
+      <!-- Tab: Wishlists Overview -->
+      <div id="tabWishlists" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:8px;">
+          <h4 style="font-size:0.95rem; color:#f1f5f9;">Participant Wishlists (Max 5 items each)</h4>
+          <span style="font-size:0.8rem; color:var(--festive-gold);">Resets automatically on New Year reset</span>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">
+          Review the gift ideas participants have added for their Secret Santas.
+        </p>
+        <div id="adminWishlistsGrid" class="admin-wishlist-grid">
+          <!-- Populated via JavaScript -->
+        </div>
+      </div>
+
       <!-- Tab 3: Shareable Keys & WhatsApp -->
       <div id="tabShare" class="tab-content" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:8px;">
@@ -250,8 +314,30 @@
         </div>
       </div>
 
-      <!-- Tab 4: Settings & Admin PIN -->
+      <!-- Tab 4: Settings & Google Sheets Database -->
       <div id="tabSettings" class="tab-content" style="display:none;">
+        <!-- Google Sheets Cloud Database Integration -->
+        <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:1.2rem; max-width:540px; margin-bottom:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:8px;">
+            <strong style="color:var(--festive-gold); font-size:1rem;">📊 Google Sheets Cloud Database</strong>
+            <span id="sheetConnectionBadge" class="friend-badge badge-waiting">⚪ LocalStorage Only</span>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.8rem; line-height:1.4;">
+            Paste your Google Apps Script Web App URL to automatically sync pairings, passkeys, and scratch status directly to a Google Sheet!
+          </p>
+
+          <div style="display:flex; gap:8px; margin-bottom:0.6rem; flex-wrap:wrap;">
+            <input type="url" id="sheetApiUrlInput" class="name-input" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1; min-width:240px; font-size:0.85rem;">
+            <button id="saveSheetUrlBtn" class="btn btn-gold btn-sm">🔗 Connect</button>
+            <button id="testSheetBtn" class="btn btn-secondary btn-sm">🔄 Sync</button>
+          </div>
+          <div id="sheetSyncNotice" style="font-size:0.8rem; color:#4ade80; min-height:1.2rem;"></div>
+          <div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">
+            Setup Guide: See <strong>GOOGLE_SHEET_SETUP.md</strong> in your project files.
+          </div>
+        </div>
+
+        <!-- Admin PIN Change -->
         <h4 style="font-size:0.95rem; color:#f1f5f9; margin-bottom:0.6rem;">Admin Security & PIN Change</h4>
         <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.2rem;">
           Change your admin passcode to keep the control center secure.

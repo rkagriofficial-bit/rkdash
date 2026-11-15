@@ -836,3 +836,208 @@ main {
     align-items: flex-start;
   }
 }
+
+/* ==========================================================================
+   Wishlist Component Styles (Max 5 items per member)
+   ========================================================================== */
+.modal-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.modal-tab-btn:hover {
+  color: #fff;
+}
+
+.modal-tab-btn.active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(15, 76, 40, 0.4));
+  color: var(--festive-gold);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Receiver Wishlist Box (Under revealed card) */
+.receiver-wishlist-box {
+  margin-top: 1.2rem;
+  background: rgba(15, 76, 40, 0.22);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.receiver-wishlist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.receiver-wishlist-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--festive-gold);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.receiver-wishlist-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.receiver-wishlist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+  color: #f1f5f9;
+  line-height: 1.4;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.receiver-wishlist-item:last-child {
+  margin-bottom: 0;
+}
+
+.receiver-wishlist-empty {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 6px 0;
+  text-align: center;
+}
+
+/* My Wishlist Panel */
+.my-wishlist-panel {
+  padding: 4px 0;
+}
+
+.my-wishlist-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+.my-wishlist-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.my-wishlist-item-row:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.wishlist-item-num {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--festive-gold);
+  width: 20px;
+}
+
+.wishlist-item-text {
+  flex: 1;
+  font-size: 0.88rem;
+  color: #f8fafc;
+  word-break: break-word;
+}
+
+.wishlist-item-delete-btn {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.wishlist-item-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #ffffff;
+}
+
+/* Wishlist Badge on Grid Participant Card */
+.wishlist-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  margin-top: 4px;
+}
+
+/* Admin Wishlist Tab */
+.admin-wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.admin-wishlist-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.admin-wishlist-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
