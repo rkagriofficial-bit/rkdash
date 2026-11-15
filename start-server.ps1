@@ -6,7 +6,7 @@ $prefix = "http://localhost:$port/"
 $folder = $PSScriptRoot
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host " RKdash - Google Apps Script Applications Hub" -ForegroundColor Green
+Write-Host " RKdash - Enterprise Gateway & Applications Portal" -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Serving files from: $folder" -ForegroundColor Yellow
 Write-Host "Server URL: $prefix" -ForegroundColor Cyan
