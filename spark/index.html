@@ -902,7 +902,7 @@
       </div>
     </div>
 
-    <!-- PRIMARY NAVIGATION TABS -->
+    <!-- PRIMARY NAVIGATION TABS (ADMINISTRATION MOVED TO PROFILE DROPDOWN MATCHING MOCKUP) -->
     <nav class="nav-tabs">
       <button onclick="switchTab('quick')" id="navTabQuick" class="nav-pill active">
         <svg style="width: 15px; height: 15px;"><use href="#icon-lightning"></use></svg>
@@ -919,11 +919,6 @@
       <button onclick="switchTab('attendance')" id="navTabAttendance" class="nav-pill">
         <svg style="width: 15px; height: 15px;"><use href="#icon-calendar-check"></use></svg>
         <span>Attendance Log</span>
-      </button>
-      <!-- Administration Tab (Always available for Admin) -->
-      <button onclick="switchTab('admin')" id="navTabAdmin" class="nav-pill">
-        <svg style="width: 15px; height: 15px;"><use href="#icon-settings"></use></svg>
-        <span>Administration</span>
       </button>
     </nav>
   </div>
@@ -1712,13 +1707,27 @@
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Attendance & Work Diary System</p>
 
     <form onsubmit="handleLogin(event)" style="text-align: left;">
+      <!-- Quick User Switcher Chips -->
+      <div style="margin-bottom: 14px;">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">Quick Select User:</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button type="button" onclick="selectLoginUser('858575')" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px; border-radius: var(--radius-pill);">
+            👤 858575 (Rajesh Krishnan)
+          </button>
+          <button type="button" onclick="selectLoginUser('1019244')" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px; border-radius: var(--radius-pill);">
+            👤 1019244 (Athira Ravindran)
+          </button>
+        </div>
+      </div>
+
       <div class="form-group">
         <label class="form-label">Permanent Employee Number (PEN)</label>
         <input type="text" id="loginPen" class="form-input" placeholder="e.g. 858575" value="858575" required autocomplete="username">
       </div>
       <div class="form-group">
         <label class="form-label">Password</label>
-        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+        <div style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">First time login? Enter your preferred password to set it automatically.</div>
       </div>
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; font-size: 12px;">
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
@@ -2102,10 +2111,15 @@
   // DEFAULT CONFIGURATION & GLOBAL STATE
   const DEFAULT_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw6U7K8d_bM9d3zH7E1a3-unified-spark/exec';
 
+  const DEFAULT_EMPLOYEES = [
+    { pen: '858575', name: 'Rajesh Krishnan R K', designation: 'Head / Admin', clLimit: 20, yearlyCLLimit: 20, role: 'ADMIN', isAdmin: true, status: 'Active' },
+    { pen: '1019244', name: 'Athira Ravindran', designation: 'OA', clLimit: 20, yearlyCLLimit: 20, role: 'ADMIN', isAdmin: true, status: 'Active' }
+  ];
+
   const state = {
     token: null,
     currentUser: null,
-    activePen: null,
+    activePen: '858575',
     activeYear: '2026',
     activeMonthNumber: '11',
     activeMonth: '2026-11',
@@ -2115,7 +2129,7 @@
     summary: null,
     workDiary: null,
     days: [],
-    employees: [],
+    employees: DEFAULT_EMPLOYEES,
     collapsedDays: new Set()
   };
 
@@ -2159,14 +2173,17 @@
     const savedToken = localStorage.getItem('spark_session_token');
     const isDemo = localStorage.getItem('spark_demo_session');
 
+    setupAdminDropdown();
+
     if (savedToken) {
       checkSavedSession();
     } else if (isDemo) {
       enterDemoMode();
     } else {
-      // First visit: Show Login modal!
+      // First visit: Show Login modal and load initial preview
       setLoggedOutUI();
       openModal('modalLogin');
+      loadFullData();
     }
 
     // Close profile dropdown on document click
@@ -2299,35 +2316,61 @@
     }
   }
 
+  function selectLoginUser(pen) {
+    const penInput = document.getElementById('loginPen');
+    const pwdInput = document.getElementById('loginPassword');
+    if (penInput) penInput.value = pen;
+    if (pwdInput) {
+      pwdInput.value = '';
+      pwdInput.focus();
+    }
+  }
+
   async function handleLogin(e) {
-    e.preventDefault();
-    const pen = document.getElementById('loginPen').value.trim();
-    const pwd = document.getElementById('loginPassword').value;
-    const rem = document.getElementById('loginRememberMe').checked;
+    if (e) e.preventDefault();
+    const pen = (document.getElementById('loginPen')?.value || '').trim();
+    const pwd = document.getElementById('loginPassword')?.value || '';
+    const rem = document.getElementById('loginRememberMe')?.checked ?? true;
     const errEl = document.getElementById('loginErrorMsg');
     const btn = document.getElementById('btnLoginSubmit');
 
-    errEl.style.display = 'none';
-    btn.disabled = true;
+    if (!pen) {
+      if (errEl) { errEl.innerText = 'Please enter your PEN'; errEl.style.display = 'block'; }
+      return;
+    }
+
+    if (errEl) errEl.style.display = 'none';
+    if (btn) btn.disabled = true;
 
     try {
       const res = await callApi('apiLogin', pen, pwd, rem);
       if (res && res.ok && res.token) {
         state.token = res.token;
-        if (rem) localStorage.setItem('spark_session_token', res.token);
-        const u = res.user || res.employee || { pen: pen, name: pen, isAdmin: false };
+        if (rem) {
+          localStorage.setItem('spark_session_token', res.token);
+        } else {
+          sessionStorage.setItem('spark_session_token', res.token);
+        }
+        const u = res.employee || res.user || { pen: pen, name: pen, role: (pen === '858575' ? 'ADMIN' : 'USER') };
         setSessionUser(u);
         closeModal('modalLogin');
+        state.activePen = String(pen);
+        setupAdminDropdown();
         loadFullData();
       } else {
-        errEl.innerText = (res && res.message) ? res.message : ((res && res.error) ? res.error : 'Invalid PEN or Password');
-        errEl.style.display = 'block';
+        const msg = (res && (res.error || res.message)) ? (res.error || res.message) : 'Invalid PEN or Password';
+        if (errEl) {
+          errEl.innerText = msg;
+          errEl.style.display = 'block';
+        }
       }
     } catch (err) {
-      errEl.innerText = 'Login error. Check backend connection.';
-      errEl.style.display = 'block';
+      if (errEl) {
+        errEl.innerText = 'Login error. Backend unreachable or spreadsheet disconnected.';
+        errEl.style.display = 'block';
+      }
     } finally {
-      btn.disabled = false;
+      if (btn) btn.disabled = false;
     }
   }
 
@@ -2338,7 +2381,7 @@
     
     state.currentUser = {
       pen: penStr,
-      name: u.name || 'Rajesh Krishnan R K',
+      name: u.name || (penStr === '858575' ? 'Rajesh Krishnan R K' : (penStr === '1019244' ? 'Athira Ravindran' : `Staff (${penStr})`)),
       designation: u.designation || (isAdmin ? 'ADMIN' : 'USER'),
       role: isAdmin ? 'ADMIN' : (u.role || 'USER'),
       isAdmin: isAdmin
@@ -2346,22 +2389,19 @@
     state.activePen = state.currentUser.pen;
     
     const subtitle = document.getElementById('headerUserSubtitle');
-    if (subtitle) subtitle.innerText = `${state.currentUser.name} • ${isAdmin ? 'ADMIN' : state.currentUser.designation}`;
+    if (subtitle) subtitle.innerText = `${state.currentUser.name} • ${state.currentUser.role}`;
 
     const pill = document.getElementById('headerUserNamePill');
     if (pill) pill.innerText = `${state.currentUser.name} (${state.currentUser.pen})`;
 
-    // ADMINISTRATION ACCESS CONTROL (VISIBLE FOR ADMIN, HIDDEN FOR REGULAR EMPLOYEES)
-    const navAdmin = document.getElementById('navTabAdmin');
+    // ADMINISTRATION ACCESS CONTROL (INSIDE PROFILE DROPDOWN - MATCHES MOCKUP)
     const profileAdmin = document.getElementById('profileMenuUserMgmt');
     const staffSwitcher = document.getElementById('adminEmpSwitcherContainer');
 
     if (isAdmin) {
-      if (navAdmin) navAdmin.style.display = 'inline-flex';
       if (profileAdmin) profileAdmin.style.display = 'flex';
       if (staffSwitcher) staffSwitcher.style.display = 'inline-flex';
     } else {
-      if (navAdmin) navAdmin.style.display = 'none';
       if (profileAdmin) profileAdmin.style.display = 'none';
       if (staffSwitcher) staffSwitcher.style.display = 'none';
     }
@@ -2372,19 +2412,17 @@
     state.currentUser = null;
 
     const subtitle = document.getElementById('headerUserSubtitle');
-    if (subtitle) subtitle.innerText = 'Not Signed In';
+    if (subtitle) subtitle.innerText = 'Not Signed In · Please Sign In';
 
     const pill = document.getElementById('headerUserNamePill');
-    if (pill) pill.innerText = 'Sign In';
-
-    const navAdmin = document.getElementById('navTabAdmin');
-    if (navAdmin) navAdmin.style.display = 'none';
+    if (pill) pill.innerText = 'Sign In / Switch User';
 
     const profileAdmin = document.getElementById('profileMenuUserMgmt');
     if (profileAdmin) profileAdmin.style.display = 'none';
 
+    // Keep STAFF dropdown visible and active so user can view data
     const staffSwitcher = document.getElementById('adminEmpSwitcherContainer');
-    if (staffSwitcher) staffSwitcher.style.display = 'none';
+    if (staffSwitcher) staffSwitcher.style.display = 'inline-flex';
   }
 
   function enterDemoMode() {
@@ -2397,17 +2435,23 @@
       role: 'ADMIN'
     });
     closeModal('modalLogin');
+    setupAdminDropdown();
     loadFullData();
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    closeProfileDropdown();
     if (state.token) {
-      try { callApi('apiLogout', state.token); } catch (e) {}
+      try { await callApi('apiLogout', state.token); } catch (e) {}
     }
+    state.token = null;
+    state.currentUser = null;
     localStorage.removeItem('spark_session_token');
     localStorage.removeItem('spark_demo_session');
+    sessionStorage.removeItem('spark_session_token');
+    
     setLoggedOutUI();
-    closeProfileDropdown();
+    setupAdminDropdown();
     openModal('modalLogin');
   }
 
@@ -2420,6 +2464,10 @@
       if (sec) sec.style.display = (t === tab) ? 'block' : 'none';
       if (btn) btn.classList.toggle('active', t === tab);
     });
+
+    // Toggle active state on User Management item in profile menu
+    const profMgmt = document.getElementById('profileMenuUserMgmt');
+    if (profMgmt) profMgmt.classList.toggle('active', tab === 'admin');
 
     if (tab === 'dash') {
       // Re-render charts when dashboard tab is brought into view
@@ -2467,17 +2515,15 @@
         const cacheEl = document.getElementById('globalCacheStatus');
         if (cacheEl) cacheEl.innerText = `Cache: ${res.cached ? res.cached.toUpperCase() : 'Live'}`;
 
-        if (res.employee) {
+        if (res.employee && !state.currentUser) {
           setSessionUser(res.employee);
-        } else if (res.session) {
+        } else if (res.session && !state.currentUser) {
           setSessionUser({ pen: res.session.pen, isAdmin: res.session.isAdmin });
         }
-
-        if (!state.currentUser || state.currentUser.isAdmin) {
-          setupAdminDropdown();
-          renderAdminUsersTable();
-        }
       }
+
+      setupAdminDropdown();
+      renderAdminUsersTable();
 
       // STAGE 2: Fetch detailed diary timeline, charts & calendar data in background
       const [wdRes, daysRes] = await Promise.all([
@@ -3124,17 +3170,24 @@
     const sel = document.getElementById('selAdminEmployee');
     if (!sel) return;
     sel.innerHTML = '';
-    (state.employees || []).forEach(emp => {
+    const list = (state.employees && state.employees.length > 0) ? state.employees : DEFAULT_EMPLOYEES;
+    list.forEach(emp => {
       const opt = document.createElement('option');
       opt.value = emp.pen;
       opt.innerText = `${emp.name} (${emp.pen})`;
-      if (emp.pen === state.activePen) opt.selected = true;
+      if (String(emp.pen) === String(state.activePen || '858575')) opt.selected = true;
       sel.appendChild(opt);
     });
   }
 
   function handleAdminSwitchEmp(newPen) {
-    state.activePen = newPen;
+    if (!newPen) return;
+    state.activePen = String(newPen);
+    const emp = (state.employees || []).find(e => String(e.pen) === String(newPen));
+    if (emp && state.currentUser) {
+      const subtitle = document.getElementById('headerUserSubtitle');
+      if (subtitle) subtitle.innerText = `${state.currentUser.name} (Viewing: ${emp.name}) • ${state.currentUser.role}`;
+    }
     loadFullData();
   }
 
