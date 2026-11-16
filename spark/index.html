@@ -647,6 +647,17 @@
     .w-full { width: 100%; }
     .relative { position: relative; }
     .hidden { display: none; }
+
+    /* LOADING SPINNER ANIMATION */
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin {
+      animation: spin 0.8s linear infinite !important;
+      display: inline-block !important;
+      transform-origin: center center !important;
+    }
   </style>
 </head>
 
@@ -888,11 +899,6 @@
             </button>
           </div>
         </div>
-
-        <!-- Search Icon (Focuses Quick Search) -->
-        <button onclick="handleQuickSearchClick()" class="btn btn-secondary btn-icon" title="Quick Search">
-          <svg style="width: 16px; height: 16px;"><use href="#icon-search"></use></svg>
-        </button>
 
         <!-- Direct Logout Button -->
         <button onclick="handleLogout()" class="btn btn-secondary btn-icon" style="color: var(--danger); border-color: var(--danger-border);" title="Logout">
@@ -1272,35 +1278,44 @@
       <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
           
-          <!-- Chart 1: Work Distribution Donut Chart -->
-          <div class="card">
-            <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <svg style="width: 14px; height: 14px; color: #2563eb;"><use href="#icon-pie"></use></svg>
-              <span>Work Distribution</span>
+          <!-- Chart 1: Work Distribution Donut Chart (Prominent Display) -->
+          <div class="card" style="padding: 18px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+              <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                <svg style="width: 15px; height: 15px; color: #2563eb;"><use href="#icon-pie"></use></svg>
+                <span>Work Distribution</span>
+              </div>
+              <span id="chartTotalBadge" class="badge-pill-soft" style="background: var(--primary-subtle); color: var(--primary); font-weight: 800; font-size: 12px; padding: 3px 10px;">Total: --</span>
             </div>
             
-            <div style="display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 16px; min-height: 180px;">
-              <!-- Pure SVG Vector Donut Chart -->
-              <div id="svgDonutContainer" style="width: 160px; height: 160px; position: relative;"></div>
+            <div style="display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 20px; min-height: 190px;">
+              <!-- Pure SVG Vector Donut Chart (Enlarged & Prominent) -->
+              <div id="svgDonutContainer" style="width: 180px; height: 180px; position: relative;"></div>
               
-              <!-- Right Legend (Matches Image 3) -->
-              <div style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; align-items: flex-start; gap: 10px;">
-                  <div style="width: 14px; height: 14px; border-radius: 4px; background: #9333ea; margin-top: 2px;"></div>
-                  <div>
-                    <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Meetings</div>
-                    <div id="chartLegendMeetings" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">10h 10m (30.4%)</div>
+              <!-- Right Legend Cards -->
+              <div style="display: flex; flex-direction: column; gap: 10px; min-width: 180px;">
+                <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; border-radius: 4px; background: #9333ea;"></div>
+                    <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">Meetings</span>
                   </div>
+                  <div id="chartLegendMeetings" style="font-size: 13px; font-weight: 800; color: #7c3aed;">--</div>
                 </div>
 
-                <div style="display: flex; align-items: flex-start; gap: 10px;">
-                  <div style="width: 14px; height: 14px; border-radius: 4px; background: #10b981; margin-top: 2px;"></div>
-                  <div>
-                    <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Office Work</div>
-                    <div id="chartLegendOffice" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">23h 15m (69.6%)</div>
+                <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; border-radius: 4px; background: #10b981;"></div>
+                    <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">Office Work</span>
                   </div>
+                  <div id="chartLegendOffice" style="font-size: 13px; font-weight: 800; color: #059669;">--</div>
                 </div>
               </div>
+            </div>
+
+            <!-- Horizontal Proportion Bar -->
+            <div style="margin-top: 14px; background: var(--border-subtle); border-radius: var(--radius-pill); height: 8px; overflow: hidden; display: flex;">
+              <div id="workDistBarMtg" style="width: 30%; background: #9333ea; transition: width 0.3s ease;"></div>
+              <div id="workDistBarOff" style="width: 70%; background: #10b981; transition: width 0.3s ease;"></div>
             </div>
           </div>
 
@@ -1375,6 +1390,69 @@
             <div style="font-size: 11px; font-weight: 700; color: #065f46; margin-top: 2px;">COFF Used</div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- Row 5: COMPENSATORY OFF (COFF) LEDGER & UTILIZATION TRACKER -->
+      <div class="card" style="padding: 16px; margin-top: 4px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+          <div style="font-size: 13px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+            <svg style="width: 16px; height: 16px; color: #f59e0b;"><use href="#icon-lightning"></use></svg>
+            <span id="coffLedgerHeaderLabel">Compensatory Off (COFF) Balance & Earned Tracker (2026)</span>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Rule: 10 Hours (600m) Extra = 1 COFF</span>
+        </div>
+
+        <!-- 4 COFF Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px;">
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">Total Extra Logged</div>
+              <div id="coffKpiExtraEarned" style="font-size: 18px; font-weight: 900; color: #15803d; margin-top: 2px;">+0m</div>
+            </div>
+            <span style="font-size: 20px;">⏱️</span>
+          </div>
+
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase;">COFFs Earned</div>
+              <div id="coffKpiEarnedCount" style="font-size: 18px; font-weight: 900; color: #1d4ed8; margin-top: 2px;">0 Days</div>
+            </div>
+            <span style="font-size: 20px;">🎖️</span>
+          </div>
+
+          <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #9a3412; text-transform: uppercase;">COFFs Expended</div>
+              <div id="coffKpiUsedCount" style="font-size: 18px; font-weight: 900; color: #c2410c; margin-top: 2px;">0 Days</div>
+            </div>
+            <span style="font-size: 20px;">🏖️</span>
+          </div>
+
+          <div style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #6b21a8; text-transform: uppercase;">Available Balance</div>
+              <div id="coffKpiBalance" style="font-size: 18px; font-weight: 900; color: #7c3aed; margin-top: 2px;">0 Remaining</div>
+            </div>
+            <span style="font-size: 20px;">⭐</span>
+          </div>
+        </div>
+
+        <!-- Month-by-Month COFF Breakdown Table -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Extra Minutes Earned</th>
+                <th>COFF Earned</th>
+                <th>COFFs Expended (Availed Dates)</th>
+                <th>Running Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="coffMonthlyTableBody"></tbody>
+          </table>
         </div>
       </div>
 
@@ -1729,12 +1807,11 @@
         <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
         <div style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">First time login? Enter your preferred password to set it automatically.</div>
       </div>
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; font-size: 12px;">
+      <div style="margin-bottom: 18px; font-size: 12px;">
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
           <input type="checkbox" id="loginRememberMe" checked>
           <span>Remember session</span>
         </label>
-        <button type="button" onclick="openConfigBackendModal()" style="background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: underline;">Configure Backend</button>
       </div>
 
       <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; padding: 10px; font-size: 14px; font-weight: 700;">
@@ -1742,12 +1819,6 @@
         <span>Sign In</span>
       </button>
       <div id="loginErrorMsg" style="color: var(--danger); font-size: 12px; font-weight: 600; margin-top: 10px; text-align: center; display: none;"></div>
-
-      <div style="margin-top: 16px; pt-2; border-top: 1px solid var(--border-subtle); text-align: center;">
-        <button type="button" onclick="enterDemoMode()" class="btn btn-secondary btn-sm" style="font-size: 11px; width: 100%;">
-          Continue as Demo Admin (Offline)
-        </button>
-      </div>
     </form>
   </div>
 </div>
@@ -2493,7 +2564,11 @@
     const refDateISO = `${m}-15`;
     const loadBtn = document.getElementById('btnGlobalLoad');
     const spinner = document.getElementById('loadSpinnerIcon');
-    if (spinner) spinner.style.animation = 'spin 0.8s linear infinite';
+    const loadText = document.getElementById('globalLoadText');
+
+    if (spinner) spinner.classList.add('spin');
+    if (loadText) loadText.innerText = 'Loading...';
+    if (loadBtn) loadBtn.disabled = true;
 
     try {
       // STAGE 1: Instant load of summary figures (<200ms)
@@ -2508,6 +2583,7 @@
         renderDashboardKPIs(res);
         renderYearlyBreakdown(res.yearlyCounts);
         renderAttendanceKPIsFromSummary(res);
+        renderCoffLedger(res);
 
         const winEl = document.getElementById('globalActiveWindowLabel');
         if (winEl) winEl.innerText = (res.grace && res.grace.label) ? `Window: ${res.grace.label}` : `Window: ${m}`;
@@ -2515,10 +2591,10 @@
         const cacheEl = document.getElementById('globalCacheStatus');
         if (cacheEl) cacheEl.innerText = `Cache: ${res.cached ? res.cached.toUpperCase() : 'Live'}`;
 
-        if (res.employee && !state.currentUser) {
-          setSessionUser(res.employee);
-        } else if (res.session && !state.currentUser) {
-          setSessionUser({ pen: res.session.pen, isAdmin: res.session.isAdmin });
+        // Only restore user session if token exists and user didn't sign out
+        if (state.token && !state.currentUser) {
+          if (res.employee) setSessionUser(res.employee);
+          else if (res.session) setSessionUser({ pen: res.session.pen, isAdmin: res.session.isAdmin });
         }
       }
 
@@ -2543,6 +2619,7 @@
         state.days = list;
         renderAttendanceTable(list);
         renderAttendanceCalendarGrid(list);
+        if (state.summary) renderAttendanceKPIsFromSummary(state.summary);
       }
 
       if (state.dashViewMode === 'yearly') {
@@ -2552,7 +2629,9 @@
     } catch (e) {
       console.error('Data load note:', e);
     } finally {
-      if (spinner) spinner.style.animation = '';
+      if (spinner) spinner.classList.remove('spin');
+      if (loadText) loadText.innerText = 'Load';
+      if (loadBtn) loadBtn.disabled = false;
     }
   }
 
@@ -2655,21 +2734,38 @@
   }
 
   function renderAttendanceKPIsFromSummary(res) {
-    const y = res.yearlyCounts || {};
-    const extra = res.extra || {};
     const wd = res.workDiaryStats || {};
+    const extra = res.extra || {};
+    const mCounts = extra.counts || {};
+
+    let presCount = 0;
+    let holCount = 0;
+    let absCount = 0;
+
+    if (state.days && state.days.length > 0) {
+      state.days.forEach(d => {
+        const s = (d.status || '').toUpperCase().trim();
+        if (s === 'P' || s === 'PRESENT') presCount++;
+        else if (['PH', 'H', 'HOLIDAY', 'OFF', 'RH', 'HD'].includes(s)) holCount++;
+        else if (s === 'A' || s === 'ABSENT') absCount++;
+      });
+    } else {
+      presCount = mCounts.P || 0;
+      holCount = mCounts.PH || mCounts.Holidays || 0;
+      absCount = mCounts.A || mCounts.Absent || 0;
+    }
 
     const wDays = document.getElementById('attKpiWorkingDays');
-    if (wDays) wDays.innerText = wd.workingDaysCount || (y.P || 0);
+    if (wDays) wDays.innerText = wd.workingDaysCount || presCount;
 
     const pres = document.getElementById('attKpiPresent');
-    if (pres) pres.innerText = y.P || 0;
+    if (pres) pres.innerText = presCount;
 
     const hol = document.getElementById('attKpiHoliday');
-    if (hol) hol.innerText = y.Holidays || y.PH || 0;
+    if (hol) hol.innerText = holCount;
 
     const abs = document.getElementById('attKpiAbsent');
-    if (abs) abs.innerText = y.Absent || y.A || 0;
+    if (abs) abs.innerText = absCount;
 
     const totH = document.getElementById('attKpiTotalHours');
     if (totH) totH.innerText = wd.totalActualWorkFormatted || '0h 0m';
@@ -2703,6 +2799,136 @@
   }
 
   // =========================================================================
+  // COMP-OFF (COFF) LEDGER & UTILIZATION TRACKER (12 MONTHS BREAKDOWN)
+  // =========================================================================
+  function renderCoffLedger(res) {
+    if (!res) return;
+    const extra = res.extra || {};
+    const y = res.yearlyCounts || {};
+
+    const earnedMins = extra.thisMonthExtras || extra.earnedMins || extra.totalMins || 0;
+    const earnedCoff = y.coffsEarned || extra.coffsEarned || (earnedMins >= 600 ? 1 : 0);
+    const usedCoff = y.coffsUsed || extra.coffsUsed || 0;
+    const availCoff = extra.coffsAvailable != null ? extra.coffsAvailable : Math.max(0, earnedCoff - usedCoff);
+
+    const extraEl = document.getElementById('coffKpiExtraEarned');
+    if (extraEl) extraEl.innerText = `+${earnedMins}m`;
+
+    const earnedEl = document.getElementById('coffKpiEarnedCount');
+    if (earnedEl) earnedEl.innerText = `${earnedCoff} COFF`;
+
+    const usedEl = document.getElementById('coffKpiUsedCount');
+    if (usedEl) usedEl.innerText = `${usedCoff} COFF`;
+
+    const balEl = document.getElementById('coffKpiBalance');
+    if (balEl) balEl.innerText = `${availCoff} COFF`;
+
+    const hdr = document.getElementById('coffLedgerHeaderLabel');
+    if (hdr) hdr.innerText = `Comp-Off (COFF) Ledger & Utilization Tracker (${state.activeYear})`;
+
+    const tbody = document.getElementById('coffMonthlyTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const activeM = parseInt(state.activeMonthNumber, 10);
+    const breakdown = extra.monthlyBreakdown || {};
+
+    let runningBal = 0;
+    for (let m = 1; m <= 12; m++) {
+      const padM = String(m).padStart(2, '0');
+      const mKey = `${state.activeYear}-${padM}`;
+      const mInfo = breakdown[mKey] || {};
+      const mMins = m === activeM ? earnedMins : (mInfo.extras || 0);
+      const mEarned = mInfo.earns != null ? mInfo.earns : (mMins >= 600 ? 1 : 0);
+      const mUsed = mInfo.used || (m === activeM && (res.todayRecord && res.todayRecord.status === 'COFF') ? 1 : 0);
+
+      runningBal += (mEarned - mUsed);
+      if (runningBal < 0) runningBal = 0;
+
+      let statusBadge = '<span style="color: var(--text-muted); font-size: 11px;">—</span>';
+      if (mEarned > 0 && mUsed > 0) {
+        statusBadge = '<span class="badge-status" style="background:#e0e7ff; color:#3730a3; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">Earned & Availed</span>';
+      } else if (mEarned > 0) {
+        statusBadge = '<span class="badge-status badge-status-p" style="padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">Earned 1 COFF</span>';
+      } else if (mUsed > 0) {
+        statusBadge = '<span class="badge-status badge-status-coff" style="padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">Expended 1 COFF</span>';
+      } else if (mMins > 0) {
+        const left = Math.max(0, 600 - mMins);
+        statusBadge = `<span style="color: #d97706; font-size: 11px; font-weight: 600;">+${mMins}m (Need ${left}m)</span>`;
+      }
+
+      const isCurrent = (m === activeM);
+      const tr = document.createElement('tr');
+      if (isCurrent) tr.style.background = 'var(--primary-subtle)';
+      tr.innerHTML = `
+        <td style="font-weight: 700;">${monthNames[m - 1]} ${state.activeYear}${isCurrent ? ' <span style="font-size: 10px; color: var(--primary); font-weight: 800;">(Active)</span>' : ''}</td>
+        <td style="font-weight: 600;">${mMins > 0 ? `+${mMins}m` : '0m'}</td>
+        <td style="font-weight: 700; color: ${mEarned > 0 ? 'var(--success)' : 'inherit'};">${mEarned > 0 ? `+${mEarned}` : '0'}</td>
+        <td style="font-weight: 700; color: ${mUsed > 0 ? 'var(--danger)' : 'inherit'};">${mUsed > 0 ? `-${mUsed}` : '0'}</td>
+        <td style="font-weight: 800; color: var(--primary);">${runningBal}</td>
+        <td>${statusBadge}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // =========================================================================
+  // VIEW SWITCHER: MONTH VIEW VS YEAR VIEW TOGGLE & ANNUAL REPORT
+  // =========================================================================
+  function switchDashView(mode) {
+    state.dashViewMode = mode;
+    const btnM = document.getElementById('dashBtnMonthly');
+    const btnY = document.getElementById('dashBtnYearly');
+    const mContent = document.getElementById('dashMonthlyContent');
+    const yContent = document.getElementById('dashYearlyContent');
+    const title = document.getElementById('dashViewTitle');
+
+    if (mode === 'yearly') {
+      if (btnM) { btnM.style.background = 'transparent'; btnM.style.color = 'var(--text-secondary)'; }
+      if (btnY) { btnY.style.background = 'var(--primary)'; btnY.style.color = '#ffffff'; }
+      if (mContent) mContent.style.display = 'none';
+      if (yContent) yContent.style.display = 'block';
+      if (title) title.innerText = `Yearly Performance Summary (${state.activeYear})`;
+      loadYearlyDashboard();
+    } else {
+      if (btnM) { btnM.style.background = 'var(--primary)'; btnM.style.color = '#ffffff'; }
+      if (btnY) { btnY.style.background = 'transparent'; btnY.style.color = 'var(--text-secondary)'; }
+      if (mContent) mContent.style.display = 'flex';
+      if (yContent) yContent.style.display = 'none';
+      if (title) title.innerText = `${getMonthName(state.activeMonthNumber)} ${state.activeYear}`;
+    }
+  }
+
+  async function loadYearlyDashboard() {
+    const tbody = document.getElementById('yearlyMonthsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">Loading yearly records...</td></tr>';
+    
+    try {
+      const res = await callApi('apiGetYearlyDashboard', state.token, state.activeYear, state.activePen);
+      if (res && res.ok && res.months) {
+        tbody.innerHTML = '';
+        res.months.forEach(m => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td style="font-weight: 700;">${m.monthName} ${state.activeYear}</td>
+            <td><span class="badge-pill-soft" style="background: var(--bg-card-subtle);">${m.workingDays} days</span></td>
+            <td style="font-weight: 600;">${m.workHours} hrs</td>
+            <td style="color: #7c3aed; font-weight: 700;">${m.meetingHours} hrs</td>
+          `;
+          tbody.appendChild(row);
+        });
+        if (res.yearlyCounts) renderYearlyBreakdown(res.yearlyCounts);
+      } else {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">No yearly records found.</td></tr>';
+      }
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--danger);">Failed to load yearly records.</td></tr>';
+    }
+  }
+
+  // =========================================================================
   // NATIVE PURE SVG CHARTS (0KB EXTERNAL DEPENDENCIES, 100% VECTOR RETINA)
   // =========================================================================
   function renderCharts(stats, diaries) {
@@ -2711,17 +2937,26 @@
     const mtgMins = Number(stats.totalMeetingMinutes) || 0;
     const offMins = Number(stats.totalOfficeWorkMinutes) || 0;
     const totalMins = mtgMins + offMins;
-    const mtgPct = totalMins > 0 ? ((mtgMins / totalMins) * 100).toFixed(1) : '30.4';
-    const offPct = totalMins > 0 ? (100 - parseFloat(mtgPct)).toFixed(1) : '69.6';
+    const mtgPct = totalMins > 0 ? ((mtgMins / totalMins) * 100).toFixed(1) : '0.0';
+    const offPct = totalMins > 0 ? (100 - parseFloat(mtgPct)).toFixed(1) : '100.0';
 
-    // 1. Work Distribution Donut Chart
-    renderSvgDonut(stats.totalActualWorkFormatted || '33h 25m', parseFloat(mtgPct), parseFloat(offPct));
+    // 1. Work Distribution Donut Chart (Prominent with total badge & proportion bar)
+    renderSvgDonut(stats.totalActualWorkFormatted || '0h 0m', parseFloat(mtgPct), parseFloat(offPct));
+
+    const totalBadge = document.getElementById('chartTotalBadge');
+    if (totalBadge) totalBadge.innerText = `Total: ${stats.totalActualWorkFormatted || '0h 0m'}`;
 
     const lMtg = document.getElementById('chartLegendMeetings');
-    if (lMtg) lMtg.innerText = `${stats.totalMeetingFormatted || '10h 10m'} (${mtgPct}%)`;
+    if (lMtg) lMtg.innerText = `${stats.totalMeetingFormatted || '0h 0m'} (${mtgPct}%)`;
 
     const lOff = document.getElementById('chartLegendOffice');
-    if (lOff) lOff.innerText = `${stats.totalOfficeWorkFormatted || '23h 15m'} (${offPct}%)`;
+    if (lOff) lOff.innerText = `${stats.totalOfficeWorkFormatted || '0h 0m'} (${offPct}%)`;
+
+    const barMtg = document.getElementById('workDistBarMtg');
+    if (barMtg) barMtg.style.width = `${mtgPct}%`;
+
+    const barOff = document.getElementById('workDistBarOff');
+    if (barOff) barOff.style.width = `${offPct}%`;
 
     // 2. Daily Meeting Hours Bar Chart
     renderSvgBarChart(diaries || []);
@@ -2731,22 +2966,22 @@
     const container = document.getElementById('svgDonutContainer');
     if (!container) return;
 
-    const r = 54;
-    const circ = 2 * Math.PI * r; // ~339.29
+    const r = 62;
+    const circ = 2 * Math.PI * r; // ~389.56
     const mtgStroke = (mtgPct / 100) * circ;
     const offStroke = (offPct / 100) * circ;
 
     container.innerHTML = `
-      <svg viewBox="0 0 160 160" width="160" height="160" style="transform: rotate(-90deg);">
-        <circle cx="80" cy="80" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="18" />
-        <circle cx="80" cy="80" r="${r}" fill="none" stroke="#10b981" stroke-width="18"
+      <svg viewBox="0 0 180 180" width="180" height="180" style="transform: rotate(-90deg);">
+        <circle cx="90" cy="90" r="${r}" fill="none" stroke="var(--bg-card-subtle)" stroke-width="20" />
+        <circle cx="90" cy="90" r="${r}" fill="none" stroke="#10b981" stroke-width="20"
           stroke-dasharray="${offStroke} ${circ}" stroke-dashoffset="0" stroke-linecap="round" />
-        <circle cx="80" cy="80" r="${r}" fill="none" stroke="#9333ea" stroke-width="18"
+        <circle cx="90" cy="90" r="${r}" fill="none" stroke="#9333ea" stroke-width="20"
           stroke-dasharray="${mtgStroke} ${circ}" stroke-dashoffset="-${offStroke}" stroke-linecap="round" />
       </svg>
       <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none;">
-        <div style="font-size: 15px; font-weight: 900; color: var(--text-main); line-height: 1.1;">${totalLabel}</div>
-        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 2px;">Total</div>
+        <div style="font-size: 16px; font-weight: 900; color: var(--text-main); line-height: 1.1;">${totalLabel}</div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 2px;">Total Work</div>
       </div>
     `;
   }
@@ -2755,10 +2990,20 @@
     const container = document.getElementById('svgBarChartContainer');
     if (!container) return;
 
-    // Filter to work days with data
     const daysData = diaries.map(d => {
-      const dayNum = d.date ? d.date.split('-')[2] : '--';
-      const hours = d.meetingMinutes ? (d.meetingMinutes / 60) : 0;
+      let dayNum = '--';
+      if (d.date) {
+        if (d.date.includes('-')) dayNum = d.date.split('-')[2];
+        else if (d.date.includes('/')) dayNum = d.date.split('/')[0];
+      }
+      let mins = Number(d.meetingDurationMins);
+      if (isNaN(mins) || mins === 0) mins = Number(d.meetingMinutes) || 0;
+      if (mins === 0 && Array.isArray(d.timeline)) {
+        d.timeline.forEach(t => {
+          if (t.type === 'MEETING') mins += (Number(t.durationMins) || 0);
+        });
+      }
+      const hours = mins / 60;
       return { dayNum, hours: parseFloat(hours.toFixed(1)) };
     });
 
@@ -2767,7 +3012,7 @@
       return;
     }
 
-    const maxH = Math.max(6, ...daysData.map(d => d.hours));
+    const maxH = Math.max(6, Math.ceil(Math.max(...daysData.map(d => d.hours))));
     const width = 460;
     const height = 160;
     const padLeft = 28;
@@ -2777,7 +3022,8 @@
     const barWidth = Math.max(8, Math.min(22, (chartW / daysData.length) - 6));
 
     let gridLinesHtml = '';
-    for (let h = 0; h <= maxH; h += 2) {
+    const stepH = maxH > 10 ? 4 : 2;
+    for (let h = 0; h <= maxH; h += stepH) {
       const y = height - padBottom - (h / maxH) * chartH;
       gridLinesHtml += `
         <line x1="${padLeft}" y1="${y}" x2="${width - 10}" y2="${y}" stroke="var(--border-subtle)" stroke-dasharray="3,3" />
@@ -2794,7 +3040,7 @@
       
       barsHtml += `
         <g class="bar-group" style="cursor: pointer;">
-          <title>${d.dayNum} Nov: ${d.hours} hrs meeting</title>
+          <title>Day ${d.dayNum}: ${d.hours} hrs meeting</title>
           <rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(2, barH)}" rx="3" fill="url(#barGradient)" />
           <text x="${x + barWidth / 2}" y="${height - 8}" font-size="9" font-weight="600" fill="var(--text-muted)" text-anchor="middle">${d.dayNum}</text>
         </g>
@@ -3045,44 +3291,88 @@
   function renderAttendanceCalendarGrid(days) {
     const grid = document.getElementById('calendarMonthGrid');
     const stream = document.getElementById('calendarLeaveStream');
-    if (!grid || !stream) return;
+    if (!grid) return;
 
     grid.innerHTML = '';
-    stream.innerHTML = '';
+    if (stream) stream.innerHTML = '';
+
+    const year = parseInt(state.activeYear, 10) || new Date().getFullYear();
+    const month = parseInt(state.activeMonthNumber, 10) || (new Date().getMonth() + 1);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstDayIndex = new Date(year, month - 1, 1).getDay(); // 0 = Sun, 1 = Mon ...
+    const startOffset = (firstDayIndex + 6) % 7; // Monday = 0, Sunday = 6
+
+    // Map provided days by day number (1 .. 31)
+    const dayMap = {};
+    (days || []).forEach(d => {
+      if (!d.date) return;
+      let dNum = null;
+      if (d.date.includes('/')) dNum = parseInt(d.date.split('/')[0], 10);
+      else if (d.date.includes('-')) dNum = parseInt(d.date.split('-')[2], 10);
+      if (dNum) dayMap[dNum] = d;
+    });
+
+    // 1. Pad leading empty cells for preceding month
+    for (let i = 0; i < startOffset; i++) {
+      const emptyCell = document.createElement('div');
+      emptyCell.style.cssText = 'padding: 8px 4px; border-radius: 8px; opacity: 0.25; background: var(--bg-card-subtle);';
+      grid.appendChild(emptyCell);
+    }
 
     let leaveCount = 0;
-    days.forEach(d => {
-      const st = (d.status || '').toUpperCase();
+
+    // 2. Render all days of the month (1 to 28/29/30/31)
+    for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+      const d = dayMap[dayNum];
+      const dateObj = new Date(year, month - 1, dayNum);
+      const isSunday = (dateObj.getDay() === 0);
+      
+      let st = d ? (d.status || '').toUpperCase() : (isSunday ? 'PH' : '');
+      if (!st && isSunday) st = 'PH';
+
       let cellBg = 'var(--bg-card-subtle)';
       let textCol = 'var(--text-main)';
 
       if (st === 'P') { cellBg = '#dcfce7'; textCol = '#15803d'; }
-      else if (st === 'PH' || st === 'HOLIDAY') { cellBg = '#ffedd5'; textCol = '#c2410c'; }
-      else if (st === 'OD') { cellBg = '#cffafe'; textCol = '#0e7490'; }
-      else if (st === 'A' || st === 'CL' || st === 'COFF') { cellBg = '#fee2e2'; textCol = '#b91c1c'; }
+      else if (st === 'PH' || st === 'HOLIDAY' || st === 'H') { cellBg = '#ffedd5'; textCol = '#c2410c'; }
+      else if (st === 'OD' || st === 'FNOD' || st === 'ANOD') { cellBg = '#cffafe'; textCol = '#0e7490'; }
+      else if (st === 'A' || st === 'CL' || st === 'COFF' || st === 'FNCL' || st === 'ANCL') { cellBg = '#fee2e2'; textCol = '#b91c1c'; }
 
-      const dayNum = d.date ? d.date.split('-')[2] : '';
+      const padDay = String(dayNum).padStart(2, '0');
+      const padMonth = String(month).padStart(2, '0');
+      const dateStr = `${padDay}/${padMonth}/${year}`;
+
       const cell = document.createElement('div');
-      cell.style.cssText = `background: ${cellBg}; color: ${textCol}; padding: 10px 4px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; border: 1px solid rgba(0,0,0,0.04);`;
-      cell.innerText = dayNum;
-      cell.title = `${d.date}: ${st}`;
-      cell.onclick = () => openEditAttendanceRow(d.date, d.inTime || '', d.outTime || '', d.status || 'P', encodeURIComponent(d.remarks || ''));
+      cell.style.cssText = `background: ${cellBg}; color: ${textCol}; padding: 8px 4px; border-radius: 8px; font-weight: 800; text-align: center; cursor: pointer; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.15s ease;`;
+      cell.innerHTML = `
+        <div style="font-size: 13px; font-weight: 800;">${padDay}</div>
+        <div style="font-size: 9px; font-weight: 700; margin-top: 2px; opacity: 0.85;">${st || '—'}</div>
+      `;
+      cell.title = `${dateStr}: ${st || 'No punch'}`;
+      cell.onclick = () => {
+        const inT = d ? (d.inTime || '') : '';
+        const outT = d ? (d.outTime || '') : '';
+        const rem = d ? (d.remarks || '') : '';
+        openEditAttendanceRow(dateStr, inT, outT, st || 'P', encodeURIComponent(rem));
+      };
       grid.appendChild(cell);
 
-      if (st === 'CL' || st === 'OD' || st === 'COFF' || st === 'FNCL' || st === 'ANCL') {
+      if (['CL', 'OD', 'COFF', 'FNCL', 'ANCL', 'A'].includes(st)) {
         leaveCount++;
-        const item = document.createElement('div');
-        item.style.cssText = `display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--bg-card-subtle); border-radius: 8px; font-size: 12px; border: 1px solid var(--border-card);`;
-        item.innerHTML = `
-          <div>
-            <div style="font-weight: 700;">${d.date} &bull; ${st}</div>
-            <div style="font-size: 11px; color: var(--text-muted);">${d.remarks || 'Approved'}</div>
-          </div>
-          <span class="badge-status badge-status-${st === 'OD' ? 'od' : 'ph'}" style="width: 22px; height: 22px; font-size: 10px;">${st}</span>
-        `;
-        stream.appendChild(item);
+        if (stream) {
+          const item = document.createElement('div');
+          item.style.cssText = `display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--bg-card-subtle); border-radius: 8px; font-size: 12px; border: 1px solid var(--border-card); margin-bottom: 6px;`;
+          item.innerHTML = `
+            <div>
+              <div style="font-weight: 700;">${dateStr} &bull; ${st}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${(d && d.remarks) ? d.remarks : 'Recorded'}</div>
+            </div>
+            <span class="badge-status badge-status-${st.toLowerCase()}" style="width: 22px; height: 22px; font-size: 10px;">${st}</span>
+          `;
+          stream.appendChild(item);
+        }
       }
-    });
+    }
 
     const onLeaveEl = document.getElementById('calKpiOnLeave');
     if (onLeaveEl) onLeaveEl.innerText = leaveCount;
@@ -3517,38 +3807,75 @@
   // SYNC CALENDAR
   async function handleSyncCalendar() {
     const btn = document.getElementById('btnSyncCal');
-    btn.disabled = true;
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="spin" style="width: 14px; height: 14px;"><use href="#icon-refresh"></use></svg> <span>Syncing...</span>`;
+    }
     try {
       const res = await callApi('syncGoogleCalendar', state.activeMonth, state.activePen);
-      if (res && res.ok) {
-        alert('Google Calendar synced successfully.');
+      if (res && (res.ok || res.importedCount != null)) {
+        const imp = res.importedCount || 0;
+        const upd = res.updatedCount || 0;
+        alert(`Google Calendar synced successfully!\nImported: ${imp} new meeting(s)\nUpdated: ${upd}`);
         loadFullData();
       } else {
-        alert((res && res.message) ? res.message : 'Sync complete.');
+        alert((res && (res.error || res.message)) ? (res.error || res.message) : 'Sync complete.');
       }
     } catch (e) {
-      alert('Calendar sync error');
+      alert('Calendar sync error: ' + (e.message || e));
     } finally {
-      btn.disabled = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     }
   }
 
   // MONTHLY PDF DOWNLOAD
   async function downloadMonthlyPdf() {
+    const btn = document.querySelector('button[onclick="downloadMonthlyPdf()"]');
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="spin" style="width: 14px; height: 14px;"><use href="#icon-refresh"></use></svg> <span>Generating...</span>`;
+    }
     try {
       const res = await callApi('apiGenerateMonthlyPdf', state.token, state.activeMonth, state.activePen);
       if (res && res.url) {
         window.open(res.url, '_blank');
       } else if (res && res.base64) {
+        const byteCharacters = atob(res.base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = 'data:application/pdf;base64,' + res.base64;
-        link.download = `WorkDiary_${state.activeMonth}.pdf`;
+        link.href = blobUrl;
+        link.download = res.filename || `WorkDiary_${state.activeMonth}.pdf`;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      } else if (res && res.html) {
+        const win = window.open('', '_blank');
+        win.document.write(res.html);
+        win.document.close();
+        win.focus();
+        win.print();
       } else {
-        alert((res && res.message) ? res.message : 'Generating PDF in background...');
+        alert((res && (res.error || res.message)) ? (res.error || res.message) : 'Could not generate PDF. Please ensure backend is reachable.');
       }
     } catch (e) {
-      alert('PDF generation error');
+      alert('PDF generation error: ' + (e.message || e));
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     }
   }
 
