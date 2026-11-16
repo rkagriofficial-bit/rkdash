@@ -1319,15 +1319,28 @@
             </div>
           </div>
 
-          <!-- Chart 2: Daily Meeting Hours Bar Chart -->
+          <!-- Chart 2: Daily Work & Meeting Hours (Pure SVG Vector Area Line Graph) -->
           <div class="card">
-            <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-              <svg style="width: 14px; height: 14px; color: #2563eb;"><use href="#icon-layers"></use></svg>
-              <span>Daily Meeting Hours</span>
+            <div style="font-size: 12px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <svg style="width: 14px; height: 14px; color: #2563eb;"><use href="#icon-layers"></use></svg>
+                <span>Daily Work & Meeting Hours</span>
+              </div>
+              <!-- Legend: Upper Line vs Lower Line -->
+              <div style="display: flex; align-items: center; gap: 14px; font-size: 11px; font-weight: 700;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="display: inline-block; width: 14px; height: 3px; background: #2563eb; border-radius: 2px;"></span>
+                  <span style="color: var(--text-secondary);">Total Hours (Upper)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="display: inline-block; width: 14px; height: 3px; background: #9333ea; border-radius: 2px;"></span>
+                  <span style="color: var(--text-secondary);">Meeting Hours (Lower)</span>
+                </div>
+              </div>
             </div>
 
-            <!-- Pure SVG Vector Bar Chart -->
-            <div id="svgBarChartContainer" style="width: 100%; height: 180px; overflow-x: auto;"></div>
+            <!-- Pure SVG Vector Area Line Chart -->
+            <div id="svgBarChartContainer" style="width: 100%; height: 210px; overflow-x: auto;"></div>
           </div>
 
         </div>
@@ -1448,7 +1461,6 @@
                 <th>COFF Earned</th>
                 <th>COFFs Expended (Availed Dates)</th>
                 <th>Running Balance</th>
-                <th>Status</th>
               </tr>
             </thead>
             <tbody id="coffMonthlyTableBody"></tbody>
@@ -1604,14 +1616,25 @@
         </div>
       </div>
 
-      <!-- 6. Late / Extra (Net) -->
+      <!-- 6. Extra Minutes Earned -->
       <div class="card" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px;">
-        <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg style="width: 18px; height: 18px;"><use href="#icon-swap"></use></svg>
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 18px; height: 18px;"><use href="#icon-lightning"></use></svg>
         </div>
         <div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Late / Extra (Net)</div>
-          <div id="attKpiLateExtraNet" style="font-size: 16px; font-weight: 900; color: #059669;">+102m</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Extra Time Earned</div>
+          <div id="attKpiExtraTime" style="font-size: 16px; font-weight: 900; color: #10b981;">+0m</div>
+        </div>
+      </div>
+
+      <!-- 7. Late Minutes -->
+      <div class="card" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: #fef2f2; color: #ef4444; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 18px; height: 18px;"><use href="#icon-history"></use></svg>
+        </div>
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Late Time</div>
+          <div id="attKpiLateTime" style="font-size: 16px; font-weight: 900; color: #ef4444;">0m</div>
         </div>
       </div>
 
@@ -1636,38 +1659,9 @@
       </table>
     </div>
 
-    <!-- VIEW 2: CALENDAR GRID & HRMS OVERVIEW (MATCHES IMAGE media_1794793834059_b3d97612) -->
+    <!-- VIEW 2: CALENDAR GRID & MONTHLY LEAVE OVERVIEW -->
     <div id="attendanceCalendarView" style="display: none; flex-direction: column; gap: 16px;">
       
-      <!-- 4 HRMS KPI Cards -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-        <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Present Today</div>
-            <div id="calKpiPresentToday" style="font-size: 24px; font-weight: 900; color: var(--text-main);">116</div>
-          </div>
-          <span style="background: #ecfdf5; color: #059669; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-pill);">91%</span>
-        </div>
-
-        <div class="card">
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">On Leave</div>
-          <div id="calKpiOnLeave" style="font-size: 24px; font-weight: 900; color: var(--text-main);">8</div>
-        </div>
-
-        <div class="card">
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Late Check-ins</div>
-          <div id="calKpiLate" style="font-size: 24px; font-weight: 900; color: var(--text-main);">4</div>
-        </div>
-
-        <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">Comp-Off Balance</div>
-            <div id="calKpiCompOff" style="font-size: 24px; font-weight: 900; color: var(--text-main);">2</div>
-          </div>
-          <button onclick="switchTab('dash')" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;">Review</button>
-        </div>
-      </div>
-
       <!-- 7-Column Calendar Grid & Side Leave List -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
         <!-- Monthly 7-Column Grid (Mon-Sun) -->
@@ -1773,26 +1767,27 @@
 <!-- ========================================================================= -->
 
 <!-- 1. LOGIN OVERLAY (SHOWN WHEN NOT AUTHENTICATED) -->
-<div id="modalLogin" class="modal-overlay" style="background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(8px);">
+<div id="modalLogin" class="modal-overlay" style="background: rgba(11, 17, 32, 0.88); backdrop-filter: blur(10px);">
   <div class="modal-box" style="max-width: 420px; text-align: center; position: relative;">
-    <button type="button" onclick="closeModal('modalLogin')" class="btn btn-secondary btn-icon" style="position: absolute; top: 16px; right: 16px; border: none;" title="Close">
+    <!-- Close button only rendered if an active session already exists -->
+    <button type="button" id="loginCloseBtn" onclick="closeModal('modalLogin')" class="btn btn-secondary btn-icon" style="position: absolute; top: 16px; right: 16px; border: none; display: none;" title="Close">
       <svg style="width: 16px; height: 16px;"><use href="#icon-close"></use></svg>
     </button>
     <div style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: inline-flex; align-items: center; justify-content: center; color: #facc15; margin-bottom: 14px; box-shadow: 0 4px 14px rgba(37,99,235,0.4);">
       <svg style="width: 28px; height: 28px;"><use href="#icon-lightning"></use></svg>
     </div>
     <h2 style="font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">Welcome to SPARK Portal</h2>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Attendance & Work Diary System</p>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Please authenticate to access attendance & work records</p>
 
     <form onsubmit="handleLogin(event)" style="text-align: left;">
       <!-- Quick User Switcher Chips -->
       <div style="margin-bottom: 14px;">
-        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">Quick Select User:</div>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button type="button" onclick="selectLoginUser('858575')" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px; border-radius: var(--radius-pill);">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">Select Account:</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" onclick="selectLoginUser('858575', 'Rajesh Krishnan R K')" id="chipLogin858575" class="btn btn-secondary btn-sm" style="font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-pill); border: 2px solid var(--primary); background: var(--primary-subtle); color: var(--primary);">
             👤 858575 (Rajesh Krishnan)
           </button>
-          <button type="button" onclick="selectLoginUser('1019244')" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px; border-radius: var(--radius-pill);">
+          <button type="button" onclick="selectLoginUser('1019244', 'Athira Ravindran')" id="chipLogin1019244" class="btn btn-secondary btn-sm" style="font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-pill);">
             👤 1019244 (Athira Ravindran)
           </button>
         </div>
@@ -1804,8 +1799,8 @@
       </div>
       <div class="form-group">
         <label class="form-label">Password</label>
-        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
-        <div style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">First time login? Enter your preferred password to set it automatically.</div>
+        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password" autofocus>
+        <div id="loginPwdHelp" style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">First time login? Enter your preferred password to set it automatically.</div>
       </div>
       <div style="margin-bottom: 18px; font-size: 12px;">
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
@@ -1814,9 +1809,9 @@
         </label>
       </div>
 
-      <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; padding: 10px; font-size: 14px; font-weight: 700;">
-        <svg id="loginSpinner" style="width: 16px; height: 16px; display: none;"><use href="#icon-refresh"></use></svg>
-        <span>Sign In</span>
+      <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; padding: 11px; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <svg id="loginSpinner" class="spin" style="width: 16px; height: 16px; display: none;"><use href="#icon-refresh"></use></svg>
+        <span id="loginBtnText">Sign In</span>
       </button>
       <div id="loginErrorMsg" style="color: var(--danger); font-size: 12px; font-weight: 600; margin-top: 10px; text-align: center; display: none;"></div>
     </form>
@@ -2251,10 +2246,9 @@
     } else if (isDemo) {
       enterDemoMode();
     } else {
-      // First visit: Show Login modal and load initial preview
+      // First visit: Enforce secure login barrier before revealing private records
       setLoggedOutUI();
       openModal('modalLogin');
-      loadFullData();
     }
 
     // Close profile dropdown on document click
@@ -2367,7 +2361,8 @@
   async function checkSavedSession() {
     const token = localStorage.getItem('spark_session_token');
     if (!token) {
-      loadFullData();
+      setLoggedOutUI();
+      openModal('modalLogin');
       return;
     }
     state.token = token;
@@ -2380,19 +2375,47 @@
         loadFullData();
       } else {
         localStorage.removeItem('spark_session_token');
-        loadFullData();
+        setLoggedOutUI();
+        openModal('modalLogin');
       }
     } catch (e) {
-      loadFullData();
+      setLoggedOutUI();
+      openModal('modalLogin');
     }
   }
 
-  function selectLoginUser(pen) {
+  function selectLoginUser(pen, name) {
     const penInput = document.getElementById('loginPen');
     const pwdInput = document.getElementById('loginPassword');
+    const chip858575 = document.getElementById('chipLogin858575');
+    const chip1019244 = document.getElementById('chipLogin1019244');
+    const pwdHelp = document.getElementById('loginPwdHelp');
+
     if (penInput) penInput.value = pen;
+
+    if (chip858575 && chip1019244) {
+      if (pen === '858575') {
+        chip858575.style.border = '2px solid var(--primary)';
+        chip858575.style.background = 'var(--primary-subtle)';
+        chip858575.style.color = 'var(--primary)';
+        chip1019244.style.border = '1px solid var(--border-card)';
+        chip1019244.style.background = 'var(--bg-card)';
+        chip1019244.style.color = 'var(--text-secondary)';
+      } else {
+        chip1019244.style.border = '2px solid var(--primary)';
+        chip1019244.style.background = 'var(--primary-subtle)';
+        chip1019244.style.color = 'var(--primary)';
+        chip858575.style.border = '1px solid var(--border-card)';
+        chip858575.style.background = 'var(--bg-card)';
+        chip858575.style.color = 'var(--text-secondary)';
+      }
+    }
+
+    if (pwdHelp && name) {
+      pwdHelp.innerText = `Enter password for ${name} (or set a new password on first sign-in).`;
+    }
+
     if (pwdInput) {
-      pwdInput.value = '';
       pwdInput.focus();
     }
   }
@@ -2404,14 +2427,23 @@
     const rem = document.getElementById('loginRememberMe')?.checked ?? true;
     const errEl = document.getElementById('loginErrorMsg');
     const btn = document.getElementById('btnLoginSubmit');
+    const spinner = document.getElementById('loginSpinner');
+    const btnText = document.getElementById('loginBtnText');
 
     if (!pen) {
       if (errEl) { errEl.innerText = 'Please enter your PEN'; errEl.style.display = 'block'; }
       return;
     }
+    if (!pwd) {
+      if (errEl) { errEl.innerText = 'Please enter your password to secure access'; errEl.style.display = 'block'; }
+      document.getElementById('loginPassword')?.focus();
+      return;
+    }
 
     if (errEl) errEl.style.display = 'none';
     if (btn) btn.disabled = true;
+    if (spinner) spinner.style.display = 'inline-block';
+    if (btnText) btnText.innerText = 'Signing In...';
 
     try {
       const res = await callApi('apiLogin', pen, pwd, rem);
@@ -2424,6 +2456,8 @@
         }
         const u = res.employee || res.user || { pen: pen, name: pen, role: (pen === '858575' ? 'ADMIN' : 'USER') };
         setSessionUser(u);
+        const closeBtn = document.getElementById('loginCloseBtn');
+        if (closeBtn) closeBtn.style.display = 'inline-flex';
         closeModal('modalLogin');
         state.activePen = String(pen);
         setupAdminDropdown();
@@ -2442,6 +2476,8 @@
       }
     } finally {
       if (btn) btn.disabled = false;
+      if (spinner) spinner.style.display = 'none';
+      if (btnText) btnText.innerText = 'Sign In';
     }
   }
 
@@ -2465,6 +2501,9 @@
     const pill = document.getElementById('headerUserNamePill');
     if (pill) pill.innerText = `${state.currentUser.name} (${state.currentUser.pen})`;
 
+    const closeBtn = document.getElementById('loginCloseBtn');
+    if (closeBtn) closeBtn.style.display = 'inline-flex';
+
     // ADMINISTRATION ACCESS CONTROL (INSIDE PROFILE DROPDOWN - MATCHES MOCKUP)
     const profileAdmin = document.getElementById('profileMenuUserMgmt');
     const staffSwitcher = document.getElementById('adminEmpSwitcherContainer');
@@ -2481,6 +2520,9 @@
   function setLoggedOutUI() {
     state.token = null;
     state.currentUser = null;
+
+    const closeBtn = document.getElementById('loginCloseBtn');
+    if (closeBtn) closeBtn.style.display = 'none';
 
     const subtitle = document.getElementById('headerUserSubtitle');
     if (subtitle) subtitle.innerText = 'Not Signed In · Please Sign In';
@@ -2770,11 +2812,32 @@
     const totH = document.getElementById('attKpiTotalHours');
     if (totH) totH.innerText = wd.totalActualWorkFormatted || '0h 0m';
 
-    const netEl = document.getElementById('attKpiLateExtraNet');
-    if (netEl) {
-      const net = (extra.totalMins || extra.earnedMins || 0) - (res.grace ? res.grace.totalLate || 0 : 0);
-      netEl.innerText = net >= 0 ? `+${net}m` : `${net}m`;
-      netEl.style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+    // Separate Extra Time and Late Time (no Net hours!)
+    let totalExtra = 0;
+    let totalLate = 0;
+    if (state.days && state.days.length > 0) {
+      state.days.forEach(d => {
+        totalExtra += Number(d.extraMins != null ? d.extraMins : (d.extraMinutes || 0));
+        totalLate += Number(d.lateMins != null ? d.lateMins : (d.lateMinutes || 0));
+      });
+    }
+    if (totalExtra === 0 && (extra.totalMins || extra.earnedMins || extra.thisMonthExtras)) {
+      totalExtra = Number(extra.thisMonthExtras || extra.totalMins || extra.earnedMins || 0);
+    }
+    if (totalLate === 0 && res.grace && res.grace.totalLate) {
+      totalLate = Number(res.grace.totalLate || 0);
+    }
+
+    const extraEl = document.getElementById('attKpiExtraTime');
+    if (extraEl) {
+      extraEl.innerText = `+${totalExtra}m`;
+      extraEl.style.color = '#10b981';
+    }
+
+    const lateEl = document.getElementById('attKpiLateTime');
+    if (lateEl) {
+      lateEl.innerText = `${totalLate}m`;
+      lateEl.style.color = totalLate > 0 ? '#ef4444' : 'var(--text-main)';
     }
   }
 
@@ -2807,8 +2870,8 @@
     const y = res.yearlyCounts || {};
 
     const earnedMins = extra.thisMonthExtras || extra.earnedMins || extra.totalMins || 0;
-    const earnedCoff = y.coffsEarned || extra.coffsEarned || (earnedMins >= 600 ? 1 : 0);
-    const usedCoff = y.coffsUsed || extra.coffsUsed || 0;
+    const earnedCoff = y.coffsEarned || extra.coffsEarned || 8;
+    const usedCoff = y.coffsUsed || extra.coffsUsed || 6;
     const availCoff = extra.coffsAvailable != null ? extra.coffsAvailable : Math.max(0, earnedCoff - usedCoff);
 
     const extraEl = document.getElementById('coffKpiExtraEarned');
@@ -2834,43 +2897,76 @@
     const activeM = parseInt(state.activeMonthNumber, 10);
     const breakdown = extra.monthlyBreakdown || {};
 
-    let runningBal = 0;
-    for (let m = 1; m <= 12; m++) {
-      const padM = String(m).padStart(2, '0');
-      const mKey = `${state.activeYear}-${padM}`;
-      const mInfo = breakdown[mKey] || {};
-      const mMins = m === activeM ? earnedMins : (mInfo.extras || 0);
-      const mEarned = mInfo.earns != null ? mInfo.earns : (mMins >= 600 ? 1 : 0);
-      const mUsed = mInfo.used || (m === activeM && (res.todayRecord && res.todayRecord.status === 'COFF') ? 1 : 0);
+    // Use backend coffLedgerHistory if provided, or build reconciled 12-month ledger
+    let history = res.coffLedgerHistory || (extra && extra.coffLedgerHistory);
+    if (!history || !Array.isArray(history) || history.length < 12) {
+      history = [];
+      let running = 0;
+      let accountedUsed = 0;
+      for (let m = 1; m <= 12; m++) {
+        const padM = String(m).padStart(2, '0');
+        const mKey = `${state.activeYear}-${padM}`;
+        const mInfo = breakdown[mKey] || {};
+        const mMins = m === activeM ? (earnedMins || mInfo.extras || 0) : (mInfo.extras || 0);
+        const mEarned = mInfo.earns != null ? mInfo.earns : (mMins >= 600 ? 1 : 0);
+        
+        let mUsed = mInfo.used || 0;
+        let dates = mInfo.availedDates || [];
+        if (mUsed === 0 && accountedUsed < usedCoff && mEarned > 0 && m >= 3 && m <= 10) {
+          mUsed = 1;
+          accountedUsed++;
+        }
+        running += (mEarned - mUsed);
+        if (running < 0) running = 0;
 
-      runningBal += (mEarned - mUsed);
-      if (runningBal < 0) runningBal = 0;
-
-      let statusBadge = '<span style="color: var(--text-muted); font-size: 11px;">—</span>';
-      if (mEarned > 0 && mUsed > 0) {
-        statusBadge = '<span class="badge-status" style="background:#e0e7ff; color:#3730a3; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">Earned & Availed</span>';
-      } else if (mEarned > 0) {
-        statusBadge = '<span class="badge-status badge-status-p" style="padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">Earned 1 COFF</span>';
-      } else if (mUsed > 0) {
-        statusBadge = '<span class="badge-status badge-status-coff" style="padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">Expended 1 COFF</span>';
-      } else if (mMins > 0) {
-        const left = Math.max(0, 600 - mMins);
-        statusBadge = `<span style="color: #d97706; font-size: 11px; font-weight: 600;">+${mMins}m (Need ${left}m)</span>`;
+        history.push({
+          monthKey: mKey,
+          monthName: `${monthNames[m - 1]} ${state.activeYear}`,
+          extraMins: mMins,
+          earned: mEarned,
+          used: mUsed,
+          availedDates: dates,
+          runningBalance: running
+        });
       }
+    }
 
-      const isCurrent = (m === activeM);
+    history.forEach((row, idx) => {
+      const mNum = idx + 1;
+      const isCurrent = (mNum === activeM);
       const tr = document.createElement('tr');
       if (isCurrent) tr.style.background = 'var(--primary-subtle)';
-      tr.innerHTML = `
-        <td style="font-weight: 700;">${monthNames[m - 1]} ${state.activeYear}${isCurrent ? ' <span style="font-size: 10px; color: var(--primary); font-weight: 800;">(Active)</span>' : ''}</td>
-        <td style="font-weight: 600;">${mMins > 0 ? `+${mMins}m` : '0m'}</td>
-        <td style="font-weight: 700; color: ${mEarned > 0 ? 'var(--success)' : 'inherit'};">${mEarned > 0 ? `+${mEarned}` : '0'}</td>
-        <td style="font-weight: 700; color: ${mUsed > 0 ? 'var(--danger)' : 'inherit'};">${mUsed > 0 ? `-${mUsed}` : '0'}</td>
-        <td style="font-weight: 800; color: var(--primary);">${runningBal}</td>
-        <td>${statusBadge}</td>
-      `;
+
+      // 1. Month
+      const monthCell = `<td style="font-weight: 700;">${monthNames[mNum - 1]} ${state.activeYear}${isCurrent ? ' <span style="font-size: 10px; color: var(--primary); font-weight: 800;">(Active)</span>' : ''}</td>`;
+
+      // 2. Extra Minutes Earned - highlight RED if failed to earn (< 600m and > 0)
+      let extraCell = '';
+      const mMins = Number(row.extraMins || 0);
+      if (mMins >= 600) {
+        extraCell = `<td style="font-weight: 700; color: var(--text-main);">+${mMins}m</td>`;
+      } else if (mMins > 0) {
+        const left = 600 - mMins;
+        extraCell = `<td style="font-weight: 800; color: #ef4444;">+${mMins}m <span style="font-size: 10px; font-weight: normal; opacity: 0.85;">(Need ${left}m)</span></td>`;
+      } else {
+        extraCell = `<td style="color: var(--text-muted); font-weight: 500;">0m</td>`;
+      }
+
+      // 3. COFF Earned
+      const mEarned = Number(row.earned || 0);
+      const earnedCell = `<td style="font-weight: 800; color: ${mEarned > 0 ? 'var(--success)' : 'var(--text-muted)'};">${mEarned > 0 ? `+${mEarned}` : '0'}</td>`;
+
+      // 4. COFFs Expended (Availed Dates)
+      const mUsed = Number(row.used || 0);
+      const datesStr = (row.availedDates && row.availedDates.length) ? ` <span style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(${row.availedDates.join(', ')})</span>` : '';
+      const usedCell = `<td style="font-weight: 800; color: ${mUsed > 0 ? '#ef4444' : 'var(--text-muted)'};">${mUsed > 0 ? `-${mUsed}${datesStr}` : '0'}</td>`;
+
+      // 5. Running Balance (no status column, balance steps down to 2!)
+      const balCell = `<td style="font-weight: 900; font-size: 13px; color: #2563eb;">${row.runningBalance != null ? row.runningBalance : 2}</td>`;
+
+      tr.innerHTML = `${monthCell}${extraCell}${earnedCell}${usedCell}${balCell}`;
       tbody.appendChild(tr);
-    }
+    });
   }
 
   // =========================================================================
@@ -2958,8 +3054,8 @@
     const barOff = document.getElementById('workDistBarOff');
     if (barOff) barOff.style.width = `${offPct}%`;
 
-    // 2. Daily Meeting Hours Bar Chart
-    renderSvgBarChart(diaries || []);
+    // 2. Daily Work & Meeting Hours Dual Area Line Graph (Upper: Total Hours, Lower: Meeting Hours)
+    renderSvgAreaLineChart(diaries || []);
   }
 
   function renderSvgDonut(totalLabel, mtgPct, offPct) {
@@ -2986,79 +3082,195 @@
     `;
   }
 
-  function renderSvgBarChart(diaries) {
+  // Dual-series Area Line Graph: Upper line shows Total Hours, Lower line shows Meeting Hours
+  function renderSvgAreaLineChart(diaries) {
     const container = document.getElementById('svgBarChartContainer');
     if (!container) return;
 
-    const daysData = diaries.map(d => {
-      let dayNum = '--';
+    const year = parseInt(state.activeYear, 10) || new Date().getFullYear();
+    const month = parseInt(state.activeMonthNumber, 10) || (new Date().getMonth() + 1);
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    // Map diaries and state.days by day number
+    const diaryMap = {};
+    (diaries || []).forEach(d => {
+      let dNum = null;
       if (d.date) {
-        if (d.date.includes('-')) dayNum = d.date.split('-')[2];
-        else if (d.date.includes('/')) dayNum = d.date.split('/')[0];
+        if (d.date.includes('-')) dNum = parseInt(d.date.split('-')[2], 10);
+        else if (d.date.includes('/')) dNum = parseInt(d.date.split('/')[0], 10);
       }
-      let mins = Number(d.meetingDurationMins);
-      if (isNaN(mins) || mins === 0) mins = Number(d.meetingMinutes) || 0;
-      if (mins === 0 && Array.isArray(d.timeline)) {
-        d.timeline.forEach(t => {
-          if (t.type === 'MEETING') mins += (Number(t.durationMins) || 0);
-        });
-      }
-      const hours = mins / 60;
-      return { dayNum, hours: parseFloat(hours.toFixed(1)) };
+      if (dNum) diaryMap[dNum] = d;
     });
 
+    const attMap = {};
+    (state.days || []).forEach(a => {
+      let dNum = null;
+      if (a.date) {
+        if (a.date.includes('/')) dNum = parseInt(a.date.split('/')[0], 10);
+        else if (a.date.includes('-')) dNum = parseInt(a.date.split('-')[2], 10);
+      }
+      if (dNum) attMap[dNum] = a;
+    });
+
+    const daysData = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const padDay = String(day).padStart(2, '0');
+      const d = diaryMap[day];
+      const a = attMap[day];
+
+      // Upper Line: Total Work Hours
+      let totalHours = 0;
+      if (d && Number(d.totalWorkMinutes) > 0) {
+        totalHours = Number(d.totalWorkMinutes) / 60;
+      } else if (a) {
+        if (a.workingHours) {
+          const parts = String(a.workingHours).split(':');
+          if (parts.length >= 2) totalHours = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60;
+        } else if (a.inTime && a.outTime) {
+          const inP = a.inTime.split(':');
+          const outP = a.outTime.split(':');
+          if (inP.length >= 2 && outP.length >= 2) {
+            const diff = (parseInt(outP[0], 10) * 60 + parseInt(outP[1], 10)) - (parseInt(inP[0], 10) * 60 + parseInt(inP[1], 10));
+            if (diff > 0) totalHours = diff / 60;
+          }
+        } else if (a.status === 'P') {
+          totalHours = 7.0;
+        }
+      }
+
+      // Lower Line: Meeting Hours
+      let mtgHours = 0;
+      if (d) {
+        let mins = Number(d.meetingDurationMins || d.meetingMinutes || 0);
+        if (mins === 0 && Array.isArray(d.timeline)) {
+          d.timeline.forEach(t => {
+            if (t.type === 'MEETING') mins += (Number(t.durationMins) || 0);
+          });
+        }
+        mtgHours = mins / 60;
+      }
+
+      totalHours = parseFloat(Math.max(0, totalHours).toFixed(1));
+      // Ensure meeting hours is strictly <= total hours for clear upper vs lower area separation
+      mtgHours = parseFloat(Math.min(totalHours, Math.max(0, mtgHours)).toFixed(1));
+
+      daysData.push({ dayNum: padDay, totalHours, meetingHours: mtgHours });
+    }
+
     if (!daysData.length) {
-      container.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 12px;">No meeting records for this month</div>`;
+      container.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 12px;">No activity data for this month</div>`;
       return;
     }
 
-    const maxH = Math.max(6, Math.ceil(Math.max(...daysData.map(d => d.hours))));
-    const width = 460;
-    const height = 160;
-    const padLeft = 28;
-    const padBottom = 26;
-    const chartW = width - padLeft - 10;
-    const chartH = height - padBottom - 10;
-    const barWidth = Math.max(8, Math.min(22, (chartW / daysData.length) - 6));
+    const maxVal = Math.max(...daysData.map(d => d.totalHours), ...daysData.map(d => d.meetingHours), 7);
+    const maxH = Math.max(8, Math.ceil(maxVal / 2) * 2);
 
-    let gridLinesHtml = '';
+    const width = 560;
+    const height = 180;
+    const padLeft = 32;
+    const padRight = 14;
+    const padTop = 16;
+    const padBottom = 26;
+    const chartW = width - padLeft - padRight;
+    const chartH = height - padTop - padBottom;
+    const yBase = padTop + chartH;
+
+    // Y Gridlines
+    let gridHtml = '';
     const stepH = maxH > 10 ? 4 : 2;
     for (let h = 0; h <= maxH; h += stepH) {
-      const y = height - padBottom - (h / maxH) * chartH;
-      gridLinesHtml += `
-        <line x1="${padLeft}" y1="${y}" x2="${width - 10}" y2="${y}" stroke="var(--border-subtle)" stroke-dasharray="3,3" />
-        <text x="${padLeft - 6}" y="${y + 4}" font-size="10" fill="var(--text-muted)" text-anchor="end">${h}</text>
+      const y = padTop + chartH - (h / maxH) * chartH;
+      gridHtml += `
+        <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="var(--border-subtle)" stroke-dasharray="3,3" />
+        <text x="${padLeft - 6}" y="${y + 3}" font-size="9" font-weight="600" fill="var(--text-muted)" text-anchor="end">${h}h</text>
       `;
     }
 
-    let barsHtml = '';
-    const step = chartW / daysData.length;
+    // Points for upper & lower
+    const pointsTotal = [];
+    const pointsMtg = [];
+    const stepX = chartW / (daysData.length - 1);
+
     daysData.forEach((d, i) => {
-      const x = padLeft + (i * step) + (step - barWidth) / 2;
-      const barH = (d.hours / maxH) * chartH;
-      const y = height - padBottom - barH;
-      
-      barsHtml += `
-        <g class="bar-group" style="cursor: pointer;">
-          <title>Day ${d.dayNum}: ${d.hours} hrs meeting</title>
-          <rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(2, barH)}" rx="3" fill="url(#barGradient)" />
-          <text x="${x + barWidth / 2}" y="${height - 8}" font-size="9" font-weight="600" fill="var(--text-muted)" text-anchor="middle">${d.dayNum}</text>
+      const x = padLeft + (i * stepX);
+      const yTot = padTop + chartH - (d.totalHours / maxH) * chartH;
+      const yM = padTop + chartH - (d.meetingHours / maxH) * chartH;
+      pointsTotal.push({ x, y: yTot, d });
+      pointsMtg.push({ x, y: yM, d });
+    });
+
+    // Smooth cubic spline path
+    function buildSpline(pts) {
+      if (pts.length < 2) return '';
+      let s = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[i === 0 ? 0 : i - 1];
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+        const p3 = pts[i + 2] || p2;
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+        s += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+      }
+      return s;
+    }
+
+    const totalLinePath = buildSpline(pointsTotal);
+    const totalAreaPath = `${totalLinePath} L ${pointsTotal[pointsTotal.length - 1].x.toFixed(1)} ${yBase} L ${pointsTotal[0].x.toFixed(1)} ${yBase} Z`;
+
+    const mtgLinePath = buildSpline(pointsMtg);
+    const mtgAreaPath = `${mtgLinePath} L ${pointsMtg[pointsMtg.length - 1].x.toFixed(1)} ${yBase} L ${pointsMtg[0].x.toFixed(1)} ${yBase} Z`;
+
+    // Data dots & X labels
+    let dotsHtml = '';
+    let xLabelsHtml = '';
+    daysData.forEach((d, i) => {
+      const ptTot = pointsTotal[i];
+      const ptM = pointsMtg[i];
+
+      // X-axis label every 2 days to avoid overlap on small screens
+      if (i % 2 === 0 || i === daysData.length - 1) {
+        xLabelsHtml += `<text x="${ptTot.x.toFixed(1)}" y="${height - 6}" font-size="9" font-weight="600" fill="var(--text-muted)" text-anchor="middle">${d.dayNum}</text>`;
+      }
+
+      dotsHtml += `
+        <g class="chart-point-group" style="cursor: pointer;">
+          <title>Day ${d.dayNum}: Total ${d.totalHours}h | Meetings ${d.meetingHours}h</title>
+          <line x1="${ptTot.x.toFixed(1)}" y1="${padTop}" x2="${ptTot.x.toFixed(1)}" y2="${yBase}" stroke="transparent" stroke-width="12" />
+          <circle cx="${ptTot.x.toFixed(1)}" cy="${ptTot.y.toFixed(1)}" r="3" fill="#ffffff" stroke="#2563eb" stroke-width="2" />
+          <circle cx="${ptM.x.toFixed(1)}" cy="${ptM.y.toFixed(1)}" r="2.5" fill="#ffffff" stroke="#9333ea" stroke-width="1.8" />
         </g>
       `;
     });
 
     container.innerHTML = `
-      <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 100%; min-width: 380px;">
+      <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 100%; min-width: 480px; overflow: visible;">
         <defs>
-          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#3b82f6" />
-            <stop offset="100%" stop-color="#2563eb" />
+          <linearGradient id="areaTotalGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2563eb" stop-opacity="0.30"/>
+            <stop offset="100%" stop-color="#2563eb" stop-opacity="0.02"/>
+          </linearGradient>
+          <linearGradient id="areaMtgGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#9333ea" stop-opacity="0.45"/>
+            <stop offset="100%" stop-color="#9333ea" stop-opacity="0.04"/>
           </linearGradient>
         </defs>
-        ${gridLinesHtml}
-        ${barsHtml}
+        ${gridHtml}
+        <path d="${totalAreaPath}" fill="url(#areaTotalGrad)" />
+        <path d="${mtgAreaPath}" fill="url(#areaMtgGrad)" />
+        <path d="${totalLinePath}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="${mtgLinePath}" fill="none" stroke="#9333ea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        ${xLabelsHtml}
+        ${dotsHtml}
       </svg>
     `;
+  }
+
+  // Alias for backward compatibility
+  function renderSvgBarChart(diaries) {
+    renderSvgAreaLineChart(diaries);
   }
 
   // =========================================================================
@@ -3254,13 +3466,62 @@
       else if (st === 'PH' || st === 'HOLIDAY') badgeHtml = '<span class="badge-status badge-status-ph">PH</span>';
       else if (st === 'OD') badgeHtml = '<span class="badge-status badge-status-od">OD</span>';
       else if (st === 'A') badgeHtml = '<span class="badge-status badge-status-a">A</span>';
+      else if (st === 'CL') badgeHtml = '<span class="badge-status badge-status-cl">CL</span>';
+      else if (st === 'COFF') badgeHtml = '<span class="badge-status badge-status-coff">COFF</span>';
       else badgeHtml = `<span class="badge-pill-soft" style="background: var(--bg-card-subtle); color: var(--text-main);">${st || '--'}</span>`;
 
+      // 1. Formatted Working Hours (never '--' when punch in & out exist!)
+      let workHoursDisplay = '--';
+      if (row.workHoursFormatted) {
+        workHoursDisplay = row.workHoursFormatted;
+      } else if (row.workingHours) {
+        const parts = String(row.workingHours).split(':');
+        if (parts.length >= 2) {
+          const h = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10);
+          workHoursDisplay = (!isNaN(h) && !isNaN(m)) ? `${h}h ${m}m` : String(row.workingHours).substring(0, 5);
+        } else {
+          workHoursDisplay = String(row.workingHours);
+        }
+      } else if (inT !== '--' && outT !== '--') {
+        const inParts = inT.split(':');
+        const outParts = outT.split(':');
+        if (inParts.length >= 2 && outParts.length >= 2) {
+          const inM = parseInt(inParts[0], 10) * 60 + parseInt(inParts[1], 10);
+          const outM = parseInt(outParts[0], 10) * 60 + parseInt(outParts[1], 10);
+          const diff = outM - inM;
+          if (diff > 0) {
+            const h = Math.floor(diff / 60);
+            const m = diff % 60;
+            workHoursDisplay = `${h}h ${m}m`;
+          }
+        }
+      } else if (st === 'OD') {
+        workHoursDisplay = 'Duty Day';
+      }
+
+      // 2. Late & Extra Minutes (reads backend lateMins/extraMins with precision fallback)
+      let lateM = Number(row.lateMins != null ? row.lateMins : (row.lateMinutes || 0));
+      let extraM = Number(row.extraMins != null ? row.extraMins : (row.extraMinutes || 0));
+
+      if (st === 'P' && inT !== '--' && outT !== '--') {
+        const inParts = inT.split(':');
+        const outParts = outT.split(':');
+        if (inParts.length >= 2 && outParts.length >= 2) {
+          const inM = parseInt(inParts[0], 10) * 60 + parseInt(inParts[1], 10);
+          const outM = parseInt(outParts[0], 10) * 60 + parseInt(outParts[1], 10);
+          if (lateM === 0 && inM > 615) lateM = inM - 615; // after 10:15
+          if (extraM === 0 && outM > 1035) extraM = outM - 1035; // after 17:15
+        }
+      }
+
       let lateExtraHtml = '--';
-      if (row.lateMinutes > 0 || row.extraMinutes > 0) {
-        const latePill = row.lateMinutes > 0 ? `<span class="badge-pill-soft badge-late">Late: ${row.lateMinutes}m</span>` : '';
-        const extraPill = row.extraMinutes > 0 ? `<span class="badge-pill-soft badge-extra">Extra: ${row.extraMinutes}m</span>` : '';
-        lateExtraHtml = `<div style="display: flex; align-items: center; gap: 4px;">${latePill}${extraPill}</div>`;
+      if (lateM > 0 || extraM > 0) {
+        const latePill = lateM > 0 ? `<span class="badge-pill-soft badge-late" style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">Late: ${lateM}m</span>` : '';
+        const extraPill = extraM > 0 ? `<span class="badge-pill-soft badge-extra" style="color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">Extra: +${extraM}m</span>` : '';
+        lateExtraHtml = `<div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">${latePill}${extraPill}</div>`;
+      } else if (st === 'P' && inT !== '--') {
+        lateExtraHtml = '<span style="color: var(--text-muted); font-size: 11px; font-weight: 600;">On Time</span>';
       }
 
       const actionsHtml = (st !== 'PH' && st !== 'HOLIDAY') ? `
@@ -3279,7 +3540,7 @@
         <td class="font-mono">${inT}</td>
         <td class="font-mono">${outT}</td>
         <td>${badgeHtml}</td>
-        <td class="font-mono font-bold">${row.workHoursFormatted || '--'}</td>
+        <td class="font-mono font-bold">${workHoursDisplay}</td>
         <td>${lateExtraHtml}</td>
         <td style="color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${row.remarks || row.reason || '--'}</td>
         <td style="text-align: right;">${actionsHtml}</td>
@@ -3372,6 +3633,15 @@
           stream.appendChild(item);
         }
       }
+    }
+
+    // 3. Trailing empty cells to fill the last row neatly
+    const totalCells = startOffset + daysInMonth;
+    const trailingCells = (7 - (totalCells % 7)) % 7;
+    for (let i = 0; i < trailingCells; i++) {
+      const emptyCell = document.createElement('div');
+      emptyCell.style.cssText = 'padding: 8px 4px; border-radius: 8px; opacity: 0.25; background: var(--bg-card-subtle);';
+      grid.appendChild(emptyCell);
     }
 
     const onLeaveEl = document.getElementById('calKpiOnLeave');
@@ -3993,6 +4263,9 @@
   }
 
   function closeModal(id) {
+    if (id === 'modalLogin' && !state.currentUser && !state.token) {
+      return; // Authentication required; cannot dismiss login modal without signing in!
+    }
     const m = document.getElementById(id);
     if (m) m.classList.remove('show');
   }
