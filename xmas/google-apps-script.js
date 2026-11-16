@@ -3,11 +3,12 @@
  * 🎄 XMAS FRIEND FINDER - GOOGLE APPS SCRIPT DATABASE
  * ============================================================================
  * Supports:
- * - Real-time cloud sync for 13+ members
+ * - Real-time cloud sync for all participants
  * - WhatsApp phone numbers & 4-digit secret keys
  * - Live scratch status tracking & timestamps
  * - Member Wishlists (up to 5 items per friend)
- * - Reset for Next Year
+ * - Member Postal / Shipping Addresses
+ * - Smart Annual Reset (Option to keep members, addresses, and wishlists)
  * ============================================================================
  */
 
@@ -34,10 +35,12 @@ function doPost(e) {
       markScratchedInSheet(sheet, payload.name, payload.timestamp);
     } else if (action === 'saveWishlist') {
       saveWishlistInSheet(sheet, payload.name, payload.wishlist);
+    } else if (action === 'saveAddress') {
+      saveAddressInSheet(sheet, payload.name, payload.address);
     } else if (action === 'finishGame') {
       setGameFinishedInSheet(sheet, payload.isFinished);
     } else if (action === 'reset') {
-      resetSheet(sheet);
+      smartResetSheet(sheet, payload);
     }
 
     var state = readStateFromSheet(sheet);
@@ -59,10 +62,15 @@ function getOrCreateSheet() {
     sheet = ss.insertSheet('XmasDraw');
     formatFreshSheet(sheet);
   } else {
-    // Ensure 7th column header exists for Wishlist if upgrading from earlier version
+    // Ensure Column 7 (Wishlist) exists
     if (sheet.getLastColumn() < 7 || sheet.getRange('G3').getValue() === '') {
       sheet.getRange('G3').setValue('Wishlist (Max 5)').setBackground('#d32f2f').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
-      sheet.setColumnWidth(7, 260);
+      sheet.setColumnWidth(7, 240);
+    }
+    // Ensure Column 8 (Postal Address) exists
+    if (sheet.getLastColumn() < 8 || sheet.getRange('H3').getValue() === '') {
+      sheet.getRange('H3').setValue('Postal Address').setBackground('#d32f2f').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+      sheet.setColumnWidth(8, 260);
     }
   }
   return sheet;
@@ -72,7 +80,7 @@ function formatFreshSheet(sheet) {
   sheet.clear();
   
   // Title Banner
-  sheet.getRange('A1:G1').merge();
+  sheet.getRange('A1:H1').merge();
   sheet.getRange('A1').setValue('🎄 Xmas Friend Finder 2026 - Secret Santa Database');
   sheet.getRange('A1').setBackground('#0f4c28').setFontColor('#fef08a').setFontSize(14).setFontWeight('bold').setHorizontalAlignment('center');
   
@@ -84,20 +92,22 @@ function formatFreshSheet(sheet) {
   sheet.getRange('E2').setValue('Finished:');
   sheet.getRange('F2').setValue('FALSE');
   sheet.getRange('G2').setValue('Year: 2026');
-  sheet.getRange('A2:G2').setBackground('#1f2937').setFontColor('#cbd5e1').setFontSize(9).setFontWeight('bold');
+  sheet.getRange('H2').setValue('Mode: Annual');
+  sheet.getRange('A2:H2').setBackground('#1f2937').setFontColor('#cbd5e1').setFontSize(9).setFontWeight('bold');
 
   // Column Headers
-  var headers = ['Member Name', 'WhatsApp Phone', 'Secret Key', 'Assigned Friend', 'Status', 'Scratched At', 'Wishlist (Max 5)'];
-  sheet.getRange('A3:G3').setValues([headers]);
-  sheet.getRange('A3:G3').setBackground('#d32f2f').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+  var headers = ['Member Name', 'WhatsApp Phone', 'Secret Key', 'Assigned Friend', 'Status', 'Scratched At', 'Wishlist (Max 5)', 'Postal Address'];
+  sheet.getRange('A3:H3').setValues([headers]);
+  sheet.getRange('A3:H3').setBackground('#d32f2f').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
   
   sheet.setColumnWidth(1, 160); // Name
-  sheet.setColumnWidth(2, 160); // Phone
+  sheet.setColumnWidth(2, 150); // Phone
   sheet.setColumnWidth(3, 110); // Key
   sheet.setColumnWidth(4, 160); // Match
   sheet.setColumnWidth(5, 120); // Status
   sheet.setColumnWidth(6, 180); // Scratched At
-  sheet.setColumnWidth(7, 260); // Wishlist
+  sheet.setColumnWidth(7, 240); // Wishlist
+  sheet.setColumnWidth(8, 260); // Postal Address
 }
 
 function formatWishlistText(items) {
@@ -124,7 +134,7 @@ function saveAllotmentToSheet(sheet, state) {
   sheet.clearContents();
   formatFreshSheet(sheet);
 
-  sheet.getRange('B2').setValue('Sealed & Active');
+  sheet.getRange('B2').setValue(state.isAllotted ? 'Sealed & Active' : 'Draft (Not Allotted)');
   sheet.getRange('D2').setValue(state.adminExcluded ? 'TRUE' : 'FALSE');
   sheet.getRange('F2').setValue(state.isFinished ? 'TRUE' : 'FALSE');
 
@@ -139,16 +149,18 @@ function saveAllotmentToSheet(sheet, state) {
     var isScratched = (state.scratched && state.scratched[name]) ? '✅ Revealed' : '⏳ Pending';
     var scratchedAt = (state.scratchedAt && state.scratchedAt[name]) ? state.scratchedAt[name] : '';
     var wishlistText = (state.wishlists && state.wishlists[name]) ? formatWishlistText(state.wishlists[name]) : '';
+    var address = (state.addresses && state.addresses[name]) ? state.addresses[name] : '';
 
-    rows.push([name, phone, key, receiver, isScratched, scratchedAt, wishlistText]);
+    rows.push([name, phone, key, receiver, isScratched, scratchedAt, wishlistText, address]);
   }
 
   if (rows.length > 0) {
-    sheet.getRange(4, 1, rows.length, 7).setValues(rows);
-    sheet.getRange(4, 1, rows.length, 7).setHorizontalAlignment('center');
+    sheet.getRange(4, 1, rows.length, 8).setValues(rows);
+    sheet.getRange(4, 1, rows.length, 8).setHorizontalAlignment('center');
     sheet.getRange(4, 3, rows.length, 1).setFontFamily('Courier New').setFontWeight('bold'); // Keys
     sheet.getRange(4, 4, rows.length, 1).setFontWeight('bold').setFontColor('#15803d'); // Matches
     sheet.getRange(4, 7, rows.length, 1).setHorizontalAlignment('left').setWrap(true); // Wishlists
+    sheet.getRange(4, 8, rows.length, 1).setHorizontalAlignment('left').setWrap(true); // Addresses
   }
 }
 
@@ -161,8 +173,20 @@ function saveWishlistInSheet(sheet, name, wishlist) {
 
   for (var i = 0; i < names.length; i++) {
     if (names[i][0] === name) {
-      var row = 4 + i;
-      sheet.getRange(row, 7).setValue(wishlistText).setHorizontalAlignment('left').setWrap(true);
+      sheet.getRange(4 + i, 7).setValue(wishlistText).setHorizontalAlignment('left').setWrap(true);
+      break;
+    }
+  }
+}
+
+function saveAddressInSheet(sheet, name, address) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 4) return;
+
+  var names = sheet.getRange(4, 1, lastRow - 3, 1).getValues();
+  for (var i = 0; i < names.length; i++) {
+    if (names[i][0] === name) {
+      sheet.getRange(4 + i, 8).setValue(address || '').setHorizontalAlignment('left').setWrap(true);
       break;
     }
   }
@@ -190,9 +214,47 @@ function setGameFinishedInSheet(sheet, isFinished) {
   }
 }
 
-function resetSheet(sheet) {
-  sheet.clearContents();
-  formatFreshSheet(sheet);
+function smartResetSheet(sheet, payload) {
+  var state = payload.state;
+  if (!state || !payload.keepMembers) {
+    sheet.clearContents();
+    formatFreshSheet(sheet);
+    return;
+  }
+
+  // Preserve members, addresses, and optionally wishes
+  sheet.getRange('B2').setValue('Draft (Not Allotted)');
+  sheet.getRange('F2').setValue('FALSE');
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow >= 4) {
+    // Clear Assigned Match (Col 4), Status (Col 5), Scratched At (Col 6)
+    var numRows = lastRow - 3;
+    sheet.getRange(4, 4, numRows, 1).setValue(''); // Clear matches
+    sheet.getRange(4, 5, numRows, 1).setValue('⏳ Pending').setFontColor('#cbd5e1'); // Reset status
+    sheet.getRange(4, 6, numRows, 1).setValue(''); // Clear scratch timestamps
+
+    // Update keys if provided
+    if (state.keys) {
+      var names = sheet.getRange(4, 1, numRows, 1).getValues();
+      for (var i = 0; i < names.length; i++) {
+        var n = names[i][0];
+        if (state.keys[n]) {
+          sheet.getRange(4 + i, 3).setValue(state.keys[n]);
+        }
+      }
+    }
+
+    // If wishes should NOT be kept, clear Column 7
+    if (!payload.keepWishes) {
+      sheet.getRange(4, 7, numRows, 1).setValue('');
+    }
+
+    // If addresses should NOT be kept, clear Column 8
+    if (!payload.keepAddresses) {
+      sheet.getRange(4, 8, numRows, 1).setValue('');
+    }
+  }
 }
 
 function readStateFromSheet(sheet) {
@@ -208,6 +270,7 @@ function readStateFromSheet(sheet) {
   var scratched = {};
   var scratchedAt = {};
   var wishlists = {};
+  var addresses = {};
 
   if (lastRow >= 4) {
     var numCols = Math.max(6, sheet.getLastColumn());
@@ -230,6 +293,12 @@ function readStateFromSheet(sheet) {
       } else {
         wishlists[name] = [];
       }
+
+      if (numCols >= 8) {
+        addresses[name] = String(data[i][7] || '').trim();
+      } else {
+        addresses[name] = '';
+      }
     }
   }
 
@@ -243,6 +312,7 @@ function readStateFromSheet(sheet) {
     pairs: pairs,
     scratched: scratched,
     scratchedAt: scratchedAt,
-    wishlists: wishlists
+    wishlists: wishlists,
+    addresses: addresses
   };
 }

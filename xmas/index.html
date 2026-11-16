@@ -76,16 +76,17 @@
   </div>
 
   <!-- =========================================================================
-       Scratch Card Interactive Modal (Scratch and Find + Wishlists)
+       Scratch Card Interactive Modal (Scratch and Find + Wishlists + Addresses)
        ========================================================================= -->
   <div id="scratchModal" class="modal-backdrop">
     <div class="modal-dialog">
       <button id="closeScratchBtn" class="modal-close-btn" title="Close Card">&times;</button>
       
-      <!-- Modal Tabs: Switch between Reveal Friend and My Wishlist -->
+      <!-- Modal Tabs: Switch between Reveal Friend, My Wishlist, and My Address -->
       <div class="modal-tabs">
-        <button id="modalTabReveal" class="modal-tab-btn active">🎁 Secret Friend</button>
-        <button id="modalTabWishlist" class="modal-tab-btn">📝 My Wishlist (<span id="myWishlistBadgeCount">0</span>/5)</button>
+        <button id="modalTabReveal" class="modal-tab-btn active">🎁 Friend</button>
+        <button id="modalTabWishlist" class="modal-tab-btn">📝 Wishes (<span id="myWishlistBadgeCount">0</span>/5)</button>
+        <button id="modalTabAddress" class="modal-tab-btn">📦 My Address</button>
       </div>
 
       <!-- Tab Content 1: Reveal / Scratch Card -->
@@ -142,6 +143,17 @@
             <!-- Populated dynamically -->
           </div>
         </div>
+
+        <!-- Receiver's Postal / Shipping Address Display (Shown once revealed) -->
+        <div id="receiverAddressCard" class="receiver-address-box" style="display:none;">
+          <div class="receiver-address-header">
+            <h4 class="receiver-address-title">📦 <span id="receiverAddressFriendName">Friend</span>'s Shipping Address</h4>
+            <button id="copyReceiverAddressBtn" class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:3px 8px;">📋 Copy</button>
+          </div>
+          <div id="receiverAddressContent" class="receiver-address-content">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
       </div>
 
       <!-- Tab Content 2: My Own Wishlist -->
@@ -164,12 +176,38 @@
         </div>
         <div id="wishlistNotice" style="font-size:0.8rem; margin-top:6px; min-height:1.2rem; color:var(--text-muted); text-align:center;"></div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1); flex-wrap:wrap; gap:8px;">
           <span style="font-size:0.8rem; color:var(--text-muted);"><span id="myWishlistCountText">0</span> of 5 items added</span>
           <button id="saveMyWishlistBtn" class="btn btn-gold">💾 Save Wishlist</button>
         </div>
         <div style="font-size:0.75rem; color:#64748b; text-align:center; margin-top:0.6rem;">
           💡 Your Secret Santa will see these gift ideas once they reveal your card!
+        </div>
+      </div>
+
+      <!-- Tab Content 3: My Own Postal Address -->
+      <div id="addressTabContent" class="my-address-panel" style="display:none;">
+        <div style="text-align:center; margin-bottom:1rem;">
+          <div style="font-size:2rem; margin-bottom:0.2rem;">📦</div>
+          <h3 style="font-size:1.25rem; color:var(--festive-gold); margin-bottom:0.3rem;">My Delivery / Postal Address</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            Provide your postal address so your Secret Santa can courier or ship your gift!
+          </p>
+        </div>
+
+        <div style="margin-bottom:1rem;">
+          <label style="display:block; font-size:0.82rem; color:var(--text-muted); margin-bottom:6px;">
+            Full Address (House/Flat No, Landmark, City, State, PIN code, Phone):
+          </label>
+          <textarea id="myAddressInput" class="name-input" rows="4" style="width:100%; resize:vertical; font-size:0.9rem; line-height:1.4; padding:10px;" placeholder="e.g.&#10;Flat 204, Green Heights&#10;Opposite City Mall, MG Road&#10;Bengaluru, Karnataka - 560001&#10;Ph: 9876543210"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1); flex-wrap:wrap; gap:8px;">
+          <span id="addressNotice" style="font-size:0.8rem; color:var(--text-muted);">Only visible to your Secret Santa.</span>
+          <button id="saveMyAddressBtn" class="btn btn-gold">💾 Save Address</button>
+        </div>
+        <div style="font-size:0.75rem; color:#64748b; text-align:center; margin-top:0.6rem;">
+          🔒 Confidential: Kept private and only revealed to the friend who drew you.
         </div>
       </div>
     </div>
@@ -198,6 +236,61 @@
   </div>
 
   <!-- =========================================================================
+       Next Year Reset Options Modal (Preserve Members, Addresses & Wishes)
+       ========================================================================= -->
+  <div id="resetConfirmModal" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width:500px;">
+      <div style="text-align:center; margin-bottom:1rem;">
+        <div style="font-size:2.4rem; margin-bottom:0.3rem;">🔄</div>
+        <h3 style="font-size:1.3rem; color:var(--festive-gold); margin-bottom:0.3rem;">Reset for Next Year</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted);">
+          Choose how you would like to prepare the exchange for the new year:
+        </p>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:1.4rem;">
+        <!-- Option 1: Keep Everything (Recommended) -->
+        <label class="reset-option-card">
+          <input type="radio" name="resetMode" value="keepAll" checked style="accent-color:var(--festive-gold);">
+          <div>
+            <strong style="color:#4ade80; font-size:0.95rem;">⭐ Keep Members, Addresses & Wishes (Recommended)</strong>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">
+              Wipes previous matches, clears scratch statuses, and generates brand new 4-digit secret keys. Keeps all members, WhatsApp numbers, postal addresses, and wishlists safe!
+            </p>
+          </div>
+        </label>
+
+        <!-- Option 2: Keep Members & Addresses, Clear Wishes -->
+        <label class="reset-option-card">
+          <input type="radio" name="resetMode" value="keepMembers" style="accent-color:var(--festive-gold);">
+          <div>
+            <strong style="color:var(--festive-gold); font-size:0.95rem;">📝 Keep Members & Addresses (Clear Wishes)</strong>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">
+              Keeps members and their postal addresses, but clears old wishlists so everyone can submit fresh gift ideas for next year.
+            </p>
+          </div>
+        </label>
+
+        <!-- Option 3: Full Reset -->
+        <label class="reset-option-card">
+          <input type="radio" name="resetMode" value="fullWipe" style="accent-color:var(--festive-gold);">
+          <div>
+            <strong style="color:#f87171; font-size:0.95rem;">⚠️ Full Factory Reset (Wipe Everything)</strong>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">
+              Wipes all data, addresses, and wishlists back to default sample members.
+            </p>
+          </div>
+        </label>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button id="cancelResetModalBtn" class="btn btn-secondary">Cancel</button>
+        <button id="confirmResetModalBtn" class="btn btn-danger">Confirm Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
        Admin Control Dashboard Modal
        ========================================================================= -->
   <div id="adminModal" class="modal-backdrop">
@@ -216,7 +309,7 @@
       <div class="admin-tabs">
         <button class="tab-btn active" data-tab="tabDraw">🎲 Allotment & Members</button>
         <button class="tab-btn" data-tab="tabMaster">📋 Master List</button>
-        <button class="tab-btn" data-tab="tabWishlists">🎁 Wishlists</button>
+        <button class="tab-btn" data-tab="tabWishlists">🎁 Wishes & Addresses</button>
         <button class="tab-btn" data-tab="tabShare">💬 WhatsApp & Keys</button>
         <button class="tab-btn" data-tab="tabSettings">⚙️ Database & PIN</button>
       </div>
@@ -258,7 +351,7 @@
           <button id="triggerDrawBtn" class="btn btn-gold">🎅 Set & Seal Allotments</button>
           <button id="finishGameBtn" class="btn btn-gold" style="display:none;">🏁 Finish Game (No Keys Needed)</button>
           <button id="reopenGameBtn" class="btn btn-secondary" style="display:none;">🔒 Re-lock with Keys</button>
-          <button id="resetDrawBtn" class="btn btn-danger" style="display:none;">⚠️ Reset Allotment</button>
+          <button id="resetDrawBtn" class="btn btn-danger" style="display:none;">🔄 Reset / New Year Draw</button>
         </div>
       </div>
 
@@ -277,6 +370,7 @@
               <th>Friend (Giver)</th>
               <th>Secret Key</th>
               <th>Assigned Match (Receiver)</th>
+              <th>Shipping Address</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -286,14 +380,14 @@
         </table>
       </div>
 
-      <!-- Tab: Wishlists Overview -->
+      <!-- Tab: Wishes & Addresses Overview -->
       <div id="tabWishlists" class="tab-content" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:8px;">
-          <h4 style="font-size:0.95rem; color:#f1f5f9;">Participant Wishlists (Max 5 items each)</h4>
-          <span style="font-size:0.8rem; color:var(--festive-gold);">Resets automatically on New Year reset</span>
+          <h4 style="font-size:0.95rem; color:#f1f5f9;">Participant Wishlists & Postal Addresses</h4>
+          <span style="font-size:0.8rem; color:#4ade80;">Preserved on Annual Reset</span>
         </div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">
-          Review the gift ideas participants have added for their Secret Santas.
+          Review gift ideas and postal shipping addresses provided by participants.
         </p>
         <div id="adminWishlistsGrid" class="admin-wishlist-grid">
           <!-- Populated via JavaScript -->

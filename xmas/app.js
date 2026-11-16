@@ -111,6 +111,7 @@
     scratched: {},  // giverName -> boolean
     scratchedAt: {},
     wishlists: {},  // memberName -> Array of up to 5 gift idea strings
+    addresses: {},  // memberName -> Postal / shipping address string
     salt: Math.random().toString(36).substring(2, 10)
   };
 
@@ -122,6 +123,7 @@
     if (!state.keys) state.keys = {};
     if (!state.phones) state.phones = {};
     if (!state.wishlists) state.wishlists = {};
+    if (!state.addresses) state.addresses = {};
     const used = new Set(Object.values(state.keys));
     state.names.forEach(name => {
       if (!state.keys[name]) {
@@ -134,6 +136,9 @@
       }
       if (!state.wishlists[name]) {
         state.wishlists[name] = [];
+      }
+      if (typeof state.addresses[name] === 'undefined') {
+        state.addresses[name] = '';
       }
     });
   }
@@ -153,6 +158,9 @@
     }
     if (!state.wishlists) {
       state.wishlists = {};
+    }
+    if (!state.addresses) {
+      state.addresses = {};
     }
     ensureKeysExist();
   }
@@ -187,6 +195,7 @@
         if (s.scratched) state.scratched = s.scratched;
         if (s.scratchedAt) state.scratchedAt = s.scratchedAt;
         if (s.wishlists) state.wishlists = s.wishlists;
+        if (s.addresses) state.addresses = s.addresses;
         if (typeof s.isFinished !== 'undefined') state.isFinished = s.isFinished;
         if (typeof s.adminExcluded !== 'undefined') state.adminExcluded = s.adminExcluded;
 
@@ -321,6 +330,21 @@
 
   // Admin Wishlist Grid
   const adminWishlistsGrid = document.getElementById('adminWishlistsGrid');
+
+  // Address & Reset Modal Elements
+  const modalTabAddress = document.getElementById('modalTabAddress');
+  const addressTabContent = document.getElementById('addressTabContent');
+  const receiverAddressCard = document.getElementById('receiverAddressCard');
+  const receiverAddressFriendName = document.getElementById('receiverAddressFriendName');
+  const receiverAddressContent = document.getElementById('receiverAddressContent');
+  const copyReceiverAddressBtn = document.getElementById('copyReceiverAddressBtn');
+  const myAddressInput = document.getElementById('myAddressInput');
+  const saveMyAddressBtn = document.getElementById('saveMyAddressBtn');
+  const addressNotice = document.getElementById('addressNotice');
+
+  const resetConfirmModalEl = document.getElementById('resetConfirmModal');
+  const cancelResetModalBtn = document.getElementById('cancelResetModalBtn');
+  const confirmResetModalBtn = document.getElementById('confirmResetModalBtn');
 
   let activeScratcher = null;
   let activeReceiver = null;
@@ -470,6 +494,10 @@
       const wishBadge = wishList.length > 0 
         ? `<div class="wishlist-pill">📝 ${wishList.length} ${wishList.length === 1 ? 'wish' : 'wishes'}</div>` 
         : '';
+      const hasAddress = !!(state.addresses && state.addresses[name] && state.addresses[name].trim().length > 0);
+      const addressBadge = hasAddress 
+        ? `<div class="address-pill">📦 Address Added</div>` 
+        : '';
 
       card.innerHTML = `
         <div class="friend-avatar">
@@ -478,7 +506,10 @@
         </div>
         <div class="friend-name">${escapeHtml(name)}</div>
         ${badgeHtml}
-        ${wishBadge}
+        <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center; margin-top:2px;">
+          ${wishBadge}
+          ${addressBadge}
+        </div>
         <button class="btn ${isScratched || isFinished ? 'btn-secondary' : 'btn-primary'} card-action-btn">
           ${btnText}
         </button>
@@ -611,11 +642,13 @@
         `;
       }
       renderReceiverWishlist(receiver);
+      renderReceiverAddress(receiver);
     } else {
       scratchCanvas.style.display = 'block';
       scratchCanvas.style.opacity = '1';
       alreadyRevealedNotice.style.display = 'none';
       if (receiverWishlistCard) receiverWishlistCard.style.display = 'none';
+      if (receiverAddressCard) receiverAddressCard.style.display = 'none';
       scratchProgressFill.style.width = '0%';
       scratchProgressText.textContent = '0%';
       
@@ -806,6 +839,7 @@
         <p style="font-size:0.8rem; margin-top:4px; color:#cbd5e1;">(Cannot be re-allotted. Your assignment is permanently saved!)</p>
       `;
       renderReceiverWishlist(activeReceiver || state.pairs[activeScratcher]);
+      renderReceiverAddress(activeReceiver || state.pairs[activeScratcher]);
     }, 600);
 
     scratchProgressFill.style.width = '100%';
@@ -825,24 +859,26 @@
     scratchModalEl.classList.remove('show');
   });
 
-  // --- Wishlist Management Logic (Max 5 items per member) ---
+  // --- Wishlist & Address Management Logic ---
   function switchModalTab(tabName) {
-    if (tabName === 'reveal') {
-      if (modalTabReveal) modalTabReveal.classList.add('active');
-      if (modalTabWishlist) modalTabWishlist.classList.remove('active');
-      if (scratchTabContent) scratchTabContent.style.display = 'block';
-      if (wishlistTabContent) wishlistTabContent.style.display = 'none';
-    } else {
-      if (modalTabReveal) modalTabReveal.classList.remove('active');
-      if (modalTabWishlist) modalTabWishlist.classList.add('active');
-      if (scratchTabContent) scratchTabContent.style.display = 'none';
-      if (wishlistTabContent) wishlistTabContent.style.display = 'block';
+    if (modalTabReveal) modalTabReveal.classList.toggle('active', tabName === 'reveal');
+    if (modalTabWishlist) modalTabWishlist.classList.toggle('active', tabName === 'wishlist');
+    if (modalTabAddress) modalTabAddress.classList.toggle('active', tabName === 'address');
+
+    if (scratchTabContent) scratchTabContent.style.display = tabName === 'reveal' ? 'block' : 'none';
+    if (wishlistTabContent) wishlistTabContent.style.display = tabName === 'wishlist' ? 'block' : 'none';
+    if (addressTabContent) addressTabContent.style.display = tabName === 'address' ? 'block' : 'none';
+
+    if (tabName === 'wishlist') {
       renderMyWishlist();
+    } else if (tabName === 'address') {
+      renderMyAddress();
     }
   }
 
   if (modalTabReveal) modalTabReveal.addEventListener('click', () => switchModalTab('reveal'));
   if (modalTabWishlist) modalTabWishlist.addEventListener('click', () => switchModalTab('wishlist'));
+  if (modalTabAddress) modalTabAddress.addEventListener('click', () => switchModalTab('address'));
 
   function renderReceiverWishlist(receiverName) {
     if (!receiverWishlistCard || !receiverWishlistContent) return;
@@ -970,6 +1006,70 @@
     });
   }
   if (saveMyWishlistBtn) saveMyWishlistBtn.addEventListener('click', saveMyWishlist);
+
+  // --- Postal / Shipping Address Management Logic ---
+  function renderReceiverAddress(receiverName) {
+    if (!receiverAddressCard || !receiverAddressContent) return;
+    if (receiverAddressFriendName) receiverAddressFriendName.textContent = receiverName;
+    const address = (state.addresses && state.addresses[receiverName]) ? state.addresses[receiverName].trim() : '';
+
+    if (!address) {
+      receiverAddressContent.innerHTML = `
+        <div class="receiver-address-empty">
+          📦 ${escapeHtml(receiverName)} hasn't added a shipping address yet.<br>
+          Ping them on WhatsApp to add their address so you can ship your gift! 🎄
+        </div>
+      `;
+      if (copyReceiverAddressBtn) copyReceiverAddressBtn.style.display = 'none';
+    } else {
+      receiverAddressContent.innerHTML = `
+        <div style="font-size:0.9rem; color:#f8fafc; line-height:1.5;">${escapeHtml(address)}</div>
+      `;
+      if (copyReceiverAddressBtn) {
+        copyReceiverAddressBtn.style.display = 'inline-block';
+        copyReceiverAddressBtn.onclick = () => {
+          copyToClipboard(address, `✅ ${receiverName}'s shipping address copied to clipboard!`);
+        };
+      }
+    }
+    receiverAddressCard.style.display = 'block';
+  }
+
+  function renderMyAddress() {
+    if (!myAddressInput || !activeScratcher) return;
+    const current = (state.addresses && state.addresses[activeScratcher]) ? state.addresses[activeScratcher] : '';
+    myAddressInput.value = current;
+    if (addressNotice) {
+      addressNotice.textContent = current ? '✅ Address saved.' : 'Only visible to your Secret Santa.';
+      addressNotice.style.color = current ? '#4ade80' : 'var(--text-muted)';
+    }
+  }
+
+  async function saveMyAddress() {
+    if (!activeScratcher || !myAddressInput) return;
+    const addr = myAddressInput.value.trim();
+    if (!state.addresses) state.addresses = {};
+    state.addresses[activeScratcher] = addr;
+    saveState();
+    renderFriendsGrid();
+    if (addressNotice) {
+      addressNotice.textContent = '💾 Saving to cloud database...';
+      addressNotice.style.color = 'var(--festive-gold)';
+    }
+    showToast('💾 Saving address to Google Sheet database...');
+    await syncToGoogleSheet('saveAddress', {
+      name: activeScratcher,
+      address: addr
+    });
+    if (addressNotice) {
+      addressNotice.textContent = '✅ Address saved successfully!';
+      addressNotice.style.color = '#4ade80';
+    }
+    showToast('✅ Postal address saved successfully!');
+    sound.playChime();
+  }
+
+  if (saveMyAddressBtn) saveMyAddressBtn.addEventListener('click', saveMyAddress);
 
   // --- Admin Flow ---
   function promptAdminLogin(onSuccess) {
@@ -1158,7 +1258,7 @@
     tableBody.innerHTML = '';
 
     if (!state.isAllotted) {
-      tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:1.5rem;">Draw has not been conducted yet.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:1.5rem;">Draw has not been conducted yet.</td></tr>`;
       return;
     }
 
@@ -1167,11 +1267,13 @@
       const key = state.keys[name] || '----';
       const isScratched = state.scratched[name];
       const isFinished = state.isFinished;
+      const receiverAddr = (state.addresses && state.addresses[receiver]) ? state.addresses[receiver].trim() : '';
       const row = document.createElement('tr');
       row.innerHTML = `
         <td><strong>${escapeHtml(name)}</strong></td>
         <td><span class="friend-key-badge">${escapeHtml(key)}</span></td>
         <td><span class="spoiler-cell ${isFinished ? '' : 'spoiler-hidden'}" title="Click to reveal">${escapeHtml(receiver)}</span></td>
+        <td style="font-size:0.8rem; max-width:200px; white-space:pre-wrap;">${receiverAddr ? escapeHtml(receiverAddr) : '<span style="color:var(--text-muted); font-style:italic;">None</span>'}</td>
         <td>${isFinished ? '🏆 Concluded' : (isScratched ? '✅ Revealed' : '⏳ Ready')}</td>
       `;
       tableBody.appendChild(row);
@@ -1289,31 +1391,55 @@
 
     state.names.forEach((name, i) => {
       const items = (state.wishlists && state.wishlists[name]) ? state.wishlists[name] : [];
+      const address = (state.addresses && state.addresses[name]) ? state.addresses[name].trim() : '';
       const card = document.createElement('div');
       card.className = 'admin-wishlist-card';
 
       let itemsHtml = '';
       if (items.length === 0) {
-        itemsHtml = `<div style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:6px 0;">No wishlist items added yet.</div>`;
+        itemsHtml = `<div style="font-size:0.8rem; color:var(--text-muted); font-style:italic; padding:4px 0;">No wishlist items added yet.</div>`;
       } else {
         itemsHtml = items.map((item, idx) => `
-          <div style="font-size:0.83rem; color:#f1f5f9; padding:4px 0; display:flex; gap:6px;">
+          <div style="font-size:0.82rem; color:#f1f5f9; padding:2px 0; display:flex; gap:6px;">
             <span style="color:var(--festive-gold); font-weight:700;">${idx + 1}.</span>
             <span>${escapeHtml(item)}</span>
           </div>
         `).join('');
       }
 
+      let addressHtml = '';
+      if (!address) {
+        addressHtml = `<div style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">No shipping address provided yet.</div>`;
+      } else {
+        addressHtml = `
+          <div style="font-size:0.8rem; color:#93c5fd; white-space:pre-wrap; line-height:1.4; margin-bottom:6px; background:rgba(255,255,255,0.04); padding:6px 8px; border-radius:6px;">${escapeHtml(address)}</div>
+          <button class="btn btn-secondary btn-sm copy-admin-addr-btn" data-addr="${escapeHtml(address)}" style="font-size:0.72rem; padding:2px 8px;">📋 Copy Address</button>
+        `;
+      }
+
       card.innerHTML = `
         <div class="admin-wishlist-card-header">
-          <strong style="color:var(--festive-gold); font-size:0.92rem;">${escapeHtml(name)}</strong>
+          <strong style="color:var(--festive-gold); font-size:0.95rem;">${escapeHtml(name)}</strong>
           <span style="font-size:0.75rem; color:${items.length > 0 ? '#4ade80' : 'var(--text-muted)'}; font-weight:600;">
-            ${items.length}/5 items
+            ${items.length}/5 wishes
           </span>
         </div>
-        ${itemsHtml}
+        <div style="margin-bottom:8px;">
+          <div style="font-size:0.75rem; font-weight:700; color:#cbd5e1; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">🎁 Wishlist</div>
+          ${itemsHtml}
+        </div>
+        <div style="padding-top:8px; border-top:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:0.75rem; font-weight:700; color:#93c5fd; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">📦 Shipping Address</div>
+          ${addressHtml}
+        </div>
       `;
       adminWishlistsGrid.appendChild(card);
+    });
+
+    adminWishlistsGrid.querySelectorAll('.copy-admin-addr-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        copyToClipboard(btn.getAttribute('data-addr'), '✅ Shipping address copied to clipboard!');
+      });
     });
   }
 
@@ -1492,32 +1618,84 @@
   }
 
   // Reset Draw (For Next Year)
-  document.getElementById('resetDrawBtn').addEventListener('click', () => {
-    const confirmText = prompt('⚠️ Type "RESET" to confirm wiping all current allotments, keys, scratch statuses, and member wishlists for the new year:');
-    if (confirmText === 'RESET') {
-      state.isAllotted = false;
-      state.allottedAt = null;
-      state.isFinished = false;
-      state.finishedAt = null;
-      state.pairs = {};
-      state.scratched = {};
-      state.scratchedAt = {};
-      state.wishlists = {};
-      state.keys = {};
+  const resetDrawBtn = document.getElementById('resetDrawBtn');
+  if (resetDrawBtn) {
+    resetDrawBtn.addEventListener('click', () => {
+      if (resetConfirmModalEl) {
+        resetConfirmModalEl.classList.add('show');
+      }
+    });
+  }
+
+  if (cancelResetModalBtn) {
+    cancelResetModalBtn.addEventListener('click', () => {
+      if (resetConfirmModalEl) resetConfirmModalEl.classList.remove('show');
+    });
+  }
+
+  if (confirmResetModalBtn) {
+    confirmResetModalBtn.addEventListener('click', () => {
+      const selectedRadio = document.querySelector('input[name="resetMode"]:checked');
+      const mode = selectedRadio ? selectedRadio.value : 'keepAll';
+      executeAnnualReset(mode);
+      if (resetConfirmModalEl) resetConfirmModalEl.classList.remove('show');
+    });
+  }
+
+  function executeAnnualReset(mode) {
+    state.isAllotted = false;
+    state.allottedAt = null;
+    state.isFinished = false;
+    state.finishedAt = null;
+    state.pairs = {};
+    state.scratched = {};
+    state.scratchedAt = {};
+    state.keys = {}; // Fresh secret keys generated for everyone
+
+    let keepMembers = true;
+    let keepWishes = true;
+    let keepAddresses = true;
+    let toastMessage = '';
+
+    if (mode === 'keepAll') {
+      keepMembers = true;
+      keepWishes = true;
+      keepAddresses = true;
       ensureKeysExist();
-      saveState();
-
-      // Sync to Google Sheet
-      syncToGoogleSheet('reset');
-
-      showToast('✨ All allotments, keys, and wishlists have been reset for the new year!');
-      renderAdminModal();
-      renderStatusBanner();
-      renderFriendsGrid();
-    } else if (confirmText !== null) {
-      showToast('Reset canceled (incorrect confirmation word).');
+      toastMessage = '🎉 Ready for Next Year! Members, addresses & wishlists kept intact with fresh keys!';
+    } else if (mode === 'keepMembers') {
+      keepMembers = true;
+      keepWishes = false;
+      keepAddresses = true;
+      state.wishlists = {};
+      ensureKeysExist();
+      toastMessage = '📝 Reset complete! Members & addresses preserved. Wishlists cleared for new ideas.';
+    } else if (mode === 'fullWipe') {
+      keepMembers = false;
+      keepWishes = false;
+      keepAddresses = false;
+      state.names = [...DEFAULT_13_MEMBERS];
+      state.phones = {};
+      state.addresses = {};
+      state.wishlists = {};
+      ensureKeysExist();
+      toastMessage = '⚠️ Factory reset: All data wiped back to default samples.';
     }
-  });
+
+    saveState();
+    // Sync smart reset to Google Sheet
+    syncToGoogleSheet('reset', {
+      keepMembers: keepMembers,
+      keepWishes: keepWishes,
+      keepAddresses: keepAddresses
+    });
+
+    sound.playChime();
+    showToast(toastMessage);
+    renderAdminModal();
+    renderStatusBanner();
+    renderFriendsGrid();
+  }
 
   // Toggle Master List Spoilers
   const toggleAllSpoilersBtn = document.getElementById('toggleAllSpoilersBtn');
