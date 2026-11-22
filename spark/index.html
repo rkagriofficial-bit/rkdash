@@ -933,6 +933,10 @@
         <svg style="width: 15px; height: 15px;"><use href="#icon-calendar-check"></use></svg>
         <span>Attendance Log</span>
       </button>
+      <button onclick="switchTab('leaveRegister')" id="navTabLeaveRegister" class="nav-pill">
+        <svg style="width: 15px; height: 15px;"><use href="#icon-layers"></use></svg>
+        <span>Leave Register</span>
+      </button>
     </nav>
   </div>
 </header>
@@ -1155,6 +1159,7 @@
       <div style="display: inline-flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 3px;">
         <button onclick="switchDashView('monthly')" id="dashBtnMonthly" class="btn btn-sm" style="background: var(--primary); color: #ffffff; border-radius: 8px;">Month View</button>
         <button onclick="switchDashView('yearly')" id="dashBtnYearly" class="btn btn-sm" style="background: transparent; color: var(--text-secondary); border-radius: 8px;">Year View</button>
+        <button onclick="switchDashView('leaveRegister')" id="dashBtnLeaveRegister" class="btn btn-sm" style="background: transparent; color: var(--text-secondary); border-radius: 8px;">Leave Register</button>
       </div>
       <div id="dashViewTitle" style="font-size: 14px; font-weight: 800; color: var(--text-main);">October 2026</div>
     </div>
@@ -1216,66 +1221,54 @@
 
       </div>
 
-      <!-- Row 2: 5 Metric Cards -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px;">
+      <!-- Row 2: 4 Metric Cards (Working Days, Working Hours, Meeting Hours & Number, Routine Work Hours) -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px;">
         
-        <!-- Total Work Hours -->
-        <div class="card" style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg style="width: 20px; height: 20px;"><use href="#icon-briefcase"></use></svg>
-          </div>
-          <div>
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Total Work Hours</div>
-            <div id="kpiTotalHours" style="font-size: 16px; font-weight: 800; color: var(--text-main);">33h 25m (33.4 hrs)</div>
-            <div id="kpiTotalHoursSub" style="font-size: 11px; color: var(--text-muted);">Target: 28.0 hrs</div>
-          </div>
-        </div>
-
-        <!-- Meetings -->
-        <div class="card" style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 40px; height: 40px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg style="width: 20px; height: 20px;"><use href="#icon-users"></use></svg>
-          </div>
-          <div>
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Meetings</div>
-            <div id="kpiMeetingsCount" style="font-size: 16px; font-weight: 800; color: #7c3aed;">7</div>
-            <div id="kpiMeetingsHoursSub" style="font-size: 11px; color: var(--text-muted);">10h 10m total</div>
-          </div>
-        </div>
-
-        <!-- Meeting % -->
-        <div class="card" style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg style="width: 20px; height: 20px;"><use href="#icon-pie"></use></svg>
-          </div>
-          <div>
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Meeting %</div>
-            <div id="kpiMeetingPct" style="font-size: 16px; font-weight: 800; color: #2563eb;">30.4%</div>
-            <div id="kpiMeetingPctSub" style="font-size: 11px; color: var(--text-muted);">10h 10m (10.2 hrs)</div>
-          </div>
-        </div>
-
-        <!-- Office Work % -->
-        <div class="card" style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <svg style="width: 20px; height: 20px;"><use href="#icon-laptop"></use></svg>
-          </div>
-          <div>
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Office Work %</div>
-            <div id="kpiOfficePct" style="font-size: 16px; font-weight: 800; color: #059669;">69.6%</div>
-            <div id="kpiOfficePctSub" style="font-size: 11px; color: var(--text-muted);">23h 15m (23.3 hrs)</div>
-          </div>
-        </div>
-
-        <!-- Working Days -->
+        <!-- 1. Working Days -->
         <div class="card" style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 40px; height: 40px; border-radius: 12px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             <svg style="width: 20px; height: 20px;"><use href="#icon-calendar-check"></use></svg>
           </div>
           <div>
             <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Working Days</div>
-            <div id="kpiWorkDays" style="font-size: 16px; font-weight: 800; color: var(--text-main);">4 Days</div>
-            <div id="kpiWorkDaysSub" style="font-size: 11px; color: var(--text-muted);">Present in Office</div>
+            <div id="kpiWorkDays" style="font-size: 16px; font-weight: 800; color: var(--text-main);">-- Days</div>
+            <div id="kpiWorkDaysSub" style="font-size: 11px; color: var(--text-muted);">Total Working Days</div>
+          </div>
+        </div>
+
+        <!-- 2. Working Hours -->
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-briefcase"></use></svg>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Working Hours</div>
+            <div id="kpiTotalHours" style="font-size: 16px; font-weight: 800; color: var(--text-main);">0h 0m</div>
+            <div id="kpiTotalHoursSub" style="font-size: 11px; color: var(--text-muted);">Target: 140.0 hrs</div>
+          </div>
+        </div>
+
+        <!-- 3. Meeting Hours & Number -->
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-users"></use></svg>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Meeting Hours &amp; Number</div>
+            <div id="kpiMeetingsHours" style="font-size: 16px; font-weight: 800; color: #7c3aed;">0h 0m</div>
+            <div id="kpiMeetingsHoursSub" style="font-size: 11px; color: var(--text-muted);">0 Meetings total</div>
+          </div>
+        </div>
+
+        <!-- 4. Routine Work Hours -->
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-laptop"></use></svg>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Routine Work Hours</div>
+            <div id="kpiOfficeHours" style="font-size: 16px; font-weight: 800; color: #059669;">0h 0m</div>
+            <div id="kpiOfficeHoursSub" style="font-size: 11px; color: var(--text-muted);">Routine Office Duty</div>
           </div>
         </div>
 
@@ -1380,98 +1373,30 @@
             <div style="font-size: 11px; font-weight: 700; color: #155e75; margin-top: 2px;">On-Duty</div>
           </div>
 
-          <!-- 4. Absent -->
-          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 12px 8px; text-align: center;">
-            <div id="statAbsent" style="font-size: 22px; font-weight: 900; color: #b91c1c;">0</div>
-            <div style="font-size: 11px; font-weight: 700; color: #991b1b; margin-top: 2px;">Absent</div>
-          </div>
-
-          <!-- 5. CL (Full) -->
+          <!-- 4. CL (Full) -->
           <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 12px 8px; text-align: center;">
             <div id="statCL" style="font-size: 22px; font-weight: 900; color: #b45309;">0</div>
             <div style="font-size: 11px; font-weight: 700; color: #92400e; margin-top: 2px;">CL (Full)</div>
           </div>
 
-          <!-- 6. FNCL (0.5) -->
+          <!-- 5. FNCL (0.5) -->
           <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: var(--radius-md); padding: 12px 8px; text-align: center;">
             <div id="statFNCL" style="font-size: 22px; font-weight: 900; color: #6d28d9;">0</div>
             <div style="font-size: 11px; font-weight: 700; color: #5b21b6; margin-top: 2px;">FNCL (0.5)</div>
           </div>
 
-          <!-- 7. ANCL (0.5) -->
+          <!-- 6. ANCL (0.5) -->
           <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: var(--radius-md); padding: 12px 8px; text-align: center;">
             <div id="statANCL" style="font-size: 22px; font-weight: 900; color: #6d28d9;">0</div>
             <div style="font-size: 11px; font-weight: 700; color: #5b21b6; margin-top: 2px;">ANCL (0.5)</div>
           </div>
 
-          <!-- 8. COFF Used -->
+          <!-- 7. COFF Used -->
           <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--radius-md); padding: 12px 8px; text-align: center;">
             <div id="statCOFF" style="font-size: 22px; font-weight: 900; color: #047857;">0</div>
             <div style="font-size: 11px; font-weight: 700; color: #065f46; margin-top: 2px;">COFF Used</div>
           </div>
 
-        </div>
-      </div>
-
-      <!-- Row 5: COMPENSATORY OFF (COFF) LEDGER & UTILIZATION TRACKER -->
-      <div class="card" style="padding: 16px; margin-top: 4px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-          <div style="font-size: 13px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-            <svg style="width: 16px; height: 16px; color: #f59e0b;"><use href="#icon-lightning"></use></svg>
-            <span id="coffLedgerHeaderLabel">Compensatory Off (COFF) Balance & Earned Tracker (2026)</span>
-          </div>
-          <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Rule: 10 Hours (600m) Extra = 1 COFF</span>
-        </div>
-
-        <!-- 4 COFF Summary Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px;">
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">Total Extra Logged</div>
-              <div id="coffKpiExtraEarned" style="font-size: 18px; font-weight: 900; color: #15803d; margin-top: 2px;">+0m</div>
-            </div>
-            <span style="font-size: 20px;">⏱️</span>
-          </div>
-
-          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase;">COFFs Earned</div>
-              <div id="coffKpiEarnedCount" style="font-size: 18px; font-weight: 900; color: #1d4ed8; margin-top: 2px;">0 Days</div>
-            </div>
-            <span style="font-size: 20px;">🎖️</span>
-          </div>
-
-          <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div style="font-size: 11px; font-weight: 700; color: #9a3412; text-transform: uppercase;">COFFs Expended</div>
-              <div id="coffKpiUsedCount" style="font-size: 18px; font-weight: 900; color: #c2410c; margin-top: 2px;">0 Days</div>
-            </div>
-            <span style="font-size: 20px;">🏖️</span>
-          </div>
-
-          <div style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div style="font-size: 11px; font-weight: 700; color: #6b21a8; text-transform: uppercase;">Available Balance</div>
-              <div id="coffKpiBalance" style="font-size: 18px; font-weight: 900; color: #7c3aed; margin-top: 2px;">0 Remaining</div>
-            </div>
-            <span style="font-size: 20px;">⭐</span>
-          </div>
-        </div>
-
-        <!-- Month-by-Month COFF Breakdown Table -->
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Month</th>
-                <th>Extra Minutes Earned</th>
-                <th>COFF Earned</th>
-                <th>COFFs Expended (Availed Dates)</th>
-                <th>Running Balance</th>
-              </tr>
-            </thead>
-            <tbody id="coffMonthlyTableBody"></tbody>
-          </table>
         </div>
       </div>
 
@@ -1486,6 +1411,10 @@
             <tr>
               <th>Month</th>
               <th>Working Days</th>
+              <th>Present Days</th>
+              <th>OD Days</th>
+              <th>CL Days</th>
+              <th>COFF Days</th>
               <th>Work Hours</th>
               <th>Meeting Hours</th>
             </tr>
@@ -1494,6 +1423,170 @@
         </table>
       </div>
     </div>
+
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- TAB: LEAVE REGISTER & COMP-OFF LEDGER (DEDICATED VIEW)                -->
+  <!-- ===================================================================== -->
+  <section id="viewLeaveRegister" style="display: none;">
+    
+    <!-- Top Header: Title & Year Info -->
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+      <div>
+        <div style="font-size: 16px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+          <svg style="width: 18px; height: 18px; color: #7c3aed;"><use href="#icon-layers"></use></svg>
+          <span id="leaveRegisterHeaderTitle">Annual Leave Register &amp; Comp-Off Tracker (2026)</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted);" id="leaveRegisterHeaderSub">Complete log of all Leaves taken, Comp-Offs utilized &amp; Official Duty records</div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button onclick="openMarkLeaveModal()" class="btn btn-primary btn-sm">
+          <svg style="width: 14px; height: 14px;"><use href="#icon-file-text"></use></svg>
+          <span>Mark Leave / OD</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 Leave Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px;">
+      <div class="card" style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfdf5; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 20px; height: 20px;"><use href="#icon-calendar"></use></svg>
+        </div>
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Casual Leaves (CL)</div>
+          <div id="lrKpiCL" style="font-size: 16px; font-weight: 800; color: #15803d;">-- Remaining</div>
+          <div id="lrKpiCLSub" style="font-size: 11px; color: var(--text-muted);">Used: -- / Limit: 20</div>
+        </div>
+      </div>
+
+      <div class="card" style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 20px; height: 20px;"><use href="#icon-layers"></use></svg>
+        </div>
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Comp-Offs (COFF)</div>
+          <div id="lrKpiCOFF" style="font-size: 16px; font-weight: 800; color: #7c3aed;">-- Available</div>
+          <div id="lrKpiCOFFSub" style="font-size: 11px; color: var(--text-muted);">Earned: -- | Used: --</div>
+        </div>
+      </div>
+
+      <div class="card" style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfeff; color: #0891b2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 20px; height: 20px;"><use href="#icon-briefcase"></use></svg>
+        </div>
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">On-Duty (OD) Logged</div>
+          <div id="lrKpiOD" style="font-size: 16px; font-weight: 800; color: #0e7490;">-- Days</div>
+          <div id="lrKpiODSub" style="font-size: 11px; color: var(--text-muted);">Official Duty Records</div>
+        </div>
+      </div>
+
+      <div class="card" style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 12px; background: #f0fdf4; color: #15803d; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg style="width: 20px; height: 20px;"><use href="#icon-lightning"></use></svg>
+        </div>
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Extra Minutes Balance</div>
+          <div id="lrKpiExtra" style="font-size: 16px; font-weight: 800; color: #16a34a;">+0m</div>
+          <div id="lrKpiExtraSub" style="font-size: 11px; color: var(--text-muted);">600m (10 hrs) = 1 COFF</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Annual Leave & Duty Register (All Leaves Taken During Year) -->
+    <div class="card" style="margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 6px;">
+          <svg style="width: 15px; height: 15px; color: #2563eb;"><use href="#icon-calendar"></use></svg>
+          <span id="leaveRegisterTableTitle">Annual Leaves &amp; OD Taken (2026)</span>
+        </h3>
+        <span class="badge-pill-soft" id="leaveRegisterCountBadge">0 records</span>
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Type</th>
+              <th>Duration</th>
+              <th>Reason / Purpose</th>
+              <th>Timing / Action</th>
+            </tr>
+          </thead>
+          <tbody id="leaveRegisterTableBody">
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading leave register...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 2: COMPENSATORY OFF (COFF) LEDGER & UTILIZATION TRACKER (MOVED UNDER LEAVE REGISTER TAB) -->
+    <div class="card" style="padding: 16px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+        <div style="font-size: 13px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+          <svg style="width: 16px; height: 16px; color: #f59e0b;"><use href="#icon-lightning"></use></svg>
+          <span id="coffLedgerHeaderLabel">Compensatory Off (COFF) Balance &amp; Earned Tracker (2026)</span>
+        </div>
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Rule: 10 Hours (600m) Extra = 1 COFF</span>
+      </div>
+
+      <!-- 4 COFF Summary Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">Total Extra Logged</div>
+            <div id="coffKpiExtraEarned" style="font-size: 18px; font-weight: 900; color: #15803d; margin-top: 2px;">+0m</div>
+          </div>
+          <span style="font-size: 20px;">⏱️</span>
+        </div>
+
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase;">COFFs Earned</div>
+            <div id="coffKpiEarnedCount" style="font-size: 18px; font-weight: 900; color: #1d4ed8; margin-top: 2px;">0 Days</div>
+          </div>
+          <span style="font-size: 20px;">🎖️</span>
+        </div>
+
+        <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: #9a3412; text-transform: uppercase;">COFFs Expended</div>
+            <div id="coffKpiUsedCount" style="font-size: 18px; font-weight: 900; color: #c2410c; margin-top: 2px;">0 Days</div>
+          </div>
+          <span style="font-size: 20px;">🏖️</span>
+        </div>
+
+        <div style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: #6b21a8; text-transform: uppercase;">Available Balance</div>
+            <div id="coffKpiBalance" style="font-size: 18px; font-weight: 900; color: #7c3aed; margin-top: 2px;">0 Remaining</div>
+          </div>
+          <span style="font-size: 20px;">⭐</span>
+        </div>
+      </div>
+
+      <!-- Month-by-Month COFF Breakdown Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Extra Minutes Earned</th>
+              <th>COFF Earned</th>
+              <th>COFFs Expended (Availed Dates)</th>
+              <th>Running Balance</th>
+            </tr>
+          </thead>
+          <tbody id="coffMonthlyTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
 
   </section>
 
@@ -2217,8 +2310,8 @@
   const DEFAULT_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwYYBIQNFwYl2itYzMrEooiXoJRKuifsXWr8NYKoJTIzeIirXghBbZIu5jhE_FjNoAykg/exec';
 
   const DEFAULT_EMPLOYEES = [
-    { pen: '858575', name: 'Rajesh Krishnan R K', designation: 'Head / Admin', clLimit: 20, yearlyCLLimit: 20, role: 'ADMIN', isAdmin: true, status: 'Active' },
-    { pen: '1019244', name: 'Athira Ravindran', designation: 'OA', clLimit: 20, yearlyCLLimit: 20, role: 'ADMIN', isAdmin: true, status: 'Active' }
+    { pen: '858575', name: 'Rajesh Krishnan R K', designation: 'Agriculture Officer', clLimit: 20, yearlyCLLimit: 20, role: 'ADMIN', isAdmin: true, status: 'Active' },
+    { pen: '1019244', name: 'Athira Ravindran', designation: 'Agriculture Assistant', clLimit: 20, yearlyCLLimit: 20, role: 'USER', isAdmin: false, status: 'Active' }
   ];
 
   const state = {
@@ -2563,14 +2656,15 @@
 
   function setSessionUser(u) {
     if (!u) return;
-    const penStr = String(u.pen || '858575');
-    const isAdmin = (u.isAdmin === true || u.role === 'ADMIN' || penStr === '858575');
+    const penStr = String(u.pen || '858575').trim();
+    // Strict Admin check: ONLY PEN 858575 (Rajesh Krishnan) is ADMIN. All other staff are USER.
+    const isAdmin = (penStr === '858575');
     
     state.currentUser = {
       pen: penStr,
       name: u.name || (penStr === '858575' ? 'Rajesh Krishnan R K' : (penStr === '1019244' ? 'Athira Ravindran' : `Staff (${penStr})`)),
-      designation: u.designation || (isAdmin ? 'ADMIN' : 'USER'),
-      role: isAdmin ? 'ADMIN' : (u.role || 'USER'),
+      designation: u.designation || (isAdmin ? 'Agriculture Officer' : 'Agriculture Assistant'),
+      role: isAdmin ? 'ADMIN' : 'USER',
       isAdmin: isAdmin
     };
     state.activePen = state.currentUser.pen;
@@ -2584,7 +2678,7 @@
     const closeBtn = document.getElementById('loginCloseBtn');
     if (closeBtn) closeBtn.style.display = 'inline-flex';
 
-    // ADMINISTRATION ACCESS CONTROL (INSIDE PROFILE DROPDOWN - MATCHES MOCKUP)
+    // ADMINISTRATION ACCESS CONTROL: Only Admin can access User Management & switch staff
     const profileAdmin = document.getElementById('profileMenuUserMgmt');
     const staffSwitcher = document.getElementById('adminEmpSwitcherContainer');
 
@@ -2613,9 +2707,8 @@
     const profileAdmin = document.getElementById('profileMenuUserMgmt');
     if (profileAdmin) profileAdmin.style.display = 'none';
 
-    // Keep STAFF dropdown visible and active so user can view data
     const staffSwitcher = document.getElementById('adminEmpSwitcherContainer');
-    if (staffSwitcher) staffSwitcher.style.display = 'inline-flex';
+    if (staffSwitcher) staffSwitcher.style.display = 'none';
   }
 
   function enterDemoMode() {
@@ -2650,7 +2743,13 @@
 
   // NAVIGATION TABS
   function switchTab(tab) {
-    const tabs = ['quick', 'dash', 'timeline', 'attendance', 'admin'];
+    if (tab === 'admin' && (!state.currentUser || !state.currentUser.isAdmin)) {
+      alert('Access restricted: Only Admin (Rajesh Krishnan) can access User Management.');
+      switchTab('dash');
+      return;
+    }
+
+    const tabs = ['quick', 'dash', 'timeline', 'attendance', 'admin', 'leaveRegister'];
     tabs.forEach(t => {
       const sec = document.getElementById(`view${capitalize(t)}`);
       const btn = document.getElementById(`navTab${capitalize(t)}`);
@@ -2667,6 +2766,10 @@
       if (state.workDiary && state.workDiary.stats) {
         renderCharts(state.workDiary.stats, state.workDiary.dailyDiaries);
       }
+    }
+
+    if (tab === 'leaveRegister') {
+      renderLeaveRegister();
     }
 
     if (tab === 'admin') {
@@ -2893,18 +2996,32 @@
     const offSub = document.getElementById('kpiOfficePctSub');
     if (offSub) offSub.innerText = st.totalOfficeWorkFormatted ? `${st.totalOfficeWorkFormatted} (${st.totalOfficeWorkHours || 0} hrs)` : `${st.totalOfficeWorkHours || 0} hrs`;
 
-    const totEl = document.getElementById('kpiTotalHours');
-    if (totEl) totEl.innerText = st.totalActualWorkFormatted ? `${st.totalActualWorkFormatted} (${st.totalActualWorkHours || 0} hrs)` : `${st.totalActualWorkHours || 0} hrs`;
-    const totSub = document.getElementById('kpiTotalHoursSub');
-    if (totSub) totSub.innerText = `Target: ${st.standardCapacityHours || 28.0} hrs`;
+    // Row 2 Dashboard Cards:
+    // 1. Working Days
+    const wDaysEl = document.getElementById('kpiWorkDays');
+    if (wDaysEl) wDaysEl.innerText = `${st.workingDaysCount || 0} Days`;
+    const wDaysSub = document.getElementById('kpiWorkDaysSub');
+    if (wDaysSub) wDaysSub.innerText = 'Total Working Days';
 
+    // 2. Total Work Hours
+    const totEl = document.getElementById('kpiTotalHours');
+    if (totEl) totEl.innerText = st.totalActualWorkFormatted || `${st.totalActualWorkHours || 0} hrs`;
+    const totSub = document.getElementById('kpiTotalHoursSub');
+    if (totSub) totSub.innerText = `Target: ${st.standardCapacityHours || 140.0} hrs`;
+
+    // 3. Meeting Hours & Number
+    const mtgHEl = document.getElementById('kpiMeetingsHours');
+    if (mtgHEl) mtgHEl.innerText = st.totalMeetingFormatted || `${st.totalMeetingHours || 0} hrs`;
     const mtgCountEl = document.getElementById('kpiMeetingsCount');
     if (mtgCountEl) mtgCountEl.innerText = `${st.totalMeetingsCount || 0}`;
     const mtgHSub = document.getElementById('kpiMeetingsHoursSub');
-    if (mtgHSub) mtgHSub.innerText = st.totalMeetingFormatted ? `${st.totalMeetingFormatted} total` : `${st.totalMeetingHours || 0} hrs total`;
+    if (mtgHSub) mtgHSub.innerText = `${st.totalMeetingsCount || 0} Meetings total`;
 
-    const wDaysEl = document.getElementById('kpiWorkDays');
-    if (wDaysEl) wDaysEl.innerText = `${st.workingDaysCount || 0} Days`;
+    // 4. Routine Work Hours
+    const offEl = document.getElementById('kpiOfficeHours');
+    if (offEl) offEl.innerText = st.totalOfficeWorkFormatted || `${st.totalOfficeWorkHours || 0} hrs`;
+    const offHSub = document.getElementById('kpiOfficeHoursSub');
+    if (offHSub) offHSub.innerText = 'Routine Office Duty';
   }
 
   function renderAttendanceKPIsFromSummary(res) {
@@ -2915,6 +3032,8 @@
     let presCount = 0;
     let holCount = 0;
     let odCount = 0;
+    let clCount = 0;
+    let coffCount = 0;
     let absCount = 0;
 
     if (state.days && state.days.length > 0) {
@@ -2923,19 +3042,31 @@
         if (s === 'P' || s === 'PRESENT') presCount++;
         else if (['PH', 'H', 'HOLIDAY', 'OFF', 'RH', 'HD'].includes(s)) holCount++;
         else if (['OD', 'DUTY', 'ON DUTY'].includes(s)) odCount++;
-        else if (['FNOD', 'ANOD'].includes(s)) odCount++;
+        else if (['FNOD', 'ANOD'].includes(s)) { odCount += 0.5; presCount += 0.5; }
+        else if (['CL'].includes(s)) clCount++;
+        else if (['FNCL', 'ANCL'].includes(s)) { clCount += 0.5; presCount += 0.5; }
+        else if (['COFF'].includes(s)) coffCount++;
         else if (s === 'A' || s === 'ABSENT') absCount++;
-        else if (['FNCL', 'ANCL'].includes(s)) presCount += 0.5;
       });
     } else {
       presCount = mCounts.P || 0;
       holCount = mCounts.PH || mCounts.Holidays || 0;
       odCount = (mCounts.OD || mCounts.OnDuty || 0) + (mCounts.FNOD || 0) + (mCounts.ANOD || 0);
+      clCount = (mCounts.CL || 0) + 0.5 * ((mCounts.FNCL || 0) + (mCounts.ANCL || 0));
+      coffCount = mCounts.COFF || 0;
       absCount = mCounts.A || mCounts.Absent || 0;
     }
 
-    // Working Days strictly includes all Present + On Duty (OD, FNOD, ANOD) days
-    const workingDaysTotal = (presCount + odCount);
+    // Working days means all days including Leave, coz on leave is on a working day!
+    let totalDaysInMonth = 30;
+    try {
+      totalDaysInMonth = new Date(parseInt(state.activeYear, 10), parseInt(state.activeMonthNumber, 10), 0).getDate();
+    } catch (e) {}
+
+    let workingDaysTotal = Math.max(0, totalDaysInMonth - holCount);
+    if (workingDaysTotal === 0 && (presCount + odCount + clCount + coffCount) > 0) {
+      workingDaysTotal = (presCount + odCount + clCount + coffCount + absCount);
+    }
 
     const wDays = document.getElementById('attKpiWorkingDays');
     if (wDays) wDays.innerText = workingDaysTotal;
@@ -2953,6 +3084,9 @@
 
     const totH = document.getElementById('attKpiTotalHours');
     if (totH) totH.innerText = wd.totalActualWorkFormatted || '0h 0m';
+
+    const kpiWD = document.getElementById('kpiWorkDays');
+    if (kpiWD) kpiWD.innerText = `${workingDaysTotal} Days`;
 
     // Separate Extra Time and Late Time (no Net hours!)
     let totalExtra = 0;
@@ -3115,12 +3249,19 @@
   // VIEW SWITCHER: MONTH VIEW VS YEAR VIEW TOGGLE & ANNUAL REPORT
   // =========================================================================
   function switchDashView(mode) {
+    if (mode === 'leaveRegister') {
+      switchTab('leaveRegister');
+      return;
+    }
     state.dashViewMode = mode;
     const btnM = document.getElementById('dashBtnMonthly');
     const btnY = document.getElementById('dashBtnYearly');
+    const btnL = document.getElementById('dashBtnLeaveRegister');
     const mContent = document.getElementById('dashMonthlyContent');
     const yContent = document.getElementById('dashYearlyContent');
     const title = document.getElementById('dashViewTitle');
+
+    if (btnL) { btnL.style.background = 'transparent'; btnL.style.color = 'var(--text-secondary)'; }
 
     if (mode === 'yearly') {
       if (btnM) { btnM.style.background = 'transparent'; btnM.style.color = 'var(--text-secondary)'; }
@@ -3141,29 +3282,155 @@
   async function loadYearlyDashboard() {
     const tbody = document.getElementById('yearlyMonthsTableBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">Loading yearly records...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">Loading yearly records...</td></tr>';
     
     try {
       const res = await callApi('apiGetYearlyDashboard', state.token, state.activeYear, state.activePen);
       if (res && res.ok && res.months) {
         tbody.innerHTML = '';
+        let totWorkDays = 0, totPres = 0, totOD = 0, totCL = 0, totCOFF = 0, totWorkH = 0, totMtgH = 0;
+
         res.months.forEach(m => {
+          const wDays = Number(m.workingDays) || 0;
+          const pDays = Number(m.presentDays) || 0;
+          const odDays = Number(m.odDays) || 0;
+          const clDays = Number(m.clDays) || 0;
+          const coffDays = Number(m.coffDays) || 0;
+          const wHrs = parseFloat(m.workHours) || 0;
+          const mHrs = parseFloat(m.meetingHours) || 0;
+
+          totWorkDays += wDays;
+          totPres += pDays;
+          totOD += odDays;
+          totCL += clDays;
+          totCOFF += coffDays;
+          totWorkH += wHrs;
+          totMtgH += mHrs;
+
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td style="font-weight: 700;">${m.monthName} ${state.activeYear}</td>
-            <td><span class="badge-pill-soft" style="background: var(--bg-card-subtle);">${m.workingDays} days</span></td>
+            <td style="font-weight: 800; color: var(--text-main);">${m.monthName} ${state.activeYear}</td>
+            <td><span class="badge-pill-soft" style="background: var(--bg-card-subtle); font-weight: 700; color: #2563eb;">${wDays}</span></td>
+            <td style="font-weight: 700; color: #16a34a;">${pDays}</td>
+            <td style="font-weight: 700; color: #0284c7;">${odDays}</td>
+            <td style="font-weight: 700; color: #e11d48;">${clDays}</td>
+            <td style="font-weight: 700; color: #7c3aed;">${coffDays}</td>
             <td style="font-weight: 600;">${m.workHours} hrs</td>
-            <td style="color: #7c3aed; font-weight: 700;">${m.meetingHours} hrs</td>
+            <td style="color: #9333ea; font-weight: 700;">${m.meetingHours} hrs</td>
           `;
           tbody.appendChild(row);
         });
+
+        // Add summary row at bottom
+        const summaryRow = document.createElement('tr');
+        summaryRow.style.background = 'var(--bg-card-subtle)';
+        summaryRow.style.fontWeight = '900';
+        summaryRow.innerHTML = `
+          <td>TOTAL (${state.activeYear})</td>
+          <td style="color: #2563eb;">${totWorkDays}</td>
+          <td style="color: #16a34a;">${totPres}</td>
+          <td style="color: #0284c7;">${totOD}</td>
+          <td style="color: #e11d48;">${totCL}</td>
+          <td style="color: #7c3aed;">${totCOFF}</td>
+          <td>${totWorkH.toFixed(1)} hrs</td>
+          <td style="color: #9333ea;">${totMtgH.toFixed(1)} hrs</td>
+        `;
+        tbody.appendChild(summaryRow);
+
         if (res.yearlyCounts) renderYearlyBreakdown(res.yearlyCounts);
+        if (res.leaveRegister) {
+          state.leaveRegister = res.leaveRegister;
+        }
       } else {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">No yearly records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">No yearly records found.</td></tr>';
       }
     } catch (e) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: var(--danger);">Failed to load yearly records.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--danger);">Failed to load yearly records.</td></tr>';
     }
+  }
+
+  // =========================================================================
+  // DEDICATED LEAVE REGISTER & COMP-OFF TRACKER
+  // =========================================================================
+  async function renderLeaveRegister() {
+    const titleEl = document.getElementById('leaveRegisterHeaderTitle');
+    const tableTitleEl = document.getElementById('leaveRegisterTableTitle');
+    if (titleEl) titleEl.innerText = `Annual Leave Register & Comp-Off Tracker (${state.activeYear})`;
+    if (tableTitleEl) tableTitleEl.innerText = `Annual Leaves & OD Taken (${state.activeYear})`;
+
+    // Populate top KPI cards from state.summary
+    if (state.summary) {
+      const extra = state.summary.extra || {};
+      const cl = state.summary.cl || {};
+      const yCounts = state.summary.yearlyCounts || {};
+
+      const clRem = cl.remaining !== undefined ? cl.remaining : (20 - (cl.used || 0));
+      const lrCl = document.getElementById('lrKpiCL');
+      if (lrCl) lrCl.innerText = `${clRem} Remaining`;
+      const lrClSub = document.getElementById('lrKpiCLSub');
+      if (lrClSub) lrClSub.innerText = `Used: ${cl.used || 0} / Limit: ${cl.limit || 20}`;
+
+      const coffAvail = extra.coffsAvailable !== undefined ? extra.coffsAvailable : ((extra.coffsEarned || 0) - (extra.coffsUsed || 0));
+      const lrCoff = document.getElementById('lrKpiCOFF');
+      if (lrCoff) lrCoff.innerText = `${coffAvail} Available`;
+      const lrCoffSub = document.getElementById('lrKpiCOFFSub');
+      if (lrCoffSub) lrCoffSub.innerText = `Earned: ${extra.coffsEarned || 0} | Used: ${extra.coffsUsed || 0}`;
+
+      const odTotal = (yCounts.OD || 0) + (yCounts.FNOD || 0) * 0.5 + (yCounts.ANOD || 0) * 0.5;
+      const lrOD = document.getElementById('lrKpiOD');
+      if (lrOD) lrOD.innerText = `${odTotal} Days`;
+      const lrODSub = document.getElementById('lrKpiODSub');
+      if (lrODSub) lrODSub.innerText = `Duty / Mission Days`;
+
+      const extraM = Number(extra.totalExtraMinsYear || extra.thisMonthExtras || extra.earnedMins || 0);
+      const lrExtra = document.getElementById('lrKpiExtra');
+      if (lrExtra) lrExtra.innerText = `+${extraM}m`;
+      const lrExtraSub = document.getElementById('lrKpiExtraSub');
+      if (lrExtraSub) lrExtraSub.innerText = `YTD Extra Minutes`;
+
+      renderCoffLedger(state.summary);
+    }
+
+    const tbody = document.getElementById('leaveRegisterTableBody');
+    const countBadge = document.getElementById('leaveRegisterCountBadge');
+    if (!tbody) return;
+
+    if (!state.leaveRegister) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Loading annual leave records...</td></tr>';
+      try {
+        const res = await callApi('apiGetYearlyDashboard', state.token, state.activeYear, state.activePen);
+        if (res && res.ok && res.leaveRegister) {
+          state.leaveRegister = res.leaveRegister;
+        }
+      } catch (e) {}
+    }
+
+    const list = state.leaveRegister || [];
+    if (countBadge) countBadge.innerText = `${list.length} records`;
+
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No leaves or OD records recorded for this year.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = list.map(item => {
+      const type = (item.type || '').toUpperCase();
+      let badgeClass = 'badge-status-cl';
+      if (type === 'COFF') badgeClass = 'badge-status-coff';
+      else if (type.includes('OD')) badgeClass = 'badge-status-od';
+      else if (type.includes('CL')) badgeClass = 'badge-status-cl';
+
+      return `
+        <tr>
+          <td style="font-weight: 800; font-family: monospace;">${item.date}</td>
+          <td style="font-weight: 600; color: var(--text-secondary);">${item.dayName || '--'}</td>
+          <td><span class="badge-status ${badgeClass}" style="display: inline-block;">${type}</span></td>
+          <td style="font-weight: 600;">${item.duration || 'Full Day'}</td>
+          <td style="color: var(--text-main); font-weight: 600;">${item.remarks || '--'}</td>
+          <td style="color: var(--text-muted); font-size: 11px;">${item.inTime && item.outTime ? `${fmtTime(item.inTime)} – ${fmtTime(item.outTime)}` : 'Recorded'}</td>
+        </tr>
+      `;
+    }).join('');
   }
 
   // =========================================================================
@@ -3947,8 +4214,8 @@
     let list = state.employees;
     if (!list || !list.length) {
       list = [
-        { pen: '858575', name: 'Rajesh Krishnan R K', designation: '—', clLimit: 20, role: 'ADMIN', isAdmin: true, status: 'ACTIVE' },
-        { pen: '1019244', name: 'Athira Ravindran', designation: 'OA', clLimit: 20, role: 'ADMIN', isAdmin: true, status: 'ACTIVE' }
+        { pen: '858575', name: 'Rajesh Krishnan R K', designation: 'Agriculture Officer', clLimit: 20, role: 'ADMIN', isAdmin: true, status: 'ACTIVE' },
+        { pen: '1019244', name: 'Athira Ravindran', designation: 'Agriculture Assistant', clLimit: 20, role: 'USER', isAdmin: false, status: 'ACTIVE' }
       ];
     }
     const search = (document.getElementById('adminUserSearchInput')?.value || '').toLowerCase();
