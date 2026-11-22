@@ -360,17 +360,24 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 26px;
+      min-width: 26px;
       height: 26px;
+      padding: 0 4px;
       border-radius: 6px;
       font-size: 11px;
       font-weight: 800;
-      color: #ffffff;
+      color: #ffffff !important;
+      box-sizing: border-box;
+      line-height: 1;
     }
-    .badge-status-p { background: #10b981; }
-    .badge-status-ph { background: #f97316; }
-    .badge-status-od { background: #06b6d4; }
-    .badge-status-a { background: #ef4444; }
+    .badge-status-p { background: #10b981 !important; color: #fff !important; }
+    .badge-status-ph, .badge-status-h, .badge-status-lh { background: #f97316 !important; color: #fff !important; }
+    .badge-status-od { background: #06b6d4 !important; color: #fff !important; }
+    .badge-status-fnod, .badge-status-anod { background: #0284c7 !important; color: #fff !important; min-width: 34px; font-size: 10px; }
+    .badge-status-a { background: #ef4444 !important; color: #fff !important; }
+    .badge-status-cl { background: #e11d48 !important; color: #fff !important; min-width: 26px; }
+    .badge-status-fncl, .badge-status-ancl { background: #f43f5e !important; color: #fff !important; min-width: 34px; font-size: 10px; }
+    .badge-status-coff { background: #7c3aed !important; color: #fff !important; min-width: 36px; padding: 0 5px; font-size: 10.5px; }
     .badge-pill-soft {
       display: inline-flex;
       align-items: center;
@@ -1905,13 +1912,19 @@
         <label class="form-label">Status</label>
         <select id="editAttStatus" class="form-select">
           <option value="P">Present (P)</option>
-          <option value="OD">On Duty (OD)</option>
-          <option value="CL">Casual Leave (CL)</option>
-          <option value="FNCL">FN Casual Leave (0.5)</option>
-          <option value="ANCL">AN Casual Leave (0.5)</option>
+          <option value="OD">On Duty (OD - Full Day)</option>
+          <option value="FNOD">FN On Duty (0.5 Day)</option>
+          <option value="ANOD">AN On Duty (0.5 Day)</option>
+          <option value="PH">Public Holiday (PH - Full Day)</option>
+          <option value="FNH">FN Half Holiday (Forenoon - 0.5 Day)</option>
+          <option value="ANH">AN Half Holiday (Afternoon - 0.5 Day)</option>
+          <option value="HD">Half Day Holiday (HD - 0.5 Day)</option>
+          <option value="LH">Local Holiday (LH - Full Day)</option>
+          <option value="CL">Casual Leave (CL - Full Day)</option>
+          <option value="FNCL">FN Casual Leave (0.5 Day)</option>
+          <option value="ANCL">AN Casual Leave (0.5 Day)</option>
           <option value="COFF">Comp-Off (COFF)</option>
           <option value="A">Absent (A)</option>
-          <option value="PH">Public Holiday (PH)</option>
         </select>
       </div>
       <div class="form-group">
@@ -2076,8 +2089,17 @@
         <input type="date" id="holidayDate" class="form-input" required>
       </div>
       <div class="form-group">
+        <label class="form-label">Holiday Type</label>
+        <select id="holidayType" class="form-select">
+          <option value="FULL">Complete Day Holiday (Full Day)</option>
+          <option value="HALF_FN">Half Day Holiday - Forenoon (FN)</option>
+          <option value="HALF_AN">Half Day Holiday - Afternoon (AN)</option>
+          <option value="LOCAL">Local Holiday (LH)</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">Holiday Name</label>
-        <input type="text" id="holidayName" class="form-input" placeholder="e.g. Deepavali, Eid, Christmas" required>
+        <input type="text" id="holidayName" class="form-input" placeholder="e.g. Deepavali, Local Festival, Pooja" required>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
         <button type="button" onclick="closeModal('modalHoliday')" class="btn btn-secondary">Cancel</button>
@@ -3583,12 +3605,17 @@
 
       let badgeHtml = '';
       if (st === 'P') badgeHtml = '<span class="badge-status badge-status-p">P</span>';
-      else if (st === 'PH' || st === 'HOLIDAY') badgeHtml = '<span class="badge-status badge-status-ph">PH</span>';
+      else if (st === 'PH' || st === 'HOLIDAY' || st === 'H') badgeHtml = '<span class="badge-status badge-status-ph">PH</span>';
       else if (st === 'OD') badgeHtml = '<span class="badge-status badge-status-od">OD</span>';
+      else if (st === 'FNOD') badgeHtml = '<span class="badge-status badge-status-fnod">FNOD</span>';
+      else if (st === 'ANOD') badgeHtml = '<span class="badge-status badge-status-anod">ANOD</span>';
       else if (st === 'A') badgeHtml = '<span class="badge-status badge-status-a">A</span>';
       else if (st === 'CL') badgeHtml = '<span class="badge-status badge-status-cl">CL</span>';
+      else if (st === 'FNCL') badgeHtml = '<span class="badge-status badge-status-fncl">FNCL</span>';
+      else if (st === 'ANCL') badgeHtml = '<span class="badge-status badge-status-ancl">ANCL</span>';
       else if (st === 'COFF') badgeHtml = '<span class="badge-status badge-status-coff">COFF</span>';
-      else badgeHtml = `<span class="badge-pill-soft" style="background: var(--bg-card-subtle); color: var(--text-main);">${st || '--'}</span>`;
+      else if (st === '--' || !st) badgeHtml = '<span class="badge-pill-soft" style="background: var(--bg-card-subtle); color: var(--text-muted); font-size: 11px;">--</span>';
+      else badgeHtml = `<span class="badge-pill-soft" style="background: var(--bg-card-subtle); color: var(--text-main); font-weight: 700;">${st}</span>`;
 
       // 1. Formatted Working Hours (never '--' when punch in & out exist!)
       let workHoursDisplay = '--';
@@ -3655,6 +3682,20 @@
         </div>
       ` : '--';
 
+      let displayRemarks = row.remarks || row.reason || '';
+      if (!displayRemarks) {
+        if (st === 'COFF') displayRemarks = 'Compensatory Off (COFF)';
+        else if (st === 'CL') displayRemarks = 'Casual Leave (CL)';
+        else if (st === 'FNCL') displayRemarks = 'Forenoon Casual Leave';
+        else if (st === 'ANCL') displayRemarks = 'Afternoon Casual Leave';
+        else if (st === 'OD') displayRemarks = 'Duty Day';
+        else if (st === 'FNOD') displayRemarks = 'Forenoon On Duty';
+        else if (st === 'ANOD') displayRemarks = 'Afternoon On Duty';
+        else if (st === 'PH' || st === 'HOLIDAY' || st === 'H') displayRemarks = 'Public Holiday';
+        else if (st === '--') displayRemarks = 'No punch recorded';
+        else displayRemarks = '--';
+      }
+
       tr.innerHTML = `
         <td class="font-bold">${row.date} <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">${row.dayName || ''}</span></td>
         <td class="font-mono">${inT}</td>
@@ -3662,7 +3703,7 @@
         <td>${badgeHtml}</td>
         <td class="font-mono font-bold">${workHoursDisplay}</td>
         <td>${lateExtraHtml}</td>
-        <td style="color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${row.remarks || row.reason || '--'}</td>
+        <td style="color: var(--text-secondary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${displayRemarks}</td>
         <td style="text-align: right;">${actionsHtml}</td>
       `;
       tbody.appendChild(tr);
@@ -4393,7 +4434,16 @@
     e.preventDefault();
     const d = document.getElementById('holidayDate').value; // e.g. "2026-10-19"
     const n = document.getElementById('holidayName').value.trim();
+    const type = document.getElementById('holidayType') ? document.getElementById('holidayType').value : 'FULL';
     if (!d || !n) return;
+
+    let targetStatus = 'PH';
+    if (type === 'HALF_FN') targetStatus = 'FNH';
+    else if (type === 'HALF_AN') targetStatus = 'ANH';
+    else if (type === 'LOCAL') targetStatus = 'LH';
+
+    const suffix = (type === 'HALF_FN') ? ' (FN Half Day)' : ((type === 'HALF_AN') ? ' (AN Half Day)' : ((type === 'LOCAL') ? ' (Local Holiday)' : ''));
+    const fullHolidayName = n + suffix;
 
     // 1. INSTANT OPTIMISTIC UI UPDATE (< 20ms - NO 5s WAIT!)
     closeModal('modalHoliday');
@@ -4408,21 +4458,21 @@
     if (state.days && Array.isArray(state.days)) {
       const match = state.days.find(r => r.date === dmy || (r.date && r.date.startsWith(`${String(dayNum).padStart(2, '0')}/`)));
       if (match) {
-        match.status = 'PH';
-        match.remarks = n;
-        match.note = `PH: ${n}`;
+        match.status = targetStatus;
+        match.remarks = fullHolidayName;
+        match.note = `${targetStatus}: ${fullHolidayName}`;
       } else {
         state.days.push({
           date: dmy,
           dayOfWeek: new Date(y, m - 1, dayNum).toLocaleDateString('en-US', { weekday: 'short' }),
-          status: 'PH',
+          status: targetStatus,
           inTime: '',
           outTime: '',
           workingHours: '',
           lateMins: 0,
           extraMins: 0,
-          remarks: n,
-          note: `PH: ${n}`,
+          remarks: fullHolidayName,
+          note: `${targetStatus}: ${fullHolidayName}`,
           synthetic: true
         });
         state.days.sort((a, b) => {
@@ -4439,10 +4489,10 @@
     if (state.workDiary && state.workDiary.dailyDiaries) {
       const diaryDay = state.workDiary.dailyDiaries.find(di => di.date === d);
       if (diaryDay) {
-        diaryDay.isHoliday = true;
-        diaryDay.holidayName = n;
-        diaryDay.isOfficeWorkingDay = false;
-        diaryDay.totalWorkHoursFormatted = 'Holiday';
+        diaryDay.isHoliday = (type === 'FULL' || type === 'LOCAL');
+        diaryDay.holidayName = fullHolidayName;
+        diaryDay.isOfficeWorkingDay = (type.startsWith('HALF'));
+        diaryDay.totalWorkHoursFormatted = (type === 'FULL' || type === 'LOCAL') ? 'Holiday' : 'Half Holiday';
         renderWorkDiaryTimeline(state.workDiary);
       }
     }
@@ -4461,7 +4511,7 @@
 
     // 2. ASYNC BACKGROUND PERSISTENCE & PARALLEL SILENT SYNC
     try {
-      const res = await callApi('apiMarkHoliday', state.token, d, n);
+      const res = await callApi('apiMarkHoliday', state.token, d, n, type);
       if (res && res.ok) {
         silentBackgroundRefresh();
       } else {
