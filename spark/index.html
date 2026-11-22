@@ -958,9 +958,9 @@
         <option value="12">Dec</option>
       </select>
 
-      <button onclick="handleGlobalLoad()" id="btnGlobalLoad" class="btn btn-primary btn-sm">
+      <button onclick="handleGlobalLoad(true)" id="btnGlobalLoad" class="btn btn-primary btn-sm" title="Sync & Reload Fresh from Google Sheet">
         <svg id="loadSpinnerIcon" style="width: 14px; height: 14px;"><use href="#icon-refresh"></use></svg>
-        <span id="globalLoadText">Load</span>
+        <span id="globalLoadText">Sync</span>
       </button>
 
       <!-- Admin Employee Switcher -->
@@ -2400,8 +2400,8 @@
     loadFullData();
   }
 
-  function handleGlobalLoad() {
-    loadFullData();
+  function handleGlobalLoad(forceFresh) {
+    loadFullData(forceFresh === undefined ? true : forceFresh);
   }
 
   // AUTHENTICATION & SESSION
@@ -2659,52 +2659,60 @@
   // =========================================================================
   // PROGRESSIVE STAGED DATA LOADING: INSTANT CLIENT CACHE, SUMMARY FIRST, CHARTS AFTER
   // =========================================================================
-  async function loadFullData() {
+  async function loadFullData(forceFresh) {
     const m = state.activeMonth || `${state.activeYear}-${state.activeMonthNumber}`;
     const refDateISO = `${m}-15`;
     const loadBtn = document.getElementById('btnGlobalLoad');
     const spinner = document.getElementById('loadSpinnerIcon');
     const loadText = document.getElementById('globalLoadText');
 
-    // 0. INSTANT ZERO-SECOND CLIENT CACHE RENDER (< 5ms)
     const clientCacheKey = `spark_month_cache_${state.activePen}_${m}`;
-    const cachedMonthStr = localStorage.getItem(clientCacheKey);
-    if (cachedMonthStr) {
+
+    if (forceFresh) {
       try {
-        const cData = JSON.parse(cachedMonthStr);
-        if (cData && cData.summary) {
-          state.summary = cData.summary;
-          renderQuickPunchPreview(cData.summary.todayRecord);
-          renderDashboardKPIs(cData.summary);
-          renderYearlyBreakdown(cData.summary.yearlyCounts);
-          renderAttendanceKPIsFromSummary(cData.summary);
-          renderCoffLedger(cData.summary);
+        localStorage.removeItem(clientCacheKey);
+        callApi('apiClearCache');
+      } catch (e) {}
+    } else {
+      // 0. INSTANT ZERO-SECOND CLIENT CACHE RENDER (< 5ms)
+      const cachedMonthStr = localStorage.getItem(clientCacheKey);
+      if (cachedMonthStr) {
+        try {
+          const cData = JSON.parse(cachedMonthStr);
+          if (cData && cData.summary) {
+            state.summary = cData.summary;
+            renderQuickPunchPreview(cData.summary.todayRecord);
+            renderDashboardKPIs(cData.summary);
+            renderYearlyBreakdown(cData.summary.yearlyCounts);
+            renderAttendanceKPIsFromSummary(cData.summary);
+            renderCoffLedger(cData.summary);
+          }
+          if (cData && cData.workDiary) {
+            state.workDiary = cData.workDiary;
+            renderTimeline(cData.workDiary.dailyDiaries);
+            renderCharts(cData.workDiary.stats, cData.workDiary.dailyDiaries);
+            updateWorkDiaryKPIs(cData.workDiary.stats);
+          }
+          if (cData && cData.days) {
+            state.days = cData.days;
+            renderAttendanceTable(cData.days);
+            renderAttendanceCalendarGrid(cData.days);
+          }
+          const cacheEl = document.getElementById('globalCacheStatus');
+          if (cacheEl) cacheEl.innerText = 'Cache: Instant (Client)';
+        } catch (eCache) {
+          console.warn('Client cache parse note:', eCache);
         }
-        if (cData && cData.workDiary) {
-          state.workDiary = cData.workDiary;
-          renderTimeline(cData.workDiary.dailyDiaries);
-          renderCharts(cData.workDiary.stats, cData.workDiary.dailyDiaries);
-          updateWorkDiaryKPIs(cData.workDiary.stats);
-        }
-        if (cData && cData.days) {
-          state.days = cData.days;
-          renderAttendanceTable(cData.days);
-          renderAttendanceCalendarGrid(cData.days);
-        }
-        const cacheEl = document.getElementById('globalCacheStatus');
-        if (cacheEl) cacheEl.innerText = 'Cache: Instant (Client)';
-      } catch (eCache) {
-        console.warn('Client cache parse note:', eCache);
       }
     }
 
     if (spinner) spinner.classList.add('spin');
-    if (loadText) loadText.innerText = 'Loading...';
+    if (loadText) loadText.innerText = forceFresh ? 'Syncing...' : 'Loading...';
     if (loadBtn) loadBtn.disabled = true;
 
     try {
       // STAGE 1: Instant load of summary figures (<200ms)
-      const res = await callApi('apiGetDashboardSummary', state.token, refDateISO, state.activePen);
+      const res = await callApi('apiGetDashboardSummary', state.token, refDateISO, state.activePen, !!forceFresh);
       
       if (res && res.ok) {
         state.summary = res;
@@ -2736,7 +2744,7 @@
       // STAGE 2: Fetch detailed diary timeline, charts & calendar data in background (PARALLEL)
       const [wdRes, daysRes] = await Promise.all([
         callApi('apiGetWorkDiaryData', state.token, m, state.activePen),
-        callApi('apiGetDays', state.token, refDateISO, state.activePen)
+        callApi('apiGetDays', state.token, refDateISO, state.activePen, !!forceFresh)
       ]);
 
       if (wdRes && wdRes.ok) {
@@ -2774,7 +2782,7 @@
       console.error('Data load note:', e);
     } finally {
       if (spinner) spinner.classList.remove('spin');
-      if (loadText) loadText.innerText = 'Load';
+      if (loadText) loadText.innerText = 'Sync';
       if (loadBtn) loadBtn.disabled = false;
     }
   }
@@ -3684,6 +3692,8 @@
 
       if (existingDays.has(dayNum)) {
         const item = existingDays.get(dayNum);
+        if (!item.dayName) item.dayName = dayName;
+        if (!item.date) item.date = dmy;
         if (!item.status || item.status === '--') {
           const di = diariesMap.get(dayNum);
           if (di && di.isHoliday) {
@@ -3830,7 +3840,7 @@
       cell.style.cssText = `background: ${cellBg}; color: ${textCol}; padding: 8px 4px; border-radius: 8px; font-weight: 800; text-align: center; cursor: pointer; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.15s ease;`;
       cell.innerHTML = `
         <div style="font-size: 13px; font-weight: 800;">${padDay}</div>
-        <div style="font-size: 9px; font-weight: 700; margin-top: 2px; opacity: 0.85;">${st || '—'}</div>
+        <div style="font-size: 9px; font-weight: 700; margin-top: 2px; opacity: 0.85;">${st || '--'}</div>
       `;
       cell.title = `${dateStr}: ${st || 'No punch'}`;
       cell.onclick = () => {
@@ -4085,18 +4095,53 @@
     const inT = document.getElementById('editAttInTime').value;
     const outT = document.getElementById('editAttOutTime').value;
     const st = document.getElementById('editAttStatus').value;
-    const rem = document.getElementById('editAttRemarks').value;
+    let rem = document.getElementById('editAttRemarks').value.trim();
 
+    if ((st === 'OD' || st === 'FNOD' || st === 'ANOD') && !rem) {
+      rem = 'Duty Day';
+    }
+
+    // 1. INSTANT OPTIMISTIC UI UPDATE (< 15ms)
+    closeModal('modalEditAttendance');
+
+    // Immediately update state.days in memory & re-render calendar + table
+    if (state.days && Array.isArray(state.days)) {
+      const match = state.days.find(r => r.date === d || (r.date && r.date.split('/')[0] === d.split('/')[0]));
+      if (match) {
+        match.status = st;
+        match.inTime = inT;
+        match.outTime = outT;
+        match.remarks = rem;
+        match.note = rem ? `${st}: ${rem}` : st;
+      }
+      renderAttendanceCalendarGrid(state.days);
+      renderAttendanceTable(state.days);
+    }
+
+    // Save to localStorage immediately
+    const m = state.activeMonth || `${state.activeYear}-${state.activeMonthNumber}`;
+    const clientCacheKey = `spark_month_cache_${state.activePen}_${m}`;
+    try {
+      localStorage.setItem(clientCacheKey, JSON.stringify({
+        savedAt: Date.now(),
+        summary: state.summary,
+        workDiary: state.workDiary,
+        days: state.days
+      }));
+    } catch (eSave) {}
+
+    // 2. BACKGROUND PERSISTENCE & SILENT SYNC
     try {
       const res = await callApi('apiUpdateAttendanceRow', state.token, state.activePen, d, inT, outT, st, rem);
       if (res && res.ok) {
-        closeModal('modalEditAttendance');
-        loadFullData();
+        silentBackgroundRefresh();
       } else {
-        alert((res && res.message) ? res.message : 'Attendance updated');
+        alert('Could not update attendance: ' + ((res && (res.error || res.message)) ? (res.error || res.message) : 'Server rejected update'));
+        loadFullData(true);
       }
     } catch (err) {
-      alert('Update attendance error');
+      alert('Update attendance network error');
+      loadFullData(true);
     }
   }
 
@@ -4391,6 +4436,18 @@
       }
     }
 
+    // Save to localStorage immediately!
+    const mStr = `${y}-${String(m).padStart(2, '0')}`;
+    const clientCacheKey = `spark_month_cache_${state.activePen}_${mStr}`;
+    try {
+      localStorage.setItem(clientCacheKey, JSON.stringify({
+        savedAt: Date.now(),
+        summary: state.summary,
+        workDiary: state.workDiary,
+        days: state.days
+      }));
+    } catch (eSave) {}
+
     // 2. ASYNC BACKGROUND PERSISTENCE & PARALLEL SILENT SYNC
     try {
       const res = await callApi('apiMarkHoliday', state.token, d, n);
@@ -4398,11 +4455,11 @@
         silentBackgroundRefresh();
       } else {
         console.warn('apiMarkHoliday error:', res);
-        loadFullData();
+        loadFullData(true);
       }
     } catch (err) {
       console.warn('Holiday save background error:', err);
-      loadFullData();
+      loadFullData(true);
     }
   }
 
@@ -4411,23 +4468,34 @@
     try {
       const refDate = `${state.activeYear}-${state.activeMonthNumber}-01`;
       const [sumRes, daysRes, wdRes] = await Promise.all([
-        callApi('apiGetDashboardSummary', state.token, refDate, state.activePen),
-        callApi('apiGetDays', state.token, refDate, state.activePen),
+        callApi('apiGetDashboardSummary', state.token, refDate, state.activePen, true),
+        callApi('apiGetDays', state.token, refDate, state.activePen, true),
         callApi('apiGetWorkDiaryData', state.token, `${state.activeYear}-${state.activeMonthNumber}`, state.activePen)
       ]);
       if (sumRes && sumRes.ok && sumRes.summary) {
         state.summary = sumRes.summary;
         renderAttendanceKPIsFromSummary(sumRes.summary);
       }
-      if (daysRes && daysRes.ok && daysRes.days) {
-        state.days = daysRes.days;
-        renderAttendanceCalendarGrid(daysRes.days);
-        renderAttendanceTable(daysRes.days);
-      }
       if (wdRes && wdRes.ok) {
         state.workDiary = wdRes;
         renderWorkDiaryTimeline(wdRes);
       }
+      if (daysRes && daysRes.ok && daysRes.days) {
+        const rawList = Array.isArray(daysRes.days) ? daysRes.days : ((daysRes.days && daysRes.days.list) ? daysRes.days.list : []);
+        const enrichedList = enrichDaysWithWorkDiary_(rawList, state.workDiary, state.activeYear, state.activeMonthNumber);
+        state.days = enrichedList;
+        renderAttendanceCalendarGrid(enrichedList);
+        renderAttendanceTable(enrichedList);
+      }
+      const clientCacheKey = `spark_month_cache_${state.activePen}_${state.activeYear}-${state.activeMonthNumber}`;
+      try {
+        localStorage.setItem(clientCacheKey, JSON.stringify({
+          savedAt: Date.now(),
+          summary: state.summary,
+          workDiary: state.workDiary,
+          days: state.days
+        }));
+      } catch (eSave) {}
     } catch (e) {
       console.warn('Silent refresh error:', e);
     }
