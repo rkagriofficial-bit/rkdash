@@ -2657,7 +2657,7 @@
   }
 
   // =========================================================================
-  // PROGRESSIVE STAGED DATA LOADING: INSTANT SUMMARY FIRST, CHARTS/DIARY AFTER
+  // PROGRESSIVE STAGED DATA LOADING: INSTANT CLIENT CACHE, SUMMARY FIRST, CHARTS AFTER
   // =========================================================================
   async function loadFullData() {
     const m = state.activeMonth || `${state.activeYear}-${state.activeMonthNumber}`;
@@ -2665,6 +2665,38 @@
     const loadBtn = document.getElementById('btnGlobalLoad');
     const spinner = document.getElementById('loadSpinnerIcon');
     const loadText = document.getElementById('globalLoadText');
+
+    // 0. INSTANT ZERO-SECOND CLIENT CACHE RENDER (< 5ms)
+    const clientCacheKey = `spark_month_cache_${state.activePen}_${m}`;
+    const cachedMonthStr = localStorage.getItem(clientCacheKey);
+    if (cachedMonthStr) {
+      try {
+        const cData = JSON.parse(cachedMonthStr);
+        if (cData && cData.summary) {
+          state.summary = cData.summary;
+          renderQuickPunchPreview(cData.summary.todayRecord);
+          renderDashboardKPIs(cData.summary);
+          renderYearlyBreakdown(cData.summary.yearlyCounts);
+          renderAttendanceKPIsFromSummary(cData.summary);
+          renderCoffLedger(cData.summary);
+        }
+        if (cData && cData.workDiary) {
+          state.workDiary = cData.workDiary;
+          renderTimeline(cData.workDiary.dailyDiaries);
+          renderCharts(cData.workDiary.stats, cData.workDiary.dailyDiaries);
+          updateWorkDiaryKPIs(cData.workDiary.stats);
+        }
+        if (cData && cData.days) {
+          state.days = cData.days;
+          renderAttendanceTable(cData.days);
+          renderAttendanceCalendarGrid(cData.days);
+        }
+        const cacheEl = document.getElementById('globalCacheStatus');
+        if (cacheEl) cacheEl.innerText = 'Cache: Instant (Client)';
+      } catch (eCache) {
+        console.warn('Client cache parse note:', eCache);
+      }
+    }
 
     if (spinner) spinner.classList.add('spin');
     if (loadText) loadText.innerText = 'Loading...';
@@ -2701,7 +2733,7 @@
       setupAdminDropdown();
       renderAdminUsersTable();
 
-      // STAGE 2: Fetch detailed diary timeline, charts & calendar data in background
+      // STAGE 2: Fetch detailed diary timeline, charts & calendar data in background (PARALLEL)
       const [wdRes, daysRes] = await Promise.all([
         callApi('apiGetWorkDiaryData', state.token, m, state.activePen),
         callApi('apiGetDays', state.token, refDateISO, state.activePen)
@@ -2715,12 +2747,24 @@
       }
 
       if (daysRes && daysRes.ok) {
-        const list = Array.isArray(daysRes.days) ? daysRes.days : ((daysRes.days && daysRes.days.list) ? daysRes.days.list : []);
-        state.days = list;
-        renderAttendanceTable(list);
-        renderAttendanceCalendarGrid(list);
+        const rawList = Array.isArray(daysRes.days) ? daysRes.days : ((daysRes.days && daysRes.days.list) ? daysRes.days.list : []);
+        // Enrich days with Work Diary & Holidays (meetings = OD, holidays = PH) to guarantee 100% days populated
+        const enrichedList = enrichDaysWithWorkDiary_(rawList, state.workDiary, state.activeYear, state.activeMonthNumber);
+        state.days = enrichedList;
+        renderAttendanceTable(enrichedList);
+        renderAttendanceCalendarGrid(enrichedList);
         if (state.summary) renderAttendanceKPIsFromSummary(state.summary);
       }
+
+      // Save complete package to client-side localStorage cache for instant sub-second future loads!
+      try {
+        localStorage.setItem(clientCacheKey, JSON.stringify({
+          savedAt: Date.now(),
+          summary: state.summary,
+          workDiary: state.workDiary,
+          days: state.days
+        }));
+      } catch (eSave) {}
 
       if (state.dashViewMode === 'yearly') {
         loadYearlyDashboard();
@@ -3607,6 +3651,109 @@
     });
   }
 
+  // ENRICH DAYS WITH WORK DIARY (MERGES MEETINGS AS OD, HOLIDAYS AS PH)
+  function enrichDaysWithWorkDiary_(daysList, workDiaryData, targetYear, targetMonth) {
+    const y = parseInt(targetYear, 10);
+    const m = parseInt(targetMonth, 10);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const existingDays = new Map();
+
+    (daysList || []).forEach(d => {
+      let dNum = null;
+      if (d.date && d.date.includes('/')) dNum = parseInt(d.date.split('/')[0], 10);
+      else if (d.date && d.date.includes('-')) dNum = parseInt(d.date.split('-')[2], 10);
+      if (dNum) existingDays.set(dNum, d);
+    });
+
+    const diariesMap = new Map();
+    if (workDiaryData && Array.isArray(workDiaryData.dailyDiaries)) {
+      workDiaryData.dailyDiaries.forEach(di => {
+        let dNum = di.day;
+        if (!dNum && di.date) dNum = parseInt(di.date.split('-')[2], 10);
+        if (dNum) diariesMap.set(dNum, di);
+      });
+    }
+
+    const fullList = [];
+    for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+      const dateObj = new Date(y, m - 1, dayNum);
+      const isSunday = (dateObj.getDay() === 0);
+      const isSecondSat = (dateObj.getDay() === 6 && dayNum >= 8 && dayNum <= 14);
+      const dmy = `${String(dayNum).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+      const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+
+      if (existingDays.has(dayNum)) {
+        const item = existingDays.get(dayNum);
+        if (!item.status || item.status === '--') {
+          const di = diariesMap.get(dayNum);
+          if (di && di.isHoliday) {
+            item.status = 'PH';
+            item.remarks = di.holidayName || 'Official Holiday';
+            item.note = `PH: ${item.remarks}`;
+          } else if (di && (di.isOD || di.isFullOD || di.isHalfOD || (di.meetings && di.meetings.length > 0) || di.hasMeetings)) {
+            item.status = di.isHalfOD ? 'FNOD' : 'OD';
+            item.remarks = di.odReason || (di.meetings && di.meetings.length ? di.meetings[0].subject : 'On Duty (OD)');
+            item.note = `${item.status}: ${item.remarks}`;
+          } else if (isSunday) {
+            item.status = 'PH';
+            item.remarks = 'Sunday · weekly holiday';
+          } else if (isSecondSat) {
+            item.status = 'PH';
+            item.remarks = 'Second Saturday';
+          }
+        }
+        fullList.push(item);
+      } else {
+        const di = diariesMap.get(dayNum);
+        let st = '';
+        let rem = '';
+        let inT = '';
+        let outT = '';
+
+        if (di && di.isHoliday) {
+          st = 'PH';
+          rem = di.holidayName || 'Official Holiday';
+        } else if (di && (di.isOD || di.isFullOD || di.isHalfOD || (di.meetings && di.meetings.length > 0) || di.hasMeetings)) {
+          st = di.isHalfOD ? 'FNOD' : 'OD';
+          rem = di.odReason || (di.meetings && di.meetings.length ? di.meetings[0].subject : 'On Duty (OD)');
+          if (di.effectiveStartTime) inT = di.effectiveStartTime;
+          if (di.effectiveEndTime) outT = di.effectiveEndTime;
+        } else if (di && di.isLeave) {
+          st = di.leaveType || 'CL';
+          rem = di.leaveReason || 'Leave';
+        } else if (isSunday) {
+          st = 'PH';
+          rem = 'Sunday · weekly holiday';
+        } else if (isSecondSat) {
+          st = 'PH';
+          rem = 'Second Saturday';
+        } else {
+          st = '--';
+          rem = 'No punch recorded';
+        }
+
+        fullList.push({
+          date: dmy,
+          dayOfWeek: dayName,
+          status: st,
+          inTime: inT,
+          outTime: outT,
+          workingHours: (inT && outT) ? `${inT} - ${outT}` : '',
+          lateMins: 0,
+          extraMins: 0,
+          remarks: rem,
+          note: rem ? `${st}: ${rem}` : '',
+          synthetic: true
+        });
+      }
+    }
+    return fullList.sort((a, b) => {
+      const pa = (a.date || '').split('/').reverse().join('-');
+      const pb = (b.date || '').split('/').reverse().join('-');
+      return pa.localeCompare(pb);
+    });
+  }
+
   function renderAttendanceCalendarGrid(days) {
     const grid = document.getElementById('calendarMonthGrid');
     const stream = document.getElementById('calendarLeaveStream');
@@ -3645,9 +3792,27 @@
       const d = dayMap[dayNum];
       const dateObj = new Date(year, month - 1, dayNum);
       const isSunday = (dateObj.getDay() === 0);
+      const isSecondSat = (dateObj.getDay() === 6 && dayNum >= 8 && dayNum <= 14);
       
-      let st = d ? (d.status || '').toUpperCase() : (isSunday ? 'PH' : '');
-      if (!st && isSunday) st = 'PH';
+      let st = d ? (d.status || '').toUpperCase() : '';
+
+      // Check Work Diary & Holidays integration for missing unpunched days
+      const dateIso = `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+      const diaryDay = (state.workDiary && state.workDiary.dailyDiaries) 
+        ? state.workDiary.dailyDiaries.find(di => di.date === dateIso || (di.day === dayNum))
+        : null;
+
+      if (!st || st === '--') {
+        if (diaryDay && diaryDay.isHoliday) {
+          st = 'PH';
+        } else if (diaryDay && (diaryDay.isOD || diaryDay.isFullOD || diaryDay.isHalfOD || (diaryDay.meetings && diaryDay.meetings.length > 0) || diaryDay.hasMeetings)) {
+          st = (diaryDay.isHalfOD ? 'FNOD' : 'OD');
+        } else if (diaryDay && diaryDay.isLeave) {
+          st = diaryDay.leaveType || 'CL';
+        } else if (isSunday || isSecondSat) {
+          st = 'PH';
+        }
+      }
 
       let cellBg = 'var(--bg-card-subtle)';
       let textCol = 'var(--text-main)';
@@ -3681,10 +3846,14 @@
         if (stream) {
           const item = document.createElement('div');
           item.style.cssText = `display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--bg-card-subtle); border-radius: 8px; font-size: 12px; border: 1px solid var(--border-card); margin-bottom: 6px;`;
+          let remText = (d && d.remarks) ? d.remarks : '';
+          if (!remText && diaryDay) {
+            remText = diaryDay.holidayName || diaryDay.odReason || (diaryDay.meetings && diaryDay.meetings.length ? diaryDay.meetings[0].subject : '');
+          }
           item.innerHTML = `
             <div>
               <div style="font-weight: 700;">${dateStr} &bull; ${st}</div>
-              <div style="font-size: 11px; color: var(--text-muted);">${(d && d.remarks) ? d.remarks : 'Recorded'}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${remText || 'Recorded'}</div>
             </div>
             <span class="badge-status badge-status-${st.toLowerCase()}" style="width: 22px; height: 22px; font-size: 10px;">${st}</span>
           `;
