@@ -935,7 +935,7 @@
       </button>
       <button onclick="switchTab('leaveRegister')" id="navTabLeaveRegister" class="nav-pill">
         <svg style="width: 15px; height: 15px;"><use href="#icon-layers"></use></svg>
-        <span>Leave Register</span>
+        <span>Leave &amp; OD Register</span>
       </button>
     </nav>
   </div>
@@ -1294,28 +1294,37 @@
               
               <!-- Right Legend Cards -->
               <div style="display: flex; flex-direction: column; gap: 10px; min-width: 180px;">
-                <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 12px; height: 12px; border-radius: 4px; background: #9333ea;"></div>
-                    <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">Meetings</span>
-                  </div>
-                  <div id="chartLegendMeetings" style="font-size: 13px; font-weight: 800; color: #7c3aed;">--</div>
-                </div>
-
-                <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="width: 12px; height: 12px; border-radius: 4px; background: #10b981;"></div>
-                    <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">Office Work</span>
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Routine Office Work</span>
                   </div>
-                  <div id="chartLegendOffice" style="font-size: 13px; font-weight: 800; color: #059669;">--</div>
+                  <div id="chartLegendRoutine" style="font-size: 12px; font-weight: 800; color: #059669;">--</div>
+                </div>
+
+                <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; border-radius: 4px; background: #9333ea;"></div>
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Meetings</span>
+                  </div>
+                  <div id="chartLegendMeetings" style="font-size: 12px; font-weight: 800; color: #7c3aed;">--</div>
+                </div>
+
+                <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; border-radius: 4px; background: #2563eb;"></div>
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-main);">Custom Tasks</span>
+                  </div>
+                  <div id="chartLegendTasks" style="font-size: 12px; font-weight: 800; color: #2563eb;">--</div>
                 </div>
               </div>
             </div>
 
-            <!-- Horizontal Proportion Bar -->
+            <!-- Horizontal Proportion Bar (3-way In-Office Split) -->
             <div style="margin-top: 14px; background: var(--border-subtle); border-radius: var(--radius-pill); height: 8px; overflow: hidden; display: flex;">
-              <div id="workDistBarMtg" style="width: 30%; background: #9333ea; transition: width 0.3s ease;"></div>
-              <div id="workDistBarOff" style="width: 70%; background: #10b981; transition: width 0.3s ease;"></div>
+              <div id="workDistBarRoutine" style="width: 70%; background: #10b981; transition: width 0.3s ease;"></div>
+              <div id="workDistBarMtg" style="width: 20%; background: #9333ea; transition: width 0.3s ease;"></div>
+              <div id="workDistBarTask" style="width: 10%; background: #2563eb; transition: width 0.3s ease;"></div>
             </div>
           </div>
 
@@ -1427,20 +1436,21 @@
   </section>
 
   <!-- ===================================================================== -->
-  <!-- TAB: LEAVE REGISTER & COMP-OFF LEDGER (DEDICATED VIEW)                -->
+  <!-- TAB: LEAVE & ON-DUTY (OD) REGISTERS (DEDICATED VIEW)                  -->
   <!-- ===================================================================== -->
   <section id="viewLeaveRegister" style="display: none;">
     
-    <!-- Top Header: Title & Year Info -->
+    <!-- Top Header: Title & Sub-tabs Switcher -->
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
       <div>
         <div style="font-size: 16px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
           <svg style="width: 18px; height: 18px; color: #7c3aed;"><use href="#icon-layers"></use></svg>
-          <span id="leaveRegisterHeaderTitle">Annual Leave Register &amp; Comp-Off Tracker (2026)</span>
+          <span id="leaveRegisterHeaderTitle">Leave &amp; On-Duty (OD) Registers</span>
         </div>
-        <div style="font-size: 12px; color: var(--text-muted);" id="leaveRegisterHeaderSub">Complete log of all Leaves taken, Comp-Offs utilized &amp; Official Duty records</div>
+        <div style="font-size: 12px; color: var(--text-muted);" id="leaveRegisterHeaderSub">Official log of Casual Leaves, Comp-Offs, and On-Duty assignments</div>
       </div>
 
+      <!-- Action Button -->
       <div style="display: flex; align-items: center; gap: 8px;">
         <button onclick="openMarkLeaveModal()" class="btn btn-primary btn-sm">
           <svg style="width: 14px; height: 14px;"><use href="#icon-file-text"></use></svg>
@@ -1449,142 +1459,243 @@
       </div>
     </div>
 
-    <!-- 4 Leave Summary Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px;">
-      <div class="card" style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfdf5; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg style="width: 20px; height: 20px;"><use href="#icon-calendar"></use></svg>
-        </div>
-        <div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Casual Leaves (CL)</div>
-          <div id="lrKpiCL" style="font-size: 16px; font-weight: 800; color: #15803d;">-- Remaining</div>
-          <div id="lrKpiCLSub" style="font-size: 11px; color: var(--text-muted);">Used: -- / Limit: 20</div>
-        </div>
+    <!-- Sub-tab Navigation (Leave Register vs OD Register) & Period Filter Controls -->
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 8px 12px; margin-bottom: 14px;">
+      
+      <!-- Sub-tabs: Leave Register vs OD Register -->
+      <div style="display: inline-flex; align-items: center; background: var(--bg-card-subtle); border-radius: var(--radius-md); padding: 3px;">
+        <button onclick="switchRegisterSubTab('leave')" id="subTabBtnLeave" class="btn btn-sm" style="background: var(--primary); color: #ffffff; border-radius: 8px; font-weight: 700;">Leave Register</button>
+        <button onclick="switchRegisterSubTab('od')" id="subTabBtnOD" class="btn btn-sm" style="background: transparent; color: var(--text-secondary); border-radius: 8px; font-weight: 700;">On-Duty (OD) Register</button>
       </div>
 
-      <div class="card" style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 40px; height: 40px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg style="width: 20px; height: 20px;"><use href="#icon-layers"></use></svg>
+      <!-- Period Filter: Current Month vs Whole Year + Month Picker -->
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <div style="display: inline-flex; align-items: center; background: var(--bg-card-subtle); border-radius: var(--radius-md); padding: 3px;">
+          <button onclick="switchRegisterPeriod('month')" id="regPeriodBtnMonth" class="btn btn-sm" style="background: var(--primary); color: #ffffff; border-radius: 8px;">Month View</button>
+          <button onclick="switchRegisterPeriod('year')" id="regPeriodBtnYear" class="btn btn-sm" style="background: transparent; color: var(--text-secondary); border-radius: 8px;">Year View</button>
         </div>
-        <div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Comp-Offs (COFF)</div>
-          <div id="lrKpiCOFF" style="font-size: 16px; font-weight: 800; color: #7c3aed;">-- Available</div>
-          <div id="lrKpiCOFFSub" style="font-size: 11px; color: var(--text-muted);">Earned: -- | Used: --</div>
-        </div>
-      </div>
 
-      <div class="card" style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfeff; color: #0891b2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg style="width: 20px; height: 20px;"><use href="#icon-briefcase"></use></svg>
-        </div>
-        <div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">On-Duty (OD) Logged</div>
-          <div id="lrKpiOD" style="font-size: 16px; font-weight: 800; color: #0e7490;">-- Days</div>
-          <div id="lrKpiODSub" style="font-size: 11px; color: var(--text-muted);">Official Duty Records</div>
-        </div>
-      </div>
-
-      <div class="card" style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 40px; height: 40px; border-radius: 12px; background: #f0fdf4; color: #15803d; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg style="width: 20px; height: 20px;"><use href="#icon-lightning"></use></svg>
-        </div>
-        <div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Extra Minutes Balance</div>
-          <div id="lrKpiExtra" style="font-size: 16px; font-weight: 800; color: #16a34a;">+0m</div>
-          <div id="lrKpiExtraSub" style="font-size: 11px; color: var(--text-muted);">600m (10 hrs) = 1 COFF</div>
-        </div>
+        <select id="selRegMonth" onchange="handleRegMonthChange(this.value)" class="select-custom" style="padding-top: 4px; padding-bottom: 4px; font-size: 12px;">
+          <option value="01">Jan</option>
+          <option value="02">Feb</option>
+          <option value="03">Mar</option>
+          <option value="04">Apr</option>
+          <option value="05">May</option>
+          <option value="06">Jun</option>
+          <option value="07">Jul</option>
+          <option value="08">Aug</option>
+          <option value="09">Sep</option>
+          <option value="10">Oct</option>
+          <option value="11" selected>Nov</option>
+          <option value="12">Dec</option>
+        </select>
       </div>
     </div>
 
-    <!-- Section 1: Annual Leave & Duty Register (All Leaves Taken During Year) -->
-    <div class="card" style="margin-bottom: 16px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-        <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 6px;">
-          <svg style="width: 15px; height: 15px; color: #2563eb;"><use href="#icon-calendar"></use></svg>
-          <span id="leaveRegisterTableTitle">Annual Leaves &amp; OD Taken (2026)</span>
-        </h3>
-        <span class="badge-pill-soft" id="leaveRegisterCountBadge">0 records</span>
+    <!-- =================================================================== -->
+    <!-- SUB-VIEW 1: LEAVE REGISTER (STRICTLY LEAVES - NO OD, NO EXTRA MINS) -->
+    <!-- =================================================================== -->
+    <div id="secLeaveRegister">
+      
+      <!-- 3 Leave Summary Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px;">
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfdf5; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-calendar"></use></svg>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Casual Leaves (CL)</div>
+            <div id="lrKpiCL" style="font-size: 16px; font-weight: 800; color: #15803d;">-- Remaining</div>
+            <div id="lrKpiCLSub" style="font-size: 11px; color: var(--text-muted);">Used: -- / Limit: 20</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-layers"></use></svg>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Comp-Offs (COFF)</div>
+            <div id="lrKpiCOFF" style="font-size: 16px; font-weight: 800; color: #7c3aed;">-- Available</div>
+            <div id="lrKpiCOFFSub" style="font-size: 11px; color: var(--text-muted);">Earned: -- | Used: --</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #fff1f2; color: #e11d48; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-file-text"></use></svg>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Total Leaves Taken</div>
+            <div id="lrKpiTotalLeaves" style="font-size: 16px; font-weight: 800; color: #be123c;">0 Days</div>
+            <div id="lrKpiTotalLeavesSub" style="font-size: 11px; color: var(--text-muted);">Casual Leaves + Comp-Offs</div>
+          </div>
+        </div>
       </div>
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Day</th>
-              <th>Type</th>
-              <th>Duration</th>
-              <th>Reason / Purpose</th>
-              <th>Timing / Action</th>
-            </tr>
-          </thead>
-          <tbody id="leaveRegisterTableBody">
-            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading leave register...</td></tr>
-          </tbody>
-        </table>
+
+      <!-- Table: Leaves Taken (STRICTLY NO TIMING!) -->
+      <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 6px;">
+            <svg style="width: 15px; height: 15px; color: #e11d48;"><use href="#icon-calendar"></use></svg>
+            <span id="leaveRegisterTableTitle">Leaves Taken Log</span>
+          </h3>
+          <span class="badge-pill-soft" id="leaveRegisterCountBadge">0 leaves</span>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Leave Type</th>
+                <th>Duration</th>
+                <th>Reason / Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="leaveRegisterTableBody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No leaves recorded for this period.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <!-- Section: COMPENSATORY OFF (COFF) LEDGER & UTILIZATION TRACKER -->
+      <div class="card" style="padding: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+          <div style="font-size: 13px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+            <svg style="width: 16px; height: 16px; color: #f59e0b;"><use href="#icon-lightning"></use></svg>
+            <span id="coffLedgerHeaderLabel">Compensatory Off (COFF) Balance &amp; Earned Tracker (2026)</span>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Rule: 10 Hours (600m) Extra = 1 COFF (Carried Forward)</span>
+        </div>
+
+        <!-- 4 COFF Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px;">
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">Total Extra Logged</div>
+              <div id="coffKpiExtraEarned" style="font-size: 18px; font-weight: 900; color: #15803d; margin-top: 2px;">+0m</div>
+            </div>
+            <span style="font-size: 20px;">⏱️</span>
+          </div>
+
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase;">COFFs Earned</div>
+              <div id="coffKpiEarnedCount" style="font-size: 18px; font-weight: 900; color: #1d4ed8; margin-top: 2px;">0 Days</div>
+            </div>
+            <span style="font-size: 20px;">🎖️</span>
+          </div>
+
+          <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #9a3412; text-transform: uppercase;">COFFs Expended</div>
+              <div id="coffKpiUsedCount" style="font-size: 18px; font-weight: 900; color: #c2410c; margin-top: 2px;">0 Days</div>
+            </div>
+            <span style="font-size: 20px;">🏖️</span>
+          </div>
+
+          <div style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #6b21a8; text-transform: uppercase;">Available Balance</div>
+              <div id="coffKpiBalance" style="font-size: 18px; font-weight: 900; color: #7c3aed; margin-top: 2px;">0 Remaining</div>
+            </div>
+            <span style="font-size: 20px;">⭐</span>
+          </div>
+        </div>
+
+        <!-- Month-by-Month COFF Breakdown Table -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Extra Minutes Earned</th>
+                <th>COFF Earned</th>
+                <th>COFFs Expended (Availed Dates)</th>
+                <th>Running Balance</th>
+              </tr>
+            </thead>
+            <tbody id="coffMonthlyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Section 2: COMPENSATORY OFF (COFF) LEDGER & UTILIZATION TRACKER (MOVED UNDER LEAVE REGISTER TAB) -->
-    <div class="card" style="padding: 16px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-        <div style="font-size: 13px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-          <svg style="width: 16px; height: 16px; color: #f59e0b;"><use href="#icon-lightning"></use></svg>
-          <span id="coffLedgerHeaderLabel">Compensatory Off (COFF) Balance &amp; Earned Tracker (2026)</span>
-        </div>
-        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Rule: 10 Hours (600m) Extra = 1 COFF</span>
-      </div>
-
-      <!-- 4 COFF Summary Cards -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px;">
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">Total Extra Logged</div>
-            <div id="coffKpiExtraEarned" style="font-size: 18px; font-weight: 900; color: #15803d; margin-top: 2px;">+0m</div>
+    <!-- =================================================================== -->
+    <!-- SUB-VIEW 2: ON-DUTY (OD) REGISTER (OFFICIAL DUTY LOG WITH TIMING)    -->
+    <!-- =================================================================== -->
+    <div id="secODRegister" style="display: none;">
+      
+      <!-- 3 OD Summary Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px;">
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #ecfeff; color: #0891b2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-briefcase"></use></svg>
           </div>
-          <span style="font-size: 20px;">⏱️</span>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Total OD Days</div>
+            <div id="odKpiTotal" style="font-size: 16px; font-weight: 800; color: #0e7490;">0 Days</div>
+            <div id="odKpiTotalSub" style="font-size: 11px; color: var(--text-muted);">Official Duty Logged</div>
+          </div>
         </div>
 
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase;">COFFs Earned</div>
-            <div id="coffKpiEarnedCount" style="font-size: 18px; font-weight: 900; color: #1d4ed8; margin-top: 2px;">0 Days</div>
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-calendar-check"></use></svg>
           </div>
-          <span style="font-size: 20px;">🎖️</span>
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Full-Day ODs</div>
+            <div id="odKpiFull" style="font-size: 16px; font-weight: 800; color: #1d4ed8;">0 Days</div>
+            <div id="odKpiFullSub" style="font-size: 11px; color: var(--text-muted);">Full Duty Days</div>
+          </div>
         </div>
 
-        <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
-          <div>
-            <div style="font-size: 11px; font-weight: 700; color: #9a3412; text-transform: uppercase;">COFFs Expended</div>
-            <div id="coffKpiUsedCount" style="font-size: 18px; font-weight: 900; color: #c2410c; margin-top: 2px;">0 Days</div>
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: #fdf2f8; color: #db2777; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg style="width: 20px; height: 20px;"><use href="#icon-clock"></use></svg>
           </div>
-          <span style="font-size: 20px;">🏖️</span>
-        </div>
-
-        <div style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <div style="font-size: 11px; font-weight: 700; color: #6b21a8; text-transform: uppercase;">Available Balance</div>
-            <div id="coffKpiBalance" style="font-size: 18px; font-weight: 900; color: #7c3aed; margin-top: 2px;">0 Remaining</div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Half-Day ODs</div>
+            <div id="odKpiHalf" style="font-size: 16px; font-weight: 800; color: #be185d;">0 Days</div>
+            <div id="odKpiHalfSub" style="font-size: 11px; color: var(--text-muted);">FNOD / ANOD Sessions</div>
           </div>
-          <span style="font-size: 20px;">⭐</span>
         </div>
       </div>
 
-      <!-- Month-by-Month COFF Breakdown Table -->
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Extra Minutes Earned</th>
-              <th>COFF Earned</th>
-              <th>COFFs Expended (Availed Dates)</th>
-              <th>Running Balance</th>
-            </tr>
-          </thead>
-          <tbody id="coffMonthlyTableBody"></tbody>
-        </table>
+      <!-- Table: On-Duty (OD) Log -->
+      <div class="card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 6px;">
+            <svg style="width: 15px; height: 15px; color: #0284c7;"><use href="#icon-briefcase"></use></svg>
+            <span id="odRegisterTableTitle">On-Duty (OD) Assignments Log</span>
+          </h3>
+          <span class="badge-pill-soft" id="odRegisterCountBadge">0 assignments</span>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Duty Type</th>
+                <th>Duration</th>
+                <th>Duty Purpose / Remarks</th>
+                <th>Timing</th>
+              </tr>
+            </thead>
+            <tbody id="odRegisterTableBody">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No OD records found for this period.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
+
+  </section>
 
   </section>
 
@@ -1705,14 +1816,12 @@
         </div>
       </div>
 
-      <!-- 5. Total Hours -->
+      <!-- 5. Leave -->
       <div class="card" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px;">
-        <div style="width: 36px; height: 36px; border-radius: 10px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg style="width: 18px; height: 18px;"><use href="#icon-clock"></use></svg>
-        </div>
+        <div class="badge-status badge-status-cl" style="width: 34px; height: 34px; border-radius: 10px; font-size: 13px; font-weight: 800; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">L</div>
         <div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Total Hours</div>
-          <div id="attKpiTotalHours" style="font-size: 16px; font-weight: 900; color: var(--text-main);">33h 25m</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Leave</div>
+          <div id="attKpiLeave" style="font-size: 18px; font-weight: 900; color: #e11d48;">0</div>
         </div>
       </div>
 
@@ -2324,9 +2433,14 @@
     dashViewMode: 'monthly',
     workDiaryFilter: 'ALL',
     attendanceViewMode: 'table',
+    registerSubTab: 'leave', // 'leave' or 'od'
+    registerPeriod: 'month',  // 'month' or 'year'
+    registerMonthNumber: '11',
     summary: null,
     workDiary: null,
     days: [],
+    leaveRegister: null,
+    odRegister: null,
     employees: DEFAULT_EMPLOYEES,
     collapsedDays: new Set()
   };
@@ -2506,12 +2620,22 @@
   function handleYearChange(val) {
     state.activeYear = val;
     state.activeMonth = `${val}-${state.activeMonthNumber}`;
+    state.days = [];
+    state.leaveRegister = null;
+    state.odRegister = null;
+    renderAttendanceTable([]);
+    renderAttendanceCalendarGrid([]);
     loadFullData();
   }
 
   function handleMonthChange(val) {
     state.activeMonthNumber = val;
     state.activeMonth = `${state.activeYear}-${val}`;
+    state.days = [];
+    state.leaveRegister = null;
+    state.odRegister = null;
+    renderAttendanceTable([]);
+    renderAttendanceCalendarGrid([]);
     loadFullData();
   }
 
@@ -2769,7 +2893,7 @@
     }
 
     if (tab === 'leaveRegister') {
-      renderLeaveRegister();
+      switchRegisterSubTab(state.registerSubTab || 'leave');
     }
 
     if (tab === 'admin') {
@@ -2804,27 +2928,30 @@
       if (cachedMonthStr) {
         try {
           const cData = JSON.parse(cachedMonthStr);
-          if (cData && cData.summary) {
-            state.summary = cData.summary;
-            renderQuickPunchPreview(cData.summary.todayRecord);
-            renderDashboardKPIs(cData.summary);
-            renderYearlyBreakdown(cData.summary.yearlyCounts);
-            renderAttendanceKPIsFromSummary(cData.summary);
-            renderCoffLedger(cData.summary);
+          // STRICT VALIDATION: ensure month matches currently active month and employee!
+          if (cData && cData.monthKey === m && String(cData.pen) === String(state.activePen)) {
+            if (cData.summary) {
+              state.summary = cData.summary;
+              renderQuickPunchPreview(cData.summary.todayRecord);
+              renderDashboardKPIs(cData.summary);
+              renderYearlyBreakdown(cData.summary.yearlyCounts);
+              renderAttendanceKPIsFromSummary(cData.summary);
+              renderCoffLedger(cData.summary);
+            }
+            if (cData.workDiary) {
+              state.workDiary = cData.workDiary;
+              renderTimeline(cData.workDiary.dailyDiaries);
+              renderCharts(cData.workDiary.stats, cData.workDiary.dailyDiaries);
+              updateWorkDiaryKPIs(cData.workDiary.stats);
+            }
+            if (cData.days && cData.days.length > 0) {
+              state.days = cData.days;
+              renderAttendanceTable(cData.days);
+              renderAttendanceCalendarGrid(cData.days);
+            }
+            const cacheEl = document.getElementById('globalCacheStatus');
+            if (cacheEl) cacheEl.innerText = 'Cache: Instant (Client)';
           }
-          if (cData && cData.workDiary) {
-            state.workDiary = cData.workDiary;
-            renderTimeline(cData.workDiary.dailyDiaries);
-            renderCharts(cData.workDiary.stats, cData.workDiary.dailyDiaries);
-            updateWorkDiaryKPIs(cData.workDiary.stats);
-          }
-          if (cData && cData.days) {
-            state.days = cData.days;
-            renderAttendanceTable(cData.days);
-            renderAttendanceCalendarGrid(cData.days);
-          }
-          const cacheEl = document.getElementById('globalCacheStatus');
-          if (cacheEl) cacheEl.innerText = 'Cache: Instant (Client)';
         } catch (eCache) {
           console.warn('Client cache parse note:', eCache);
         }
@@ -2892,6 +3019,8 @@
       // Save complete package to client-side localStorage cache for instant sub-second future loads!
       try {
         localStorage.setItem(clientCacheKey, JSON.stringify({
+          monthKey: m,
+          pen: state.activePen,
           savedAt: Date.now(),
           summary: state.summary,
           workDiary: state.workDiary,
@@ -3029,6 +3158,26 @@
     const extra = res.extra || {};
     const mCounts = extra.counts || {};
 
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth() + 1;
+    const todayDay = now.getDate();
+
+    const viewYear = parseInt(state.activeYear, 10);
+    const viewMonth = parseInt(state.activeMonthNumber, 10);
+
+    const isCurrentMonth = (viewYear === curYear && viewMonth === curMonth);
+    const isPastMonth = (viewYear < curYear || (viewYear === curYear && viewMonth < curMonth));
+    const isFutureMonth = (viewYear > curYear || (viewYear === curYear && viewMonth > curMonth));
+
+    let totalDaysInMonth = 30;
+    try {
+      totalDaysInMonth = new Date(viewYear, viewMonth, 0).getDate();
+    } catch (e) {}
+
+    // As on today for current month!
+    const effectiveDaysElapsed = isCurrentMonth ? todayDay : (isFutureMonth ? 0 : totalDaysInMonth);
+
     let presCount = 0;
     let holCount = 0;
     let odCount = 0;
@@ -3038,6 +3187,17 @@
 
     if (state.days && state.days.length > 0) {
       state.days.forEach(d => {
+        let dayNum = null;
+        if (d.date) {
+          if (d.date.includes('/')) dayNum = parseInt(d.date.split('/')[0], 10);
+          else if (d.date.includes('-')) dayNum = parseInt(d.date.split('-')[2], 10);
+        }
+        // AS ON TODAY ONLY: For current month, exclude future days!
+        if (isCurrentMonth && dayNum != null && dayNum > todayDay) {
+          return;
+        }
+        if (isFutureMonth) return;
+
         const s = (d.status || '').toUpperCase().trim();
         if (s === 'P' || s === 'PRESENT') presCount++;
         else if (['PH', 'H', 'HOLIDAY', 'OFF', 'RH', 'HD'].includes(s)) holCount++;
@@ -3049,21 +3209,21 @@
         else if (s === 'A' || s === 'ABSENT') absCount++;
       });
     } else {
-      presCount = mCounts.P || 0;
-      holCount = mCounts.PH || mCounts.Holidays || 0;
-      odCount = (mCounts.OD || mCounts.OnDuty || 0) + (mCounts.FNOD || 0) + (mCounts.ANOD || 0);
-      clCount = (mCounts.CL || 0) + 0.5 * ((mCounts.FNCL || 0) + (mCounts.ANCL || 0));
-      coffCount = mCounts.COFF || 0;
-      absCount = mCounts.A || mCounts.Absent || 0;
+      if (isFutureMonth) {
+        presCount = 0; holCount = 0; odCount = 0; clCount = 0; coffCount = 0; absCount = 0;
+      } else {
+        presCount = mCounts.P || 0;
+        holCount = mCounts.PH || mCounts.Holidays || 0;
+        odCount = (mCounts.OD || mCounts.OnDuty || 0) + (mCounts.FNOD || 0) + (mCounts.ANOD || 0);
+        clCount = (mCounts.CL || 0) + 0.5 * ((mCounts.FNCL || 0) + (mCounts.ANCL || 0));
+        coffCount = mCounts.COFF || 0;
+        absCount = mCounts.A || mCounts.Absent || 0;
+      }
     }
 
     // Working days means all days including Leave, coz on leave is on a working day!
-    let totalDaysInMonth = 30;
-    try {
-      totalDaysInMonth = new Date(parseInt(state.activeYear, 10), parseInt(state.activeMonthNumber, 10), 0).getDate();
-    } catch (e) {}
-
-    let workingDaysTotal = Math.max(0, totalDaysInMonth - holCount);
+    // As on today: elapsed days minus holidays as of today
+    let workingDaysTotal = Math.max(0, effectiveDaysElapsed - holCount);
     if (workingDaysTotal === 0 && (presCount + odCount + clCount + coffCount) > 0) {
       workingDaysTotal = (presCount + odCount + clCount + coffCount + absCount);
     }
@@ -3082,11 +3242,18 @@
     const abs = document.getElementById('attKpiAbsent');
     if (abs) abs.innerText = absCount;
 
+    // Card 5: LEAVE (total leaves taken this month) - replaced total hours per user requirement
+    const totalLeaves = clCount + coffCount;
+    const leaveEl = document.getElementById('attKpiLeave');
+    if (leaveEl) leaveEl.innerText = totalLeaves;
+
     const totH = document.getElementById('attKpiTotalHours');
     if (totH) totH.innerText = wd.totalActualWorkFormatted || '0h 0m';
 
     const kpiWD = document.getElementById('kpiWorkDays');
     if (kpiWD) kpiWD.innerText = `${workingDaysTotal} Days`;
+    const kpiWDSub = document.getElementById('kpiWorkDaysSub');
+    if (kpiWDSub) kpiWDSub.innerText = isCurrentMonth ? `As on today (${effectiveDaysElapsed} days elapsed)` : `Total Working Days`;
 
     // Separate Extra Time and Late Time (no Net hours!)
     let totalExtra = 0;
@@ -3350,74 +3517,158 @@
   }
 
   // =========================================================================
-  // DEDICATED LEAVE REGISTER & COMP-OFF TRACKER
+  // DEDICATED LEAVE REGISTER & ON-DUTY (OD) REGISTER
   // =========================================================================
+  function switchRegisterSubTab(subTab) {
+    state.registerSubTab = subTab;
+    const btnLeave = document.getElementById('subTabBtnLeave');
+    const btnOD = document.getElementById('subTabBtnOD');
+    const secLeave = document.getElementById('secLeaveRegister');
+    const secOD = document.getElementById('secODRegister');
+
+    if (subTab === 'leave') {
+      if (btnLeave) { btnLeave.style.background = 'var(--primary)'; btnLeave.style.color = '#ffffff'; }
+      if (btnOD) { btnOD.style.background = 'transparent'; btnOD.style.color = 'var(--text-secondary)'; }
+      if (secLeave) secLeave.style.display = 'block';
+      if (secOD) secOD.style.display = 'none';
+      renderLeaveRegister();
+    } else {
+      if (btnOD) { btnOD.style.background = 'var(--primary)'; btnOD.style.color = '#ffffff'; }
+      if (btnLeave) { btnLeave.style.background = 'transparent'; btnLeave.style.color = 'var(--text-secondary)'; }
+      if (secLeave) secLeave.style.display = 'none';
+      if (secOD) secOD.style.display = 'block';
+      renderODRegister();
+    }
+  }
+
+  function switchRegisterPeriod(period) {
+    state.registerPeriod = period;
+    const btnMonth = document.getElementById('regPeriodBtnMonth');
+    const btnYear = document.getElementById('regPeriodBtnYear');
+    const selMonth = document.getElementById('selRegMonth');
+
+    if (period === 'month') {
+      if (btnMonth) { btnMonth.style.background = 'var(--primary)'; btnMonth.style.color = '#ffffff'; }
+      if (btnYear) { btnYear.style.background = 'transparent'; btnYear.style.color = 'var(--text-secondary)'; }
+      if (selMonth) { selMonth.style.display = 'inline-block'; selMonth.value = state.registerMonthNumber; }
+    } else {
+      if (btnYear) { btnYear.style.background = 'var(--primary)'; btnYear.style.color = '#ffffff'; }
+      if (btnMonth) { btnMonth.style.background = 'transparent'; btnMonth.style.color = 'var(--text-secondary)'; }
+      if (selMonth) selMonth.style.display = 'none';
+    }
+
+    if (state.registerSubTab === 'od') {
+      renderODRegister();
+    } else {
+      renderLeaveRegister();
+    }
+  }
+
+  function handleRegMonthChange(val) {
+    state.registerMonthNumber = String(val).padStart(2, '0');
+    if (state.registerSubTab === 'od') {
+      renderODRegister();
+    } else {
+      renderLeaveRegister();
+    }
+  }
+
+  async function ensureYearlyDataLoaded() {
+    if (!state.leaveRegister || !state.odRegister) {
+      try {
+        const res = await callApi('apiGetYearlyDashboard', state.token, state.activeYear, state.activePen);
+        if (res && res.ok) {
+          state.leaveRegister = res.leaveRegister || [];
+          state.odRegister = res.odRegister || [];
+          if (res.yearlyCounts) {
+            state.yearlyCounts = res.yearlyCounts;
+          }
+        }
+      } catch (e) {
+        console.warn('apiGetYearlyDashboard load note:', e);
+      }
+    }
+  }
+
   async function renderLeaveRegister() {
+    await ensureYearlyDataLoaded();
+
+    const isMonthView = state.registerPeriod === 'month';
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const mIdx = parseInt(state.registerMonthNumber, 10) - 1;
+    const monthLabel = monthNames[mIdx] || 'Month';
+    const periodLabel = isMonthView ? `${monthLabel} ${state.activeYear}` : `Year ${state.activeYear}`;
+
     const titleEl = document.getElementById('leaveRegisterHeaderTitle');
-    const tableTitleEl = document.getElementById('leaveRegisterTableTitle');
-    if (titleEl) titleEl.innerText = `Annual Leave Register & Comp-Off Tracker (${state.activeYear})`;
-    if (tableTitleEl) tableTitleEl.innerText = `Annual Leaves & OD Taken (${state.activeYear})`;
+    if (titleEl) titleEl.innerText = `Leave & OD Register (${periodLabel})`;
 
-    // Populate top KPI cards from state.summary
+    const tblTitle = document.getElementById('leaveRegisterTableTitle');
+    if (tblTitle) tblTitle.innerText = `Leaves Taken Log (${periodLabel})`;
+
+    // Filter leaves for selected period (STRICTLY LEAVES - NO OD!)
+    const allLeaves = state.leaveRegister || [];
+    const filteredLeaves = allLeaves.filter(item => {
+      const t = (item.type || '').toUpperCase();
+      if (t.includes('OD')) return false;
+
+      if (!isMonthView) return true;
+      let itemMonth = null;
+      if (item.date) {
+        if (item.date.includes('/')) itemMonth = String(item.date.split('/')[1]).padStart(2, '0');
+        else if (item.date.includes('-')) itemMonth = String(item.date.split('-')[1]).padStart(2, '0');
+      }
+      return itemMonth === state.registerMonthNumber;
+    });
+
+    // Populate 3 Leave KPI cards:
     if (state.summary) {
-      const extra = state.summary.extra || {};
       const cl = state.summary.cl || {};
-      const yCounts = state.summary.yearlyCounts || {};
+      const extra = state.summary.extra || {};
+      const clLimit = cl.limit || 20;
+      const clUsed = cl.used || 0;
+      const clRem = Math.max(0, clLimit - clUsed);
 
-      const clRem = cl.remaining !== undefined ? cl.remaining : (20 - (cl.used || 0));
       const lrCl = document.getElementById('lrKpiCL');
       if (lrCl) lrCl.innerText = `${clRem} Remaining`;
       const lrClSub = document.getElementById('lrKpiCLSub');
-      if (lrClSub) lrClSub.innerText = `Used: ${cl.used || 0} / Limit: ${cl.limit || 20}`;
+      if (lrClSub) lrClSub.innerText = `Used: ${clUsed} / Limit: ${clLimit}`;
 
-      const coffAvail = extra.coffsAvailable !== undefined ? extra.coffsAvailable : ((extra.coffsEarned || 0) - (extra.coffsUsed || 0));
+      const coffAvail = extra.coffsAvailable !== undefined ? extra.coffsAvailable : 0;
       const lrCoff = document.getElementById('lrKpiCOFF');
       if (lrCoff) lrCoff.innerText = `${coffAvail} Available`;
       const lrCoffSub = document.getElementById('lrKpiCOFFSub');
       if (lrCoffSub) lrCoffSub.innerText = `Earned: ${extra.coffsEarned || 0} | Used: ${extra.coffsUsed || 0}`;
 
-      const odTotal = (yCounts.OD || 0) + (yCounts.FNOD || 0) * 0.5 + (yCounts.ANOD || 0) * 0.5;
-      const lrOD = document.getElementById('lrKpiOD');
-      if (lrOD) lrOD.innerText = `${odTotal} Days`;
-      const lrODSub = document.getElementById('lrKpiODSub');
-      if (lrODSub) lrODSub.innerText = `Duty / Mission Days`;
+      // Calculate total leaves taken in this period
+      let periodLeaveDays = 0;
+      filteredLeaves.forEach(l => {
+        const dur = String(l.duration || '').toLowerCase();
+        if (dur.includes('half') || dur.includes('0.5')) periodLeaveDays += 0.5;
+        else periodLeaveDays += 1;
+      });
 
-      const extraM = Number(extra.totalExtraMinsYear || extra.thisMonthExtras || extra.earnedMins || 0);
-      const lrExtra = document.getElementById('lrKpiExtra');
-      if (lrExtra) lrExtra.innerText = `+${extraM}m`;
-      const lrExtraSub = document.getElementById('lrKpiExtraSub');
-      if (lrExtraSub) lrExtraSub.innerText = `YTD Extra Minutes`;
+      const lrTot = document.getElementById('lrKpiTotalLeaves');
+      if (lrTot) lrTot.innerText = `${periodLeaveDays} Days`;
+      const lrTotSub = document.getElementById('lrKpiTotalLeavesSub');
+      if (lrTotSub) lrTotSub.innerText = `Casual Leaves + Comp-Offs (${periodLabel})`;
 
       renderCoffLedger(state.summary);
     }
 
     const tbody = document.getElementById('leaveRegisterTableBody');
     const countBadge = document.getElementById('leaveRegisterCountBadge');
+    if (countBadge) countBadge.innerText = `${filteredLeaves.length} leaves`;
     if (!tbody) return;
 
-    if (!state.leaveRegister) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Loading annual leave records...</td></tr>';
-      try {
-        const res = await callApi('apiGetYearlyDashboard', state.token, state.activeYear, state.activePen);
-        if (res && res.ok && res.leaveRegister) {
-          state.leaveRegister = res.leaveRegister;
-        }
-      } catch (e) {}
-    }
-
-    const list = state.leaveRegister || [];
-    if (countBadge) countBadge.innerText = `${list.length} records`;
-
-    if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No leaves or OD records recorded for this year.</td></tr>';
+    if (filteredLeaves.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No leaves recorded for ${periodLabel}.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = list.map(item => {
+    tbody.innerHTML = filteredLeaves.map(item => {
       const type = (item.type || '').toUpperCase();
       let badgeClass = 'badge-status-cl';
       if (type === 'COFF') badgeClass = 'badge-status-coff';
-      else if (type.includes('OD')) badgeClass = 'badge-status-od';
       else if (type.includes('CL')) badgeClass = 'badge-status-cl';
 
       return `
@@ -3427,7 +3678,83 @@
           <td><span class="badge-status ${badgeClass}" style="display: inline-block;">${type}</span></td>
           <td style="font-weight: 600;">${item.duration || 'Full Day'}</td>
           <td style="color: var(--text-main); font-weight: 600;">${item.remarks || '--'}</td>
-          <td style="color: var(--text-muted); font-size: 11px;">${item.inTime && item.outTime ? `${fmtTime(item.inTime)} – ${fmtTime(item.outTime)}` : 'Recorded'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  async function renderODRegister() {
+    await ensureYearlyDataLoaded();
+
+    const isMonthView = state.registerPeriod === 'month';
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const mIdx = parseInt(state.registerMonthNumber, 10) - 1;
+    const monthLabel = monthNames[mIdx] || 'Month';
+    const periodLabel = isMonthView ? `${monthLabel} ${state.activeYear}` : `Year ${state.activeYear}`;
+
+    const titleEl = document.getElementById('leaveRegisterHeaderTitle');
+    if (titleEl) titleEl.innerText = `Leave & OD Register (${periodLabel})`;
+
+    const tblTitle = document.getElementById('odRegisterTableTitle');
+    if (tblTitle) tblTitle.innerText = `On-Duty (OD) Assignments Log (${periodLabel})`;
+
+    // Filter OD for selected period
+    const allOD = state.odRegister || [];
+    const filteredOD = allOD.filter(item => {
+      if (!isMonthView) return true;
+      let itemMonth = null;
+      if (item.date) {
+        if (item.date.includes('/')) itemMonth = String(item.date.split('/')[1]).padStart(2, '0');
+        else if (item.date.includes('-')) itemMonth = String(item.date.split('-')[1]).padStart(2, '0');
+      }
+      return itemMonth === state.registerMonthNumber;
+    });
+
+    // Populate 3 OD Summary Cards
+    let fullCount = 0;
+    let halfCount = 0;
+    filteredOD.forEach(item => {
+      const dur = String(item.duration || '').toLowerCase();
+      const t = String(item.type || '').toUpperCase();
+      if (dur.includes('half') || dur.includes('0.5') || t === 'FNOD' || t === 'ANOD') {
+        halfCount++;
+      } else {
+        fullCount++;
+      }
+    });
+    const totalODDays = fullCount + (halfCount * 0.5);
+
+    const odTot = document.getElementById('odKpiTotal');
+    if (odTot) odTot.innerText = `${totalODDays} Days`;
+    const odTotSub = document.getElementById('odKpiTotalSub');
+    if (odTotSub) odTotSub.innerText = `Official Duty (${periodLabel})`;
+
+    const odFull = document.getElementById('odKpiFull');
+    if (odFull) odFull.innerText = `${fullCount} Days`;
+
+    const odHalf = document.getElementById('odKpiHalf');
+    if (odHalf) odHalf.innerText = `${halfCount} Days`;
+
+    const tbody = document.getElementById('odRegisterTableBody');
+    const countBadge = document.getElementById('odRegisterCountBadge');
+    if (countBadge) countBadge.innerText = `${filteredOD.length} assignments`;
+    if (!tbody) return;
+
+    if (filteredOD.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No On-Duty assignments found for ${periodLabel}.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filteredOD.map(item => {
+      const type = (item.type || 'OD').toUpperCase();
+      return `
+        <tr>
+          <td style="font-weight: 800; font-family: monospace;">${item.date}</td>
+          <td style="font-weight: 600; color: var(--text-secondary);">${item.dayName || '--'}</td>
+          <td><span class="badge-status badge-status-od" style="display: inline-block;">${type}</span></td>
+          <td style="font-weight: 600;">${item.duration || 'Full Day'}</td>
+          <td style="color: var(--text-main); font-weight: 600;">${item.remarks || 'Official Duty'}</td>
+          <td style="color: var(--text-muted); font-size: 11px;">${item.timing || (item.inTime && item.outTime ? `${fmtTime(item.inTime)} – ${fmtTime(item.outTime)}` : 'Official Duty')}</td>
         </tr>
       `;
     }).join('');
@@ -3439,54 +3766,104 @@
   function renderCharts(stats, diaries) {
     if (!stats) return;
 
-    const mtgMins = Number(stats.totalMeetingMinutes) || 0;
-    const offMins = Number(stats.totalOfficeWorkMinutes) || 0;
-    const totalMins = mtgMins + offMins;
-    const mtgPct = totalMins > 0 ? ((mtgMins / totalMins) * 100).toFixed(1) : '0.0';
-    const offPct = totalMins > 0 ? (100 - parseFloat(mtgPct)).toFixed(1) : '100.0';
+    // Split of time physically PRESENT in office:
+    // Strictly exclude OD, leaves, and holidays!
+    let routineMins = 0;
+    let meetingMins = 0;
+    let customMins = 0;
 
-    // 1. Work Distribution Donut Chart (Prominent with total badge & proportion bar)
-    renderSvgDonut(stats.totalActualWorkFormatted || '0h 0m', parseFloat(mtgPct), parseFloat(offPct));
+    if (Array.isArray(diaries) && diaries.length > 0) {
+      diaries.forEach(d => {
+        // Exclude holidays, OD, and leaves completely
+        if (d.isHoliday || d.isOD || d.isLeave) return;
+
+        // In-office day!
+        const dayMtg = Number(d.meetingDurationMins) || 0;
+        const dayCust = Number(d.customWorkDurationMins) || 0;
+        const dayOffice = Number(d.officeWorkDurationMins) || 0;
+
+        meetingMins += dayMtg;
+        customMins += dayCust;
+        // Routine office work is remaining in-office time
+        const dayRoutine = Math.max(0, dayOffice - dayCust);
+        routineMins += dayRoutine;
+      });
+    }
+
+    // Fallback if diaries had no items or minutes
+    if (routineMins === 0 && meetingMins === 0 && customMins === 0) {
+      meetingMins = Number(stats.totalMeetingMinutes) || 0;
+      const offTotal = Number(stats.totalOfficeWorkMinutes) || 0;
+      customMins = Number(stats.totalCustomTaskMinutes) || 0;
+      routineMins = Math.max(0, offTotal - customMins);
+    }
+
+    const totalInOfficeMins = routineMins + meetingMins + customMins;
+    const routinePct = totalInOfficeMins > 0 ? (routineMins / totalInOfficeMins) * 100 : 70;
+    const mtgPct = totalInOfficeMins > 0 ? (meetingMins / totalInOfficeMins) * 100 : 20;
+    const customPct = totalInOfficeMins > 0 ? Math.max(0, 100 - routinePct - mtgPct) : 10;
+
+    const totalFormatted = formatMinutesToHours_(totalInOfficeMins);
+
+    // 1. Work Distribution Donut Chart (3 segments: Emerald Routine, Purple Meetings, Blue Custom Tasks)
+    renderSvgDonut(totalFormatted, routinePct, mtgPct, customPct);
 
     const totalBadge = document.getElementById('chartTotalBadge');
-    if (totalBadge) totalBadge.innerText = `Total: ${stats.totalActualWorkFormatted || '0h 0m'}`;
+    if (totalBadge) totalBadge.innerText = `In-Office: ${totalFormatted}`;
+
+    const lRoutine = document.getElementById('chartLegendRoutine');
+    if (lRoutine) lRoutine.innerText = `${formatMinutesToHours_(routineMins)} (${routinePct.toFixed(1)}%)`;
 
     const lMtg = document.getElementById('chartLegendMeetings');
-    if (lMtg) lMtg.innerText = `${stats.totalMeetingFormatted || '0h 0m'} (${mtgPct}%)`;
+    if (lMtg) lMtg.innerText = `${formatMinutesToHours_(meetingMins)} (${mtgPct.toFixed(1)}%)`;
 
-    const lOff = document.getElementById('chartLegendOffice');
-    if (lOff) lOff.innerText = `${stats.totalOfficeWorkFormatted || '0h 0m'} (${offPct}%)`;
+    const lTasks = document.getElementById('chartLegendTasks');
+    if (lTasks) lTasks.innerText = `${formatMinutesToHours_(customMins)} (${customPct.toFixed(1)}%)`;
+
+    // 3-way horizontal proportion bar
+    const barRoutine = document.getElementById('workDistBarRoutine');
+    if (barRoutine) barRoutine.style.width = `${routinePct.toFixed(1)}%`;
 
     const barMtg = document.getElementById('workDistBarMtg');
-    if (barMtg) barMtg.style.width = `${mtgPct}%`;
+    if (barMtg) barMtg.style.width = `${mtgPct.toFixed(1)}%`;
 
-    const barOff = document.getElementById('workDistBarOff');
-    if (barOff) barOff.style.width = `${offPct}%`;
+    const barTask = document.getElementById('workDistBarTask');
+    if (barTask) barTask.style.width = `${customPct.toFixed(1)}%`;
 
-    // 2. Daily Work & Meeting Hours Dual Area Line Graph (Upper: Total Hours, Lower: Meeting Hours)
+    // 2. Daily Work & Meeting Hours Dual Area Line Graph
     renderSvgAreaLineChart(diaries || []);
   }
 
-  function renderSvgDonut(totalLabel, mtgPct, offPct) {
+  function renderSvgDonut(totalLabel, routinePct, mtgPct, customPct) {
     const container = document.getElementById('svgDonutContainer');
     if (!container) return;
 
     const r = 62;
     const circ = 2 * Math.PI * r; // ~389.56
-    const mtgStroke = (mtgPct / 100) * circ;
-    const offStroke = (offPct / 100) * circ;
+    const strokeRoutine = (routinePct / 100) * circ;
+    const strokeMtg = (mtgPct / 100) * circ;
+    const strokeCustom = (customPct / 100) * circ;
+
+    const offsetRoutine = 0;
+    const offsetMtg = -strokeRoutine;
+    const offsetCustom = -(strokeRoutine + strokeMtg);
 
     container.innerHTML = `
       <svg viewBox="0 0 180 180" width="180" height="180" style="transform: rotate(-90deg);">
         <circle cx="90" cy="90" r="${r}" fill="none" stroke="var(--bg-card-subtle)" stroke-width="20" />
+        <!-- Segment 1: Routine Office Work (#10b981) -->
         <circle cx="90" cy="90" r="${r}" fill="none" stroke="#10b981" stroke-width="20"
-          stroke-dasharray="${offStroke} ${circ}" stroke-dashoffset="0" stroke-linecap="round" />
+          stroke-dasharray="${strokeRoutine} ${circ}" stroke-dashoffset="${offsetRoutine}" stroke-linecap="round" />
+        <!-- Segment 2: Meetings (#9333ea) -->
         <circle cx="90" cy="90" r="${r}" fill="none" stroke="#9333ea" stroke-width="20"
-          stroke-dasharray="${mtgStroke} ${circ}" stroke-dashoffset="-${offStroke}" stroke-linecap="round" />
+          stroke-dasharray="${strokeMtg} ${circ}" stroke-dashoffset="${offsetMtg}" stroke-linecap="round" />
+        <!-- Segment 3: Custom Tasks (#2563eb) -->
+        <circle cx="90" cy="90" r="${r}" fill="none" stroke="#2563eb" stroke-width="20"
+          stroke-dasharray="${strokeCustom} ${circ}" stroke-dashoffset="${offsetCustom}" stroke-linecap="round" />
       </svg>
       <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none;">
         <div style="font-size: 16px; font-weight: 900; color: var(--text-main); line-height: 1.1;">${totalLabel}</div>
-        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 2px;">Total Work</div>
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 2px;">In-Office Work</div>
       </div>
     `;
   }
