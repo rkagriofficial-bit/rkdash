@@ -4085,7 +4085,8 @@
     document.getElementById('editAttInTime').value = inTime || '';
     document.getElementById('editAttOutTime').value = outTime || '';
     document.getElementById('editAttStatus').value = status || 'P';
-    document.getElementById('editAttRemarks').value = decodeURIComponent(encodedRemarks || '');
+    const decRem = decodeURIComponent(encodedRemarks || '');
+    document.getElementById('editAttRemarks').value = (decRem === 'No punch recorded') ? '' : decRem;
     openModal('modalEditAttendance');
   }
 
