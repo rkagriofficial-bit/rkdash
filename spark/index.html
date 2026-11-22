@@ -973,12 +973,6 @@
         <svg id="loadSpinnerIcon" style="width: 14px; height: 14px;"><use href="#icon-refresh"></use></svg>
         <span id="globalLoadText">Sync</span>
       </button>
-
-      <!-- Admin Employee Switcher -->
-      <div id="adminEmpSwitcherContainer" style="display: inline-flex; align-items: center; gap: 6px;">
-        <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">STAFF:</span>
-        <select id="selAdminEmployee" onchange="handleAdminSwitchEmp(this.value)" class="select-custom" style="padding-top: 4px; padding-bottom: 4px; font-size: 12px;"></select>
-      </div>
     </div>
 
     <!-- Right Window & Cache Info -->
@@ -2821,17 +2815,9 @@
     const closeBtn = document.getElementById('loginCloseBtn');
     if (closeBtn) closeBtn.style.display = 'inline-flex';
 
-    // ADMINISTRATION ACCESS CONTROL: Only Admin can access User Management & switch staff
+    // ADMINISTRATION ACCESS CONTROL: Only Admin can access User Management
     const profileAdmin = document.getElementById('profileMenuUserMgmt');
-    const staffSwitcher = document.getElementById('adminEmpSwitcherContainer');
-
-    if (isAdmin) {
-      if (profileAdmin) profileAdmin.style.display = 'flex';
-      if (staffSwitcher) staffSwitcher.style.display = 'inline-flex';
-    } else {
-      if (profileAdmin) profileAdmin.style.display = 'none';
-      if (staffSwitcher) staffSwitcher.style.display = 'none';
-    }
+    if (profileAdmin) profileAdmin.style.display = isAdmin ? 'flex' : 'none';
   }
 
   function setLoggedOutUI() {
@@ -2924,6 +2910,13 @@
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
+  function formatMinutesToHours_(totalMins) {
+    const m = Math.round(Number(totalMins) || 0);
+    const hrs = Math.floor(m / 60);
+    const mins = m % 60;
+    return `${hrs}h ${mins}m`;
+  }
+
   // =========================================================================
   // PROGRESSIVE STAGED DATA LOADING: INSTANT CLIENT CACHE, SUMMARY FIRST, CHARTS AFTER
   // =========================================================================
@@ -3010,13 +3003,7 @@
         const cacheEl = document.getElementById('globalCacheStatus');
         if (cacheEl) cacheEl.innerText = `Cache: ${res.cached ? res.cached.toUpperCase() : 'Live'}`;
 
-        // Immediately update work diary stats and charts if returned by summary (<200ms!)
-        if (res.workDiaryStats) {
-          updateWorkDiaryKPIs(res.workDiaryStats);
-          renderCharts(res.workDiaryStats, []);
-        }
-
-        // Immediately render days table and calendar grid from Stage 1 (<200ms!)
+        // 1. Immediately render days table and calendar grid from Stage 1 (<200ms!)
         if (res.days && res.days.length > 0) {
           const rawList = Array.isArray(res.days) ? res.days : ((res.days && res.days.list) ? res.days.list : []);
           const enrichedList = enrichDaysWithWorkDiary_(rawList, state.workDiary, state.activeYear, state.activeMonthNumber);
@@ -3025,8 +3012,18 @@
           renderAttendanceCalendarGrid(enrichedList);
         }
 
-        // Render attendance KPIs with latest data
+        // 2. Render attendance KPIs with latest data
         renderAttendanceKPIsFromSummary(res);
+
+        // 3. Immediately update work diary stats and charts (<200ms!)
+        if (res.workDiaryStats) {
+          try {
+            updateWorkDiaryKPIs(res.workDiaryStats);
+            renderCharts(res.workDiaryStats, []);
+          } catch (eCharts) {
+            console.warn('Charts render note:', eCharts);
+          }
+        }
 
         // Only restore user session if token exists and user didn't sign out
         if (state.token && !state.currentUser) {
@@ -3035,7 +3032,6 @@
         }
       }
 
-      setupAdminDropdown();
       renderAdminUsersTable();
 
       // UI is now fully painted! Release spinner and sync button immediately so user is never blocked
@@ -3621,12 +3617,14 @@
   }
 
   async function ensureYearlyDataLoaded() {
-    if (!state.leaveRegister || !state.odRegister) {
+    const penToLoad = state.currentUser ? state.currentUser.pen : (state.activePen || '858575');
+    if (!state.leaveRegister || !state.odRegister || state.registerPen !== penToLoad) {
       try {
-        const res = await callApi('apiGetYearlyDashboard', state.token, state.activeYear, state.activePen);
+        const res = await callApi('apiGetYearlyDashboard', state.token, state.activeYear, penToLoad);
         if (res && res.ok) {
           state.leaveRegister = res.leaveRegister || [];
           state.odRegister = res.odRegister || [];
+          state.registerPen = penToLoad;
           if (res.yearlyCounts) {
             state.yearlyCounts = res.yearlyCounts;
           }
@@ -4145,6 +4143,18 @@
       // Filter slots
       const filteredSlots = (day.timeline || []).filter(s => {
         if (currentFilter === 'ALL') return true;
+        if (currentFilter === 'OFFICE_WORK') {
+          return s.type === 'OFFICE_WORK' || s.type === 'ROUTINE' || s.type === 'ROUTINE_WORK' || s.type === 'OFFICE';
+        }
+        if (currentFilter === 'MEETING') {
+          return s.type === 'MEETING';
+        }
+        if (currentFilter === 'WORK_TASK') {
+          return s.type === 'WORK_TASK' || s.type === 'TASK';
+        }
+        if (currentFilter === 'ON_DUTY') {
+          return s.type === 'ON_DUTY' || s.type === 'OD';
+        }
         return s.type === currentFilter;
       });
 
@@ -4239,6 +4249,10 @@
       `;
       c.appendChild(card);
     });
+
+    if (c.children.length === 0) {
+      c.innerHTML = '<div class="card" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 30px;">No events match the selected filter.</div>';
+    }
   }
 
   function toggleDayCollapse(dayId) {
@@ -4706,28 +4720,11 @@
   }
 
   function setupAdminDropdown() {
-    const sel = document.getElementById('selAdminEmployee');
-    if (!sel) return;
-    sel.innerHTML = '';
-    const list = (state.employees && state.employees.length > 0) ? state.employees : DEFAULT_EMPLOYEES;
-    list.forEach(emp => {
-      const opt = document.createElement('option');
-      opt.value = emp.pen;
-      opt.innerText = `${emp.name} (${emp.pen})`;
-      if (String(emp.pen) === String(state.activePen || '858575')) opt.selected = true;
-      sel.appendChild(opt);
-    });
+    // No switching staff: each user logs in and sees their own dashboard
   }
 
   function handleAdminSwitchEmp(newPen) {
-    if (!newPen) return;
-    state.activePen = String(newPen);
-    const emp = (state.employees || []).find(e => String(e.pen) === String(newPen));
-    if (emp && state.currentUser) {
-      const subtitle = document.getElementById('headerUserSubtitle');
-      if (subtitle) subtitle.innerText = `${state.currentUser.name} (Viewing: ${emp.name}) • ${state.currentUser.role}`;
-    }
-    loadFullData();
+    // No switching staff: each user logs in and sees their own dashboard
   }
 
   function handleAdminViewUser(pen) {
