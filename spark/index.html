@@ -1596,12 +1596,12 @@
         </div>
       </div>
 
-      <!-- 4. Absent -->
+      <!-- 4. On Duty (OD) -->
       <div class="card" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px;">
-        <div class="badge-status badge-status-a" style="width: 34px; height: 34px; border-radius: 10px; font-size: 14px; flex-shrink: 0;">A</div>
+        <div class="badge-status badge-status-od" style="width: 34px; height: 34px; border-radius: 10px; font-size: 13px; font-weight: 800; flex-shrink: 0;">OD</div>
         <div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Absent</div>
-          <div id="attKpiAbsent" style="font-size: 18px; font-weight: 900; color: var(--text-main);">0</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">On Duty (OD)</div>
+          <div id="attKpiOD" style="font-size: 18px; font-weight: 900; color: var(--text-main);">0</div>
         </div>
       </div>
 
@@ -2892,6 +2892,7 @@
 
     let presCount = 0;
     let holCount = 0;
+    let odCount = 0;
     let absCount = 0;
 
     if (state.days && state.days.length > 0) {
@@ -2899,16 +2900,23 @@
         const s = (d.status || '').toUpperCase().trim();
         if (s === 'P' || s === 'PRESENT') presCount++;
         else if (['PH', 'H', 'HOLIDAY', 'OFF', 'RH', 'HD'].includes(s)) holCount++;
+        else if (['OD', 'DUTY', 'ON DUTY'].includes(s)) odCount++;
+        else if (['FNOD', 'ANOD'].includes(s)) odCount++;
         else if (s === 'A' || s === 'ABSENT') absCount++;
+        else if (['FNCL', 'ANCL'].includes(s)) presCount += 0.5;
       });
     } else {
       presCount = mCounts.P || 0;
       holCount = mCounts.PH || mCounts.Holidays || 0;
+      odCount = (mCounts.OD || mCounts.OnDuty || 0) + (mCounts.FNOD || 0) + (mCounts.ANOD || 0);
       absCount = mCounts.A || mCounts.Absent || 0;
     }
 
+    // Working Days strictly includes all Present + On Duty (OD, FNOD, ANOD) days
+    const workingDaysTotal = (presCount + odCount);
+
     const wDays = document.getElementById('attKpiWorkingDays');
-    if (wDays) wDays.innerText = wd.workingDaysCount || presCount;
+    if (wDays) wDays.innerText = workingDaysTotal;
 
     const pres = document.getElementById('attKpiPresent');
     if (pres) pres.innerText = presCount;
@@ -2916,6 +2924,8 @@
     const hol = document.getElementById('attKpiHoliday');
     if (hol) hol.innerText = holCount;
 
+    const odEl = document.getElementById('attKpiOD');
+    if (odEl) odEl.innerText = odCount;
     const abs = document.getElementById('attKpiAbsent');
     if (abs) abs.innerText = absCount;
 
