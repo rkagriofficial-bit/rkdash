@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,10 +6,13 @@
   <title>SPARK Portal | Attendance & Work Diary</title>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="SPARK Portal">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="SPARK">
+  <meta name="application-name" content="SPARK Portal">
   <meta name="theme-color" content="#2563eb">
-  <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/flash-on.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://img.icons8.com/fluency/192/flash-on.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="https://img.icons8.com/fluency/192/flash-on.png">
   <style>
     /* ========================================================================= */
     /* ULTRA-LEAN DESIGN SYSTEM: SYSTEM FONTS, CSS-ONLY CARDS, NATIVE PERFORMANCE */
@@ -206,10 +209,22 @@
       align-items: center;
       gap: 6px;
       overflow-x: auto;
-      padding: 8px 0;
-      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 2px 10px 2px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(37, 99, 235, 0.25) transparent;
+      scroll-behavior: smooth;
     }
-    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tabs::-webkit-scrollbar {
+      height: 3px;
+    }
+    .nav-tabs::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .nav-tabs::-webkit-scrollbar-thumb {
+      background: rgba(37, 99, 235, 0.25);
+      border-radius: 9999px;
+    }
     .nav-pill {
       display: inline-flex;
       align-items: center;
@@ -225,6 +240,7 @@
       user-select: none;
       transition: all 0.15s ease;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .nav-pill:hover {
       background: var(--bg-card-subtle);
@@ -665,6 +681,84 @@
       display: inline-block !important;
       transform-origin: center center !important;
     }
+
+    /* ========================================================================= */
+    /* RESPONSIVE DESIGN & MOBILE OPTIMIZATIONS (HEADER & NAVIGATION)            */
+    /* ========================================================================= */
+    .header-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 56px;
+      padding: 6px 0;
+    }
+    .header-brand-title {
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+    .header-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .header-top-row {
+        min-height: 50px;
+        padding: 4px 0;
+      }
+      .header-brand-title {
+        font-size: 14px !important;
+      }
+      #headerUserSubtitle {
+        font-size: 10px !important;
+        max-width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #headerUserNamePill {
+        max-width: 72px !important;
+        font-size: 11px !important;
+      }
+      .header-actions-group {
+        gap: 5px !important;
+      }
+      .header-actions-group .btn-icon {
+        width: 32px !important;
+        height: 32px !important;
+      }
+      #userProfileBtn {
+        padding: 4px 8px !important;
+        gap: 5px !important;
+        font-size: 11px !important;
+      }
+      .header-direct-logout {
+        display: none !important; /* Mobile: Logout is accessible right inside profile dropdown */
+      }
+      .pwa-btn-label {
+        display: none; /* Icon-only on small mobile screens */
+      }
+
+      /* Compact mobile navigation pills */
+      .nav-tabs {
+        gap: 5px;
+        padding: 4px 2px 8px 2px;
+      }
+      .nav-pill {
+        padding: 6px 12px;
+        font-size: 12px;
+        gap: 5px;
+      }
+      .nav-pill svg {
+        width: 13px;
+        height: 13px;
+      }
+    }
   </style>
 </head>
 
@@ -850,22 +944,28 @@
 <header class="header-banner">
   <div class="header-ribbon-decor"></div>
   <div class="container relative" style="z-index: 10;">
-    <div style="display: flex; align-items: center; justify-content: space-between; height: 60px;">
+    <div class="header-top-row">
       
       <!-- Left: Logo & Portal Title -->
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(37,99,235,0.3); color: #facc15;">
-          <svg style="width: 20px; height: 20px;"><use href="#icon-lightning"></use></svg>
+      <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+        <div style="width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(37,99,235,0.3); color: #facc15; flex-shrink: 0;">
+          <svg style="width: 18px; height: 18px;"><use href="#icon-lightning"></use></svg>
         </div>
-        <div>
-          <div style="font-weight: 800; font-size: 16px; letter-spacing: -0.3px; line-height: 1.1; color: var(--text-main);">SPARK Portal</div>
+        <div style="min-width: 0;">
+          <div class="header-brand-title">SPARK Portal</div>
           <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" id="headerUserSubtitle">Rajesh Krishnan R K &bull; ADMIN</div>
         </div>
       </div>
 
       <!-- Right: Action Buttons & Profile Pill -->
-      <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="header-actions-group">
         
+        <!-- PWA Install Button (Appears when installable or triggers guide) -->
+        <button id="btnPwaInstall" onclick="handlePwaInstallClick()" class="btn btn-primary btn-sm" style="display: none; padding: 4px 10px; font-size: 11px; gap: 5px; border-radius: var(--radius-pill);" title="Install SPARK Web App">
+          <svg style="width: 14px; height: 14px;"><use href="#icon-lightning"></use></svg>
+          <span class="pwa-btn-label">Install App</span>
+        </button>
+
         <!-- Export / Download PDF -->
         <button onclick="downloadMonthlyPdf()" class="btn btn-secondary btn-icon" title="Download Monthly PDF">
           <svg style="width: 16px; height: 16px;"><use href="#icon-export"></use></svg>
@@ -899,6 +999,10 @@
               <svg style="width: 15px; height: 15px; color: var(--text-muted);"><use href="#icon-settings"></use></svg>
               <span>Settings</span>
             </button>
+            <button onclick="handlePwaInstallClick(); closeProfileDropdown();" class="dropdown-item" id="profileMenuInstallApp">
+              <svg style="width: 15px; height: 15px; color: var(--primary);"><use href="#icon-lightning"></use></svg>
+              <span>Install App (PWA)</span>
+            </button>
             <div style="height: 1px; background: var(--border-subtle); margin: 4px 0;"></div>
             <button onclick="handleLogout()" class="dropdown-item danger">
               <svg style="width: 15px; height: 15px;"><use href="#icon-logout"></use></svg>
@@ -908,7 +1012,7 @@
         </div>
 
         <!-- Direct Logout Button -->
-        <button onclick="handleLogout()" class="btn btn-secondary btn-icon" style="color: var(--danger); border-color: var(--danger-border);" title="Logout">
+        <button onclick="handleLogout()" class="btn btn-secondary btn-icon header-direct-logout" style="color: var(--danger); border-color: var(--danger-border);" title="Logout">
           <svg style="width: 16px; height: 16px;"><use href="#icon-logout"></use></svg>
         </button>
 
@@ -1758,8 +1862,8 @@
       <div style="display: flex; align-items: center; gap: 8px;">
         <!-- View Mode Switch: Table vs Calendar -->
         <div style="display: inline-flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 3px;">
-          <button onclick="switchAttendanceView('table')" id="attBtnTable" class="btn btn-sm" style="background: var(--primary); color: #ffffff; border-radius: 8px;">Table Log</button>
-          <button onclick="switchAttendanceView('calendar')" id="attBtnCalendar" class="btn btn-sm" style="background: transparent; color: var(--text-secondary); border-radius: 8px;">Calendar Grid</button>
+          <button onclick="switchAttendanceView('table')" id="attBtnTable" class="btn btn-sm" style="background: transparent; color: var(--text-secondary); border-radius: 8px;">Table Log</button>
+          <button onclick="switchAttendanceView('calendar')" id="attBtnCalendar" class="btn btn-sm" style="background: var(--primary); color: #ffffff; border-radius: 8px;">Calendar Grid</button>
         </div>
 
         <button onclick="openPastPunchModal()" class="btn btn-primary btn-sm">
@@ -1844,7 +1948,7 @@
     </div>
 
     <!-- VIEW 1: TABLE LOG VIEW (MATCHES IMAGE 5) -->
-    <div id="attendanceTableView" class="table-container">
+    <div id="attendanceTableView" class="table-container" style="display: none;">
       <table class="data-table">
         <thead>
           <tr>
@@ -1863,7 +1967,7 @@
     </div>
 
     <!-- VIEW 2: CALENDAR GRID & MONTHLY LEAVE OVERVIEW -->
-    <div id="attendanceCalendarView" style="display: none; flex-direction: column; gap: 16px;">
+    <div id="attendanceCalendarView" style="display: flex; flex-direction: column; gap: 16px;">
       
       <!-- 7-Column Calendar Grid & Side Leave List -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
@@ -2405,6 +2509,76 @@
   </div>
 </div>
 
+<!-- 11. PWA INSTALL GUIDE MODAL -->
+<div id="modalPwaInstallGuide" class="modal-overlay">
+  <div class="modal-box" style="max-width: 460px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: flex; align-items: center; justify-content: center; color: #facc15; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+          <svg style="width: 20px; height: 20px;"><use href="#icon-lightning"></use></svg>
+        </div>
+        <div>
+          <h3 style="font-size: 16px; font-weight: 800; line-height: 1.2;">Install SPARK App</h3>
+          <div style="font-size: 11px; color: var(--text-muted);">Fast, standalone mobile &amp; desktop app</div>
+        </div>
+      </div>
+      <button onclick="closeModal('modalPwaInstallGuide')" class="btn btn-secondary btn-icon" style="border: none;"><svg style="width: 16px; height: 16px;"><use href="#icon-close"></use></svg></button>
+    </div>
+
+    <!-- Direct Install Button if supported by browser -->
+    <div id="pwaDirectInstallPromptBox" style="margin-bottom: 14px; display: none;">
+      <button onclick="triggerPwaInstallPrompt()" class="btn btn-primary w-full" style="padding: 10px 16px; font-size: 14px; font-weight: 700; gap: 8px;">
+        <svg style="width: 16px; height: 16px;"><use href="#icon-lightning"></use></svg>
+        <span>Add SPARK to Home Screen (Install)</span>
+      </button>
+      <div style="text-align: center; margin: 8px 0; font-size: 11px; color: var(--text-muted); font-weight: 600;">— OR FOLLOW MANUAL STEPS BELOW —</div>
+    </div>
+
+    <!-- Device Specific Guides -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      
+      <!-- Android -->
+      <div class="card" style="padding: 12px 14px; background: var(--bg-card-subtle);">
+        <div style="font-weight: 700; font-size: 13px; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <span>📱 Android (Chrome / Brave / Edge)</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+          1. Tap the browser menu <b>(⋮)</b> in the top or bottom corner.<br>
+          2. Tap <b>"Install app"</b> or <b>"Add to Home screen"</b>.<br>
+          3. Tap <b>Install</b> to place the SPARK icon on your phone's home screen.
+        </div>
+      </div>
+
+      <!-- iOS (iPhone / iPad) -->
+      <div class="card" style="padding: 12px 14px; background: var(--bg-card-subtle);">
+        <div style="font-weight: 700; font-size: 13px; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <span>🍎 Apple iOS (Safari)</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+          1. Tap the <b>Share icon</b> at the bottom toolbar (box with arrow pointing up ⎋).<br>
+          2. Scroll down and tap <b>"Add to Home Screen"</b> (+).<br>
+          3. Tap <b>Add</b> in the top right corner.
+        </div>
+      </div>
+
+      <!-- Desktop (Windows / Mac) -->
+      <div class="card" style="padding: 12px 14px; background: var(--bg-card-subtle);">
+        <div style="font-weight: 700; font-size: 13px; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <span>💻 Desktop (Chrome / Edge)</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+          Click the <b>Install icon</b> (⊕ or monitor icon) on the right edge of your browser address bar to install as a desktop window.
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+      <button type="button" onclick="closeModal('modalPwaInstallGuide')" class="btn btn-secondary">Got It</button>
+    </div>
+  </div>
+</div>
+
 <!-- ========================================================================= -->
 <!-- JAVASCRIPT: PURE LEAN LOGIC, REST API / GAS RUNNER, STAGED DATA LOADING     -->
 <!-- ========================================================================= -->
@@ -2426,7 +2600,7 @@
     activeMonth: '2026-11',
     dashViewMode: 'monthly',
     workDiaryFilter: 'ALL',
-    attendanceViewMode: 'table',
+    attendanceViewMode: 'calendar',
     registerSubTab: 'leave', // 'leave' or 'od'
     registerPeriod: 'month',  // 'month' or 'year'
     registerMonthNumber: '11',
@@ -2883,7 +3057,13 @@
       const sec = document.getElementById(`view${capitalize(t)}`);
       const btn = document.getElementById(`navTab${capitalize(t)}`);
       if (sec) sec.style.display = (t === tab) ? 'block' : 'none';
-      if (btn) btn.classList.toggle('active', t === tab);
+      if (btn) {
+        btn.classList.toggle('active', t === tab);
+        if (t === tab) {
+          // Smoothly scroll active tab into view on mobile / small screens
+          btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
     });
 
     // Toggle active state on User Management item in profile menu
@@ -2895,6 +3075,10 @@
       if (state.workDiary && state.workDiary.stats) {
         renderCharts(state.workDiary.stats, state.workDiary.dailyDiaries);
       }
+    }
+
+    if (tab === 'attendance') {
+      switchAttendanceView(state.attendanceViewMode || 'calendar');
     }
 
     if (tab === 'leaveRegister') {
@@ -4282,14 +4466,23 @@
   // ATTENDANCE LOG: TABLE VIEW & CALENDAR GRID
   // =========================================================================
   function switchAttendanceView(view) {
-    state.attendanceViewMode = view;
-    document.getElementById('attendanceTableView').style.display = (view === 'table') ? 'block' : 'none';
-    document.getElementById('attendanceCalendarView').style.display = (view === 'calendar') ? 'flex' : 'none';
-    
-    document.getElementById('attBtnTable').style.background = (view === 'table') ? 'var(--primary)' : 'transparent';
-    document.getElementById('attBtnTable').style.color = (view === 'table') ? '#ffffff' : 'var(--text-secondary)';
-    document.getElementById('attBtnCalendar').style.background = (view === 'calendar') ? 'var(--primary)' : 'transparent';
-    document.getElementById('attBtnCalendar').style.color = (view === 'calendar') ? '#ffffff' : 'var(--text-secondary)';
+    state.attendanceViewMode = view || 'calendar';
+    const isCal = (state.attendanceViewMode === 'calendar');
+    const tbl = document.getElementById('attendanceTableView');
+    const cal = document.getElementById('attendanceCalendarView');
+    const btnTbl = document.getElementById('attBtnTable');
+    const btnCal = document.getElementById('attBtnCalendar');
+
+    if (tbl) tbl.style.display = isCal ? 'none' : 'block';
+    if (cal) cal.style.display = isCal ? 'flex' : 'none';
+    if (btnTbl) {
+      btnTbl.style.background = isCal ? 'transparent' : 'var(--primary)';
+      btnTbl.style.color = isCal ? 'var(--text-secondary)' : '#ffffff';
+    }
+    if (btnCal) {
+      btnCal.style.background = isCal ? 'var(--primary)' : 'transparent';
+      btnCal.style.color = isCal ? '#ffffff' : 'var(--text-secondary)';
+    }
   }
 
   function renderAttendanceTable(days) {
@@ -5539,6 +5732,78 @@
   function fmtTime(t) {
     if (!t) return '';
     return String(t).substring(0, 5);
+  }
+
+  // =========================================================================
+  // PROGRESSIVE WEB APP (PWA): SERVICE WORKER & APP INSTALL CONTROLS
+  // =========================================================================
+  let deferredPwaPrompt = null;
+
+  function isPwaRunningStandalone() {
+    return Boolean(
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      (window.navigator && window.navigator.standalone === true)
+    );
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        console.log('[PWA] Service Worker registered with scope:', reg.scope);
+      }).catch(err => {
+        console.log('[PWA] Service Worker registration note:', err);
+      });
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent mini-infobar and save prompt
+    e.preventDefault();
+    deferredPwaPrompt = e;
+    
+    if (!isPwaRunningStandalone()) {
+      const btn = document.getElementById('btnPwaInstall');
+      if (btn) btn.style.display = 'inline-flex';
+      const menu = document.getElementById('profileMenuInstallApp');
+      if (menu) menu.style.display = 'flex';
+      const directBox = document.getElementById('pwaDirectInstallPromptBox');
+      if (directBox) directBox.style.display = 'block';
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    console.log('[PWA] SPARK Portal installed successfully!');
+    deferredPwaPrompt = null;
+    const btn = document.getElementById('btnPwaInstall');
+    if (btn) btn.style.display = 'none';
+  });
+
+  function handlePwaInstallClick() {
+    if (deferredPwaPrompt) {
+      triggerPwaInstallPrompt();
+    } else {
+      openModal('modalPwaInstallGuide');
+    }
+  }
+
+  async function triggerPwaInstallPrompt() {
+    if (!deferredPwaPrompt) {
+      openModal('modalPwaInstallGuide');
+      return;
+    }
+    deferredPwaPrompt.prompt();
+    try {
+      const choice = await deferredPwaPrompt.userChoice;
+      console.log('[PWA] User choice:', choice.outcome);
+      if (choice.outcome === 'accepted') {
+        deferredPwaPrompt = null;
+        const btn = document.getElementById('btnPwaInstall');
+        if (btn) btn.style.display = 'none';
+        closeModal('modalPwaInstallGuide');
+      }
+    } catch (err) {
+      console.error('[PWA] Prompt error:', err);
+    }
   }
 </script>
 </body>
