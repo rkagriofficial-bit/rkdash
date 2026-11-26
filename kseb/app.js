@@ -14,6 +14,10 @@
     minimumFractionDigits: d,
     maximumFractionDigits: d
   });
+  const fmtSigned = (v, d = 0) => {
+    const n = Number(v || 0);
+    return `${n > 0 ? '+' : ''}${fmt(n, d)}`;
+  };
 
   function monthKeyToLabel(monthKey) {
     if (!monthKey || !monthKey.includes('-')) return monthKey;
@@ -89,9 +93,9 @@
 
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-      bills = Array.isArray(saved) && saved.length ? sortBills(saved) : sortBills(window.SEED_KSEB_BILLS);
+      bills = Array.isArray(saved) ? sortBills(saved) : [];
     } catch {
-      bills = sortBills(window.SEED_KSEB_BILLS);
+      bills = [];
     }
   }
 
@@ -116,7 +120,7 @@
       const res = await fetch(config.url);
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || 'Failed to read sheet');
-      if (Array.isArray(data.rows) && data.rows.length > 0) {
+      if (Array.isArray(data.rows)) {
         bills = sortBills(data.rows.map(normalizeRecord));
         saveLocal();
       }
@@ -139,10 +143,25 @@
     return await res.json();
   }
 
+  function normalizeMonthKey(raw) {
+    const s = String(raw || '').trim();
+    if (/^\d{4}-\d{2}$/.test(s)) return s;
+    const d = new Date(s);
+    if (!Number.isNaN(d.getTime())) {
+      // Shift by +05:30 (IST) so Google Sheets midnight-IST dates never shift backward in UTC/western timezones
+      const ist = new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
+      const y = ist.getUTCFullYear();
+      const m = String(ist.getUTCMonth() + 1).padStart(2, '0');
+      return `${y}-${m}`;
+    }
+    return s;
+  }
+
   function normalizeRecord(r) {
+    const monthKey = normalizeMonthKey(r.monthKey);
     return {
-      monthKey: String(r.monthKey),
-      monthLabel: r.monthLabel || monthKeyToLabel(String(r.monthKey)),
+      monthKey,
+      monthLabel: monthKeyToLabel(monthKey),
       prevImport: r.prevImport === '' || r.prevImport === null ? null : Number(r.prevImport),
       currImport: r.currImport === '' || r.currImport === null ? null : Number(r.currImport),
       normalImport: r.normalImport === '' || r.normalImport === null ? null : Number(r.normalImport),
@@ -168,7 +187,7 @@
     const mSel = document.getElementById('monthlySelect');
     const prevM = mSel.value;
     const reversed = [...bills].reverse();
-    mSel.innerHTML = reversed.map((b) => `<option value="${b.monthKey}">${b.monthLabel} (${b.monthKey})</option>`).join('');
+    mSel.innerHTML = reversed.map((b) => `<option value="${b.monthKey}">${b.monthLabel}</option>`).join('');
     if (prevM && bills.some((b) => b.monthKey === prevM)) mSel.value = prevM;
     else if (reversed.length) mSel.value = reversed[0].monthKey;
 
@@ -208,7 +227,7 @@
     document.getElementById('mKpiDirect').textContent = `${fmt(b.directUsed)} kWh`;
     document.getElementById('mKpiDirectSub').textContent = `Direct usage: ${Number(b.directEfficiency).toFixed(2)}%`;
 
-    document.getElementById('mKpiCredit').textContent = `+${fmt(b.credit)} kWh`;
+    document.getElementById('mKpiCredit').textContent = `${fmtSigned(b.credit)} kWh`;
     document.getElementById('mKpiCreditSub').textContent = `Cumulative bank: ${fmt(b.cumulativeCredit)} kWh`;
 
     document.getElementById('mKpiBill').textContent = `₹${fmt(b.billAmount)}`;
@@ -275,6 +294,41 @@
       data: { labels: compareLabels, datasets },
       options: getBaseChartOptions()
     });
+
+    const currIdx = idx >= 0 ? idx : bills.length - 1;
+    const trendSlice = bills.slice(Math.max(0, currIdx - 11), currIdx + 1);
+    const base = getBaseChartOptions();
+    upsertChart('monthlyCreditTrendChart', {
+      type: 'bar',
+      data: {
+        labels: trendSlice.map((x) => x.monthLabel),
+        datasets: [
+          {
+            label: 'Monthly Credit (kWh)',
+            data: trendSlice.map((x) => x.credit),
+            backgroundColor: trendSlice.map((x) => (x.credit >= 0 ? 'rgba(56, 189, 248, 0.75)' : 'rgba(244, 63, 94, 0.78)')),
+            yAxisID: 'y'
+          },
+          {
+            label: 'Cumulative Bank (kWh)',
+            data: trendSlice.map((x) => x.cumulativeCredit),
+            type: 'line',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.14)',
+            fill: true,
+            tension: 0.25,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        ...base,
+        scales: {
+          ...base.scales,
+          y1: { position: 'right', ticks: { color: '#10b981' }, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
   }
 
   // ---------- 2. YEARLY DASHBOARD ----------
@@ -302,7 +356,7 @@
     document.getElementById('yKpiExportSub').textContent = `Avg export eff: ${avgExportEff.toFixed(1)}%`;
 
     document.getElementById('yKpiImport').textContent = `${fmt(totalImport)} kWh`;
-    document.getElementById('yKpiImportSub').textContent = `Net surplus: +${fmt(totalExport - totalImport)} kWh`;
+    document.getElementById('yKpiImportSub').textContent = `Net surplus: ${fmtSigned(totalExport - totalImport)} kWh`;
 
     document.getElementById('yKpiDirect').textContent = `${fmt(totalDirect)} kWh`;
     document.getElementById('yKpiDirectSub').textContent = `Avg direct usage: ${avgDirectEff.toFixed(1)}%`;
@@ -391,13 +445,13 @@
     document.getElementById('tKpiSolarSub').textContent = `Avg ${fmt(totalSolar / bills.length, 1)} kWh / mo`;
 
     document.getElementById('tKpiExportImport').textContent = `${fmt(totalExport)} / ${fmt(totalImport)}`;
-    document.getElementById('tKpiExportImportSub').textContent = `Net surplus: +${fmt(totalExport - totalImport)} kWh`;
+    document.getElementById('tKpiExportImportSub').textContent = `Net surplus: ${fmtSigned(totalExport - totalImport)} kWh`;
 
     document.getElementById('tKpiDirect').textContent = `${fmt(totalDirect)} kWh`;
     document.getElementById('tKpiDirectSub').textContent = `Avg direct usage: ${avgDirectEff.toFixed(1)}%`;
 
     document.getElementById('tKpiCumCredit').textContent = `${fmt(latest.cumulativeCredit)} kWh`;
-    document.getElementById('tKpiCumCreditSub').textContent = `${latest.monthLabel} credit: +${fmt(latest.credit)} kWh`;
+    document.getElementById('tKpiCumCreditSub').textContent = `${latest.monthLabel} credit: ${fmtSigned(latest.credit)} kWh`;
 
     document.getElementById('tKpiBills').textContent = `₹${fmt(totalBill)}`;
     document.getElementById('tKpiBillsSub').textContent = `Avg ₹${fmt(totalBill / bills.length, 0)} / mo`;
