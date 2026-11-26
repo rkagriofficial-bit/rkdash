@@ -1,2729 +1,472 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RKdash — Enterprise Gateway & Applications Portal</title>
-  <meta name="description" content="Official enterprise application gateway and services portal for rkdash.in.">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
-
-  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-          },
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              200: '#c7d2fe',
-              300: '#a5b4fc',
-              400: '#818cf8',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-              800: '#3730a3',
-              900: '#312e81',
-              950: '#1e1b4b',
-            }
-          },
-          boxShadow: {
-            'glow-brand': '0 0 25px -5px rgba(99, 102, 241, 0.35)',
-            'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.35)',
-            'card-hover': '0 20px 30px -10px rgba(15, 23, 42, 0.12), 0 10px 10px -5px rgba(15, 23, 42, 0.04)',
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- React 18, ReactDOM & Babel Standalone -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <style>
-    /* Sleek Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: rgba(241, 245, 249, 0.7);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 9999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-
-    /* Ambient Gateway Mesh Background */
-    .bg-mesh {
-      background-color: #f8fafc;
-      background-image: 
-        radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-        radial-gradient(at 90% 10%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
-        radial-gradient(at 50% 90%, rgba(168, 85, 247, 0.06) 0px, transparent 50%),
-        radial-gradient(at 80% 50%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
-    }
-
-    /* Glassmorphism Elements */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(226, 232, 240, 0.9);
-    }
-
-    .glass-header {
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(226, 232, 240, 0.85);
-    }
-
-    /* Card Micro-Animations */
-    .service-card {
-      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .service-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(99, 102, 241, 0.45);
-      box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.09), 0 0 0 1px rgba(99, 102, 241, 0.2);
-    }
-    .service-card:hover .service-launch-btn {
-      background-color: #4338ca;
-      color: #ffffff;
-      transform: translateX(1px);
-    }
-    .service-card:hover .service-icon-box {
-      transform: scale(1.08) rotate(-2deg);
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KSEB Solar & Net-Metering Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
-<body class="bg-mesh text-slate-800 font-sans antialiased h-screen overflow-hidden flex flex-col selection:bg-brand-500 selection:text-white">
-
-  <!-- React Root Container -->
-  <div id="root" class="h-full flex flex-col"></div>
-
-  <!-- React 18 Application Script -->
-  <script type="text/babel">
-    const { useState, useEffect, useMemo, useRef } = React;
-
-    // Storage Keys
-    const CATALOG_STORAGE_KEY = "rkdash_gateway_catalog_v2";
-    const AUTH_STORAGE_KEY = "rkdash_gateway_auth_v2";
-    const SESSION_STORAGE_KEY = "rkdash_gateway_session_v2";
-    const DB_URL_STORAGE_KEY = "rkdash_gateway_db_url_v2";
-
-    // Central Google Sheets Database Web App URL (Pre-configured for all devices)
-    const DEFAULT_DB_URL = "https://script.google.com/macros/s/AKfycbyUZ3OcbogBdVG2CzIVImHK1yHoO4UATxsHlmBOLiUt-XCk7xg5X2Pt3RtoL4Dxpd9b6A/exec";
-
-    // Cryptographic SHA-256 Digest Helper (with standard fallback)
-    async function sha256(message) {
-      if (!message) return "";
-      try {
-        if (window.crypto && window.crypto.subtle) {
-          const msgBuffer = new TextEncoder().encode(message);
-          const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
-          const hashArray = Array.from(new Uint8Array(hashBuffer));
-          return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-      } catch (e) {
-        console.warn("SubtleCrypto unavailable, using fallback hash", e);
-      }
-      return fallbackSha256(message);
-    }
-
-    function fallbackSha256(ascii) {
-      function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
-      var mathPow = Math.pow; var maxWord = mathPow(2, 32); var lengthProperty = 'length';
-      var i, j; var result = ''; var words = []; var asciiBitLength = ascii[lengthProperty] * 8;
-      var hash = []; var k = []; var primeCounter = 0; var isComposite = {};
-      for (var candidate = 2; primeCounter < 64; candidate++) {
-        if (!isComposite[candidate]) {
-          for (i = 0; i < 313; i += candidate) { isComposite[i] = candidate; }
-          hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
-          k[primeCounter++] = (mathPow(candidate, 1/3) * maxWord) | 0;
-        }
-      }
-      ascii += '\x80';
-      while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
-      for (i = 0; i < ascii[lengthProperty]; i++) {
-        j = ascii.charCodeAt(i);
-        words[i >> 2] |= j << ((3 - i) % 4) * 8;
-      }
-      words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
-      words[words[lengthProperty]] = (asciiBitLength);
-      for (j = 0; j < words[lengthProperty];) {
-        var w = words.slice(j, j += 16); var oldHash = hash; hash = hash.slice(0, 8);
-        for (i = 0; i < 64; i++) {
-          var w15 = w[i - 15], w2 = w[i - 2]; var a = hash[0], e = hash[4];
-          var temp1 = hash[7] + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) + ((e & hash[5]) ^ ((~e) & hash[6])) + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) | 0);
-          var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
-          hash = [(temp1 + temp2) | 0].concat(hash); hash[4] = (hash[4] + temp1) | 0;
-        }
-        for (i = 0; i < 8; i++) { hash[i] = (hash[i] + oldHash[i]) | 0; }
-      }
-      for (i = 0; i < 8; i++) {
-        for (var i2 = 3; i2 >= 0; i2--) {
-          var c = (hash[i] >> (i2 * 8)) & 255;
-          result += ((c < 16) ? '0' : '') + c.toString(16);
-        }
-      }
-      return result;
-    }
-
-    // Default Baseline Security Config
-    // Default Password: "admin" (Hash: 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918)
-    // Default Recovery Key: "RKDASH-RECOVER-2026-KEY" (Hash: 8be9d636d08b59e66d3d0f831406c900e59fe62fc609f40f3d502338e788202c)
-    // Default Security Question Answer: "rkdash.in" (Hash: 11b8a7f2652c5adae2d2869c77b2ee623d05e5b1e191305cf95092b1ea82ca15)
-    const DEFAULT_AUTH = {
-      username: "admin",
-      passwordHash: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
-      recoveryKey: "RKDASH-RECOVER-2026-KEY",
-      recoveryKeyHash: "8be9d636d08b59e66d3d0f831406c900e59fe62fc609f40f3d502338e788202c",
-      securityQuestion: "What is your primary gateway domain?",
-      securityAnswerHash: "11b8a7f2652c5adae2d2869c77b2ee623d05e5b1e191305cf95092b1ea82ca15",
-      updatedAt: 1700000000000
-    };
-
-    // Default Enterprise Gateway Services Catalog
-    const INITIAL_SERVICES = [
-      {
-        id: "srv-001",
-        title: "Automated Billing & Invoicing Engine",
-        subdomain: "billing.rkdash.in",
-        targetUrl: "https://billing.rkdash.in",
-        description: "Automated GST/VAT compliance, real-time invoice generation, and tax-ready financial ledger syncing.",
-        order: 1,
-        status: "live",
-        category: "Finance",
-        icon: "chart",
-        color: "from-emerald-600 to-teal-700",
-        version: "v3.2"
-      },
-      {
-        id: "srv-002",
-        title: "People & HR Operations Portal",
-        subdomain: "people.rkdash.in",
-        targetUrl: "https://people.rkdash.in",
-        description: "Central employee directory, leave management workflows, multi-tier approvals, and attendance tracking.",
-        order: 2,
-        status: "live",
-        category: "HR & Operations",
-        icon: "shield",
-        color: "from-indigo-600 to-blue-700",
-        version: "v2.5"
-      },
-      {
-        id: "srv-003",
-        title: "Logistics & Asset Telemetry Hub",
-        subdomain: "logistics.rkdash.in",
-        targetUrl: "https://logistics.rkdash.in",
-        description: "Real-time supply chain asset tracking, QR/barcode scanning, warehouse inventory, and automated reorder alerts.",
-        order: 3,
-        status: "testing",
-        category: "Operations",
-        icon: "building",
-        color: "from-amber-500 to-orange-700",
-        version: "v1.8-beta"
-      },
-      {
-        id: "srv-004",
-        title: "Broadcast & Campaign Dispatcher",
-        subdomain: "comms.rkdash.in",
-        targetUrl: "https://comms.rkdash.in",
-        description: "High-throughput transactional messaging, stakeholder alerts, scheduled newsletters, and bounce telemetry.",
-        order: 4,
-        status: "live",
-        category: "Communications",
-        icon: "mail",
-        color: "from-sky-500 to-blue-600",
-        version: "v4.0"
-      },
-      {
-        id: "srv-005",
-        title: "Data Integration & Webhook Ingestion",
-        subdomain: "webhooks.rkdash.in",
-        targetUrl: "https://webhooks.rkdash.in",
-        description: "Real-time webhook routing pipeline, partner API ingestion payloads, and automated event triggers.",
-        order: 5,
-        status: "live",
-        category: "Integration",
-        icon: "webhook",
-        color: "from-purple-600 to-indigo-700",
-        version: "v2.1"
-      },
-      {
-        id: "srv-006",
-        title: "Executive Business Intelligence & KPIs",
-        subdomain: "analytics.rkdash.in",
-        targetUrl: "https://analytics.rkdash.in",
-        description: "Consolidated monthly enterprise analytics, cross-department scorecards, and predictive executive dashboards.",
-        order: 6,
-        status: "testing",
-        category: "Analytics",
-        icon: "chart",
-        color: "from-cyan-600 to-teal-700",
-        version: "v1.4"
-      },
-      {
-        id: "srv-007",
-        title: "Security & Audit Vigilance Console",
-        subdomain: "security.rkdash.in",
-        targetUrl: "https://security.rkdash.in",
-        description: "Confidential administrative audit trails, IAM permissions governance, zero-trust telemetry, and incident response.",
-        order: 7,
-        status: "restricted",
-        category: "Governance",
-        icon: "lock",
-        color: "from-rose-600 to-red-800",
-        version: "v2.0"
-      },
-      {
-        id: "srv-008",
-        title: "Digital Document Automation & Vault",
-        subdomain: "docs.rkdash.in",
-        targetUrl: "https://docs.rkdash.in",
-        description: "Cryptographically stamped contracts, digital signature dispatch, and immutable cloud storage archiving.",
-        order: 8,
-        status: "live",
-        category: "Utilities",
-        icon: "file-text",
-        color: "from-emerald-600 to-teal-800",
-        version: "v3.1"
-      }
-    ];
-
-    // High-Resolution SVG Icons
-    const Icons = {
-      chart: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="20" x2="18" y2="10"/>
-          <line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
-        </svg>
-      ),
-      shield: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-      ),
-      building: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="16" height="20" x="4" y="2" rx="2" ry="2"/>
-          <path d="M9 22v-4h6v4"/>
-          <path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/>
-        </svg>
-      ),
-      mail: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="20" height="16" x="2" y="4" rx="2"/>
-          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-        </svg>
-      ),
-      webhook: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"/>
-          <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1A4 4 0 1 1 14.86 6"/>
-          <circle cx="18" cy="17" r="3"/><circle cx="6" cy="17" r="3"/><circle cx="12" cy="7" r="3"/>
-        </svg>
-      ),
-      lock: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      ),
-      'file-text': (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
-          <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
-          <path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>
-        </svg>
-      ),
-      database: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <ellipse cx="12" cy="5" rx="9" ry="3"/>
-          <path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>
-        </svg>
-      ),
-      code: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-        </svg>
-      ),
-      cloud: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
-        </svg>
-      ),
-      server: (
-        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
-          <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
-          <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
-        </svg>
-      )
-    };
-
-    // ================= MAIN COMPONENT =================
-    function RKdashApp() {
-      // Services Catalog State
-      const [apps, setApps] = useState(() => {
-        try {
-          // Purge legacy storage from early testing
-          localStorage.removeItem("rkdash_catalog_v1");
-          const saved = localStorage.getItem(CATALOG_STORAGE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            const hasLegacy = Array.isArray(parsed) && parsed.some(item => 
-              (item.subdomain && item.subdomain.includes(".internal")) || 
-              (item.targetUrl && item.targetUrl.includes("ExampleInvoiceApp")) ||
-              item.title === "Automated Billing & Invoicing Engine"
-            );
-            if (!hasLegacy && Array.isArray(parsed) && parsed.length > 0) {
-              return parsed;
-            }
-          }
-          return [];
-        } catch (e) {
-          return [];
-        }
-      });
-
-      // Loading state to prevent flash of old placeholder cards
-      const [isLoading, setIsLoading] = useState(() => {
-        const saved = localStorage.getItem(CATALOG_STORAGE_KEY);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0 && !parsed.some(i => i.title === "Automated Billing & Invoicing Engine")) {
-              return false;
-            }
-          } catch(e) {}
-        }
-        return true;
-      });
-
-      // Authentication State
-      const [authConfig, setAuthConfig] = useState(() => {
-        try {
-          const saved = localStorage.getItem(AUTH_STORAGE_KEY);
-          return saved ? JSON.parse(saved) : DEFAULT_AUTH;
-        } catch (e) {
-          return DEFAULT_AUTH;
-        }
-      });
-
-      // Google Sheets Database Web App URL
-      const [dbUrl, setDbUrl] = useState(() => {
-        try {
-          const stored = localStorage.getItem(DB_URL_STORAGE_KEY);
-          if (!stored || stored.includes("WAW08w")) {
-            localStorage.setItem(DB_URL_STORAGE_KEY, DEFAULT_DB_URL);
-            return DEFAULT_DB_URL;
-          }
-          return stored || DEFAULT_DB_URL;
-        } catch (e) {
-          return DEFAULT_DB_URL;
-        }
-      });
-
-      const [dbStatus, setDbStatus] = useState(dbUrl ? 'syncing' : 'offline'); // 'connected' | 'syncing' | 'offline' | 'error'
-      const [isSyncing, setIsSyncing] = useState(false);
-      const [lastSyncTime, setLastSyncTime] = useState(null);
-
-      // Session State (persists across page reloads in the current browser session)
-      const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        try {
-          return sessionStorage.getItem(SESSION_STORAGE_KEY) === "true";
-        } catch (e) {
-          return false;
-        }
-      });
-
-      // UI States
-      const [statusFilter, setStatusFilter] = useState('all');
-      const [categoryFilter, setCategoryFilter] = useState('All');
-      const [searchQuery, setSearchQuery] = useState('');
-      const [sortBy, setSortBy] = useState('order');
-      const [isAdminOpen, setIsAdminOpen] = useState(false);
-      const [adminTab, setAdminTab] = useState('list'); // 'list' | 'form' | 'database' | 'security' | 'data'
-      const [editingApp, setEditingApp] = useState(null);
-      const [restrictedTargetApp, setRestrictedTargetApp] = useState(null);
-      const [toast, setToast] = useState(null);
-
-      // Search Keyboard Shortcut (Ctrl+K or /)
-      const searchInputRef = useRef(null);
-      useEffect(() => {
-        const handleKeyDown = (e) => {
-          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            e.preventDefault();
-            searchInputRef.current?.focus();
-          }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-      }, []);
-
-      // Persist Catalog Locally as Fast-Cache
-      useEffect(() => {
-        try {
-          localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(apps));
-        } catch (e) {
-          console.error("Failed to save catalog to localStorage", e);
-        }
-      }, [apps]);
-
-      // Persist Auth Locally
-      useEffect(() => {
-        try {
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authConfig));
-        } catch (e) {
-          console.error("Failed to save auth to localStorage", e);
-        }
-      }, [authConfig]);
-
-      // Persist DB URL Locally
-      useEffect(() => {
-        try {
-          localStorage.setItem(DB_URL_STORAGE_KEY, dbUrl);
-        } catch (e) {}
-      }, [dbUrl]);
-
-      // Show Toast Notification
-      const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 3500);
-      };
-
-      // Pull Live Catalog from Google Sheets on Mount & when DB URL changes
-      const fetchFromSheet = async (targetUrl = dbUrl) => {
-        const url = (targetUrl || DEFAULT_DB_URL || "").trim();
-        if (!url) {
-          setDbStatus('offline');
-          setIsLoading(false);
-          return;
-        }
-        setDbStatus('syncing');
-        try {
-          const res = await fetch(`${url}?action=getCatalog&t=${Date.now()}`);
-          const data = await res.json();
-          if (data && data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
-            setApps(data.data);
-            try {
-              localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(data.data));
-            } catch(e) {}
-            setDbStatus('connected');
-            setLastSyncTime(Date.now());
-            console.log("Loaded live catalog from Google Sheets:", data.data.length, "services");
-          } else {
-            setDbStatus('connected');
-          }
-        } catch (err) {
-          console.warn("Failed to fetch from Google Sheets database", err);
-          setDbStatus('error');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      useEffect(() => {
-        if (dbUrl) {
-          fetchFromSheet(dbUrl);
-        }
-      }, [dbUrl]);
-
-      // Push Live Catalog to Google Sheets
-      const syncToSheet = async (updatedApps, targetUrl = dbUrl) => {
-        if (!targetUrl || !targetUrl.trim()) return;
-        setIsSyncing(true);
-        try {
-          // Attempt standard POST
-          try {
-            await fetch(targetUrl.trim(), {
-              method: 'POST',
-              mode: 'no-cors',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'saveCatalog', services: updatedApps })
-            });
-          } catch (postErr) {
-            // Fallback GET with payload
-            const payload = encodeURIComponent(JSON.stringify(updatedApps));
-            await fetch(`${targetUrl.trim()}?action=saveCatalog&payload=${payload}`);
-          }
-          setIsSyncing(false);
-          setDbStatus('connected');
-          setLastSyncTime(Date.now());
-          showToast("Changes synced live to Google Sheets database! ☁️");
-        } catch (err) {
-          console.error("Cloud sync failed", err);
-          setIsSyncing(false);
-          setDbStatus('error');
-          showToast("Saved locally, but Google Sheets sync failed", "error");
-        }
-      };
-
-      // Authenticate Session
-      const handleLoginSuccess = () => {
-        setIsAuthenticated(true);
-        try {
-          sessionStorage.setItem(SESSION_STORAGE_KEY, "true");
-        } catch (e) {}
-        showToast(`Welcome back, ${authConfig.username}! Administrator session active.`);
-      };
-
-      // Sign Out Session
-      const handleSignOut = () => {
-        setIsAuthenticated(false);
-        try {
-          sessionStorage.removeItem(SESSION_STORAGE_KEY);
-        } catch (e) {}
-        setIsAdminOpen(false);
-        showToast("Administrator session signed out.", "info");
-      };
-
-      // Launch Service Handler
-      const handleLaunch = (app) => {
-        if (app.status === 'restricted') {
-          if (isAuthenticated) {
-            showToast(`Administrator Authorized: Launching ${app.title}`);
-            window.open(app.targetUrl, '_blank');
-          } else {
-            setRestrictedTargetApp(app);
-          }
-        } else {
-          window.open(app.targetUrl, '_blank');
-        }
-      };
-
-      // Save/Edit Service
-      const handleSaveApp = (formData) => {
-        let updatedList;
-        if (formData.id) {
-          updatedList = apps.map(a => a.id === formData.id ? { ...a, ...formData } : a);
-          showToast(`Service "${formData.title}" updated`);
-        } else {
-          const newApp = {
-            ...formData,
-            id: 'srv-' + Date.now().toString(36),
-            order: Number(formData.order) || (apps.length + 1)
-          };
-          updatedList = [...apps, newApp];
-          showToast(`Service "${formData.title}" registered`);
-        }
-        setApps(updatedList);
-        syncToSheet(updatedList);
-        setEditingApp(null);
-        setAdminTab('list');
-      };
-
-      // Delete Service
-      const handleDeleteApp = (id, title) => {
-        if (window.confirm(`Are you sure you want to remove "${title}" from the gateway?`)) {
-          const updatedList = apps.filter(a => a.id !== id);
-          setApps(updatedList);
-          syncToSheet(updatedList);
-          showToast(`Service "${title}" removed from gateway`, 'info');
-        }
-      };
-
-      // Reorder Services
-      const handleMoveOrder = (id, delta) => {
-        const sorted = [...apps].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-        const index = sorted.findIndex(a => a.id === id);
-        if (index === -1) return;
-        const targetIndex = index + delta;
-        if (targetIndex < 0 || targetIndex >= sorted.length) return;
-
-        const temp = sorted[index].order;
-        sorted[index].order = sorted[targetIndex].order;
-        sorted[targetIndex].order = temp;
-
-        sorted.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-        sorted.forEach((item, i) => item.order = i + 1);
-
-        const updatedList = [...sorted];
-        setApps(updatedList);
-        syncToSheet(updatedList);
-        showToast("Display order updated & synced");
-      };
-
-      // Cycle Status Pill
-      const handleCycleStatus = (id) => {
-        const updatedList = apps.map(a => {
-          if (a.id === id) {
-            const nextStatus = a.status === 'live' ? 'testing' : a.status === 'testing' ? 'restricted' : 'live';
-            return { ...a, status: nextStatus };
-          }
-          return a;
-        });
-        setApps(updatedList);
-        syncToSheet(updatedList);
-        showToast("Deployment stage updated & synced");
-      };
-
-      // Export / Import / Reset Catalog
-      const handleExportJSON = () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apps, null, 2));
-        const anchor = document.createElement('a');
-        anchor.setAttribute("href", dataStr);
-        anchor.setAttribute("download", `rkdash_gateway_${new Date().toISOString().slice(0, 10)}.json`);
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-        showToast("Gateway catalog exported to JSON");
-      };
-
-      const handleImportJSON = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const imported = JSON.parse(event.target.result);
-            if (Array.isArray(imported)) {
-              setApps(imported);
-              syncToSheet(imported);
-              showToast(`Imported ${imported.length} gateway services & synced`);
-            } else {
-              alert("Invalid JSON format. Expected an array of service objects.");
-            }
-          } catch (err) {
-            alert("Error parsing JSON: " + err.message);
-          }
-        };
-        reader.readAsText(file);
-      };
-
-      const handleResetDefaults = () => {
-        if (window.confirm("Reset back to standard RKdash enterprise gateway catalog? This will overwrite the Google Sheet.")) {
-          setApps(INITIAL_SERVICES);
-          syncToSheet(INITIAL_SERVICES);
-          showToast("Reset to factory gateway catalog & synced to cloud");
-        }
-      };
-
-      // Filter and Sort Services
-      const categories = useMemo(() => {
-        const set = new Set(apps.map(a => a.category).filter(Boolean));
-        return ['All', ...Array.from(set)];
-      }, [apps]);
-
-      const filteredApps = useMemo(() => {
-        let result = [...apps];
-        if (statusFilter !== 'all') {
-          result = result.filter(a => a.status === statusFilter);
-        }
-        if (categoryFilter !== 'All') {
-          result = result.filter(a => a.category === categoryFilter);
-        }
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase().trim();
-          result = result.filter(a =>
-            (a.title && a.title.toLowerCase().includes(q)) ||
-            (a.description && a.description.toLowerCase().includes(q)) ||
-            (a.category && a.category.toLowerCase().includes(q)) ||
-            (a.subdomain && a.subdomain.toLowerCase().includes(q)) ||
-            (a.targetUrl && a.targetUrl.toLowerCase().includes(q))
-          );
-        }
-        if (sortBy === 'order') {
-          result.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-        } else if (sortBy === 'title-asc') {
-          result.sort((a, b) => a.title.localeCompare(b.title));
-        } else if (sortBy === 'status') {
-          const rank = { live: 1, testing: 2, restricted: 3 };
-          result.sort((a, b) => (rank[a.status] || 9) - (rank[b.status] || 9));
-        }
-        return result;
-      }, [apps, statusFilter, categoryFilter, searchQuery, sortBy]);
-
-      const liveCount = useMemo(() => apps.filter(a => a.status === 'live').length, [apps]);
-      const testingCount = useMemo(() => apps.filter(a => a.status === 'testing').length, [apps]);
-      const restrictedCount = useMemo(() => apps.filter(a => a.status === 'restricted').length, [apps]);
-
-      return (
-        <div className="flex flex-col h-screen overflow-hidden">
-          
-          {/* ================= HEADER BAR ================= */}
-          <header className="glass-header z-30 shrink-0">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-16">
-                
-                {/* Brand Logo & RKdash Emblem */}
-                <div className="flex items-center space-x-3.5">
-                  <div className="relative group cursor-pointer" onClick={() => { setStatusFilter('all'); setCategoryFilter('All'); setSearchQuery(''); }}>
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-sky-400 text-white flex items-center justify-center shadow-md shadow-brand-600/30 transition-transform group-hover:scale-105">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-extrabold text-lg text-slate-900 tracking-tight flex items-center gap-1.5">
-                        RKdash
-                      </span>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-900 text-white shadow-2xs">
-                        Gateway
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-medium tracking-wide">
-                      Enterprise Services &amp; Applications Portal
-                    </p>
-                  </div>
-                </div>
-
-                {/* Cloud Database & Health Status Pills */}
-                <div className="hidden lg:flex items-center space-x-2.5">
-                  {dbUrl ? (
-                    <button
-                      onClick={() => { setAdminTab('database'); setIsAdminOpen(true); }}
-                      title="Click to manage Google Sheets database sync"
-                      className="flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-[11px] font-semibold text-sky-800 hover:bg-sky-100 transition-all cursor-pointer"
-                    >
-                      <span className={`relative flex h-2 w-2`}>
-                        {isSyncing && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>}
-                        <span className={`relative inline-flex rounded-full h-2 w-2 ${isSyncing ? 'bg-amber-500' : dbStatus === 'connected' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                      </span>
-                      <span>{isSyncing ? 'Syncing to Sheets...' : dbStatus === 'connected' ? 'Google Sheets DB' : 'Sheets Offline'}</span>
-                      <span className="text-sky-300">&bull;</span>
-                      <span className="font-mono text-sky-600 text-[10px]">Cloud Active</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => { setAdminTab('database'); setIsAdminOpen(true); }}
-                      className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300/80 text-[11px] font-semibold text-amber-900 hover:bg-amber-100 transition-all cursor-pointer shadow-2xs"
-                    >
-                      <svg className="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                      <span>Connect Google Sheets Database</span>
-                    </button>
-                  )}
-
-                  <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[11px] font-semibold text-emerald-800">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span>rkdash.in</span>
-                  </div>
-                </div>
-
-                {/* Search Bar & Admin Action */}
-                <div className="flex items-center space-x-3">
-                  <div className="relative hidden md:block w-64 lg:w-72">
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      placeholder="Search services, endpoints... (Ctrl+K)"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-8 py-1.5 text-xs bg-slate-100/90 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-brand-500 rounded-xl transition-all outline-none text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-brand-500/20"
-                    />
-                    <svg className="w-4 h-4 text-slate-400 absolute left-3 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    {searchQuery && (
-                      <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Admin State Button */}
-                  {isAuthenticated ? (
-                    <div className="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                      <button
-                        onClick={() => { setAdminTab('list'); setIsAdminOpen(true); }}
-                        className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-800 hover:bg-white hover:shadow-xs transition-all"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span>Admin Console</span>
-                      </button>
-                      <button
-                        onClick={handleSignOut}
-                        title="Sign Out Session"
-                        className="px-2 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => { setAdminTab('list'); setIsAdminOpen(true); }}
-                      className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-brand-600 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs hover:shadow-xs transition-all active:scale-95"
-                    >
-                      <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                      </svg>
-                      <span>Admin Login</span>
-                    </button>
-                  )}
-                </div>
-
-              </div>
-            </div>
-          </header>
-
-          {/* ================= SUBHEADER & FILTERS ================= */}
-          <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 shrink-0 z-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
-              
-              {/* Quick Status Filters */}
-              <div className="flex items-center space-x-1.5 text-xs font-semibold">
-                <button
-                  onClick={() => setStatusFilter('all')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
-                    statusFilter === 'all'
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  All Services <span className="opacity-70 ml-0.5">({isLoading ? '...' : apps.length})</span>
-                </button>
-                <button
-                  onClick={() => setStatusFilter('live')}
-                  className={`px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition-all ${
-                    statusFilter === 'live'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
-                  }`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  <span>Production ({isLoading ? '...' : liveCount})</span>
-                </button>
-                <button
-                  onClick={() => setStatusFilter('testing')}
-                  className={`px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition-all ${
-                    statusFilter === 'testing'
-                      ? 'bg-amber-600 text-white shadow-xs'
-                      : 'text-amber-700 bg-amber-50 hover:bg-amber-100'
-                  }`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                  <span>Staging ({isLoading ? '...' : testingCount})</span>
-                </button>
-                <button
-                  onClick={() => setStatusFilter('restricted')}
-                  className={`px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition-all ${
-                    statusFilter === 'restricted'
-                      ? 'bg-purple-700 text-white shadow-xs'
-                      : 'text-purple-700 bg-purple-50 hover:bg-purple-100'
-                  }`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
-                  <span>Restricted ({isLoading ? '...' : restrictedCount})</span>
-                </button>
-              </div>
-
-              {/* Category Dropdown & Sorter */}
-              <div className="flex items-center space-x-2.5 text-xs">
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-slate-400 text-[11px] font-medium hidden sm:inline">Category:</span>
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 text-slate-700 font-semibold rounded-lg px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  >
-                    {categories.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-slate-400 text-[11px] font-medium hidden sm:inline">Sort:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 text-slate-700 font-semibold rounded-lg px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  >
-                    <option value="order">Priority Order</option>
-                    <option value="title-asc">Alphabetical (A-Z)</option>
-                    <option value="status">Stage / Status</option>
-                  </select>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          {/* ================= HERO GATEWAY BANNER ================= */}
-          <div className="shrink-0 bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 text-white border-b border-slate-800">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="px-2 py-0.5 rounded-md bg-brand-500/20 text-brand-300 border border-brand-500/30 font-mono text-[10px] font-bold">
-                  v3.2 GATEWAY
-                </span>
-                <p className="text-xs text-slate-200">
-                  <strong className="text-white font-semibold">RKdash Central Gateway:</strong> Unified zero-trust launchpad for company services, webhooks, subdomains &amp; dashboards.
-                </p>
-              </div>
-
-              <div className="hidden md:flex items-center space-x-4 text-[11px] text-slate-400">
-                <span className="flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                  TLS 1.3 Protected
-                </span>
-                <span>&bull;</span>
-                <span className="font-mono text-slate-300">https://rkdash.in</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ================= MAIN SERVICES GRID ================= */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto">
-              
-              {isLoading ? (
-                /* Shimmering Skeleton Loader during initial cloud fetch */
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-pulse">
-                  {[1, 2, 3, 4].map((n) => (
-                    <div key={n} className="glass-card rounded-2xl p-4 flex flex-col justify-between h-44 border border-slate-200/70 bg-white/60">
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="h-3.5 w-16 bg-slate-200/80 rounded-md"></div>
-                          <div className="h-3.5 w-20 bg-slate-200/80 rounded-full"></div>
-                        </div>
-                        <div className="flex items-start space-x-3 mb-3">
-                          <div className="w-10 h-10 rounded-xl bg-slate-200/80 shrink-0"></div>
-                          <div className="flex-1 space-y-1.5">
-                            <div className="h-4 w-3/4 bg-slate-200/80 rounded"></div>
-                            <div className="h-3 w-1/2 bg-slate-200/60 rounded"></div>
-                          </div>
-                        </div>
-                        <div className="space-y-1.5">
-                          <div className="h-3 w-full bg-slate-200/60 rounded"></div>
-                          <div className="h-3 w-4/5 bg-slate-200/60 rounded"></div>
-                        </div>
-                      </div>
-                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <div className="h-3 w-20 bg-slate-200/60 rounded"></div>
-                        <div className="h-6 w-20 bg-slate-200/80 rounded-xl"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : filteredApps.length === 0 ? (
-                <div className="text-center py-16 bg-white/60 rounded-3xl border border-dashed border-slate-300 p-8">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-800">No Services Found</h3>
-                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                    No gateway applications match your search query or filter selection.
-                  </p>
-                  <button
-                    onClick={() => { setStatusFilter('all'); setCategoryFilter('All'); setSearchQuery(''); }}
-                    className="mt-4 px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 transition-all shadow-xs"
-                  >
-                    Reset All Filters
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {filteredApps.map((app) => (
-                    <ServiceCard
-                      key={app.id}
-                      app={app}
-                      onLaunch={() => handleLaunch(app)}
-                    />
-                  ))}
-                </div>
-              )}
-
-            </div>
-          </main>
-
-          {/* ================= FOOTER ================= */}
-          <footer className="glass-header z-20 shrink-0 border-t border-slate-200/90 py-2.5">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-2">
-              <div className="flex items-center space-x-2">
-                <span className="font-semibold text-slate-800">RKdash Enterprise Portal</span>
-                <span>&bull;</span>
-                <span className="font-mono text-brand-600 font-semibold">rkdash.in</span>
-                <span>&bull;</span>
-                <span>{dbUrl ? 'Google Sheets Central Database' : 'Local Storage Mode'}</span>
-              </div>
-              <div className="flex items-center space-x-3 text-slate-400">
-                <span>Active Services: {apps.length}</span>
-                <span>&bull;</span>
-                <span>Hostinger &amp; GitHub Infrastructure</span>
-              </div>
-            </div>
-          </footer>
-
-          {/* ================= RESTRICTED ACCESS MODAL ================= */}
-          {restrictedTargetApp && (
-            <RestrictedModal
-              app={restrictedTargetApp}
-              authConfig={authConfig}
-              onClose={() => setRestrictedTargetApp(null)}
-              onSuccess={() => {
-                const target = restrictedTargetApp;
-                setRestrictedTargetApp(null);
-                handleLoginSuccess();
-                window.open(target.targetUrl, '_blank');
-              }}
-              onForgot={() => {
-                setRestrictedTargetApp(null);
-                setAdminTab('security');
-                setIsAdminOpen(true);
-              }}
-            />
-          )}
-
-          {/* ================= ADMIN CONSOLE MODAL ================= */}
-          {isAdminOpen && (
-            <AdminModal
-              isOpen={isAdminOpen}
-              onClose={() => setIsAdminOpen(false)}
-              isAuthenticated={isAuthenticated}
-              onAuthenticate={handleLoginSuccess}
-              authConfig={authConfig}
-              setAuthConfig={setAuthConfig}
-              apps={apps}
-              tab={adminTab}
-              setTab={setAdminTab}
-              editingApp={editingApp}
-              setEditingApp={setEditingApp}
-              onSave={handleSaveApp}
-              onDelete={handleDeleteApp}
-              onMoveOrder={handleMoveOrder}
-              onCycleStatus={handleCycleStatus}
-              onExport={handleExportJSON}
-              onImport={handleImportJSON}
-              onReset={handleResetDefaults}
-              showToast={showToast}
-              dbUrl={dbUrl}
-              setDbUrl={setDbUrl}
-              dbStatus={dbStatus}
-              onFetchFromSheet={fetchFromSheet}
-              onPushToSheet={syncToSheet}
-            />
-          )}
-
-          {/* Toast Notification Element */}
-          {toast && (
-            <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200">
-              <div className={`px-4 py-2.5 rounded-2xl shadow-xl border text-xs font-semibold flex items-center space-x-2 ${
-                toast.type === 'error'
-                  ? 'bg-rose-900 text-rose-100 border-rose-700'
-                  : toast.type === 'info'
-                  ? 'bg-slate-900 text-slate-100 border-slate-700'
-                  : 'bg-emerald-950 text-emerald-100 border-emerald-800'
-              }`}>
-                {toast.type === 'error' ? (
-                  <svg className="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                ) : (
-                  <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                )}
-                <span>{toast.message}</span>
-              </div>
-            </div>
-          )}
-
+<body>
+  <div class="app-shell">
+    <!-- Top Navigation -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">☀️</div>
+        <div>
+          <h1>KSEB Solar &amp; Net-Metering</h1>
+          <p class="subtitle">Monthly, Yearly &amp; Total Energy Tracker</p>
         </div>
-      );
-    }
+      </div>
 
-    // ================= SERVICE CARD COMPONENT =================
-    function ServiceCard({ app, onLaunch }) {
-      return (
-        <div className="service-card glass-card rounded-2xl p-4 flex flex-col justify-between relative group hover:bg-white transition-all">
-          
-          <div>
-            {/* Top Row: Category and Stage Pill */}
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                {app.category}
-              </span>
-
-              {app.status === 'live' && (
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/90 shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Production
-                </span>
-              )}
-              {app.status === 'testing' && (
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/90 shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  Staging / Beta
-                </span>
-              )}
-              {app.status === 'restricted' && (
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/90 shadow-2xs">
-                  <svg className="w-3 h-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                  </svg>
-                  Restricted
-                </span>
-              )}
-            </div>
-
-            {/* Icon + Title */}
-            <div className="flex items-start space-x-3 mb-2.5">
-              <div className={`service-icon-box w-10 h-10 rounded-xl bg-gradient-to-tr ${app.color || 'from-indigo-600 to-sky-600'} flex items-center justify-center shrink-0 shadow-sm transition-transform`}>
-                {Icons[app.icon] || Icons['chart']}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors leading-snug line-clamp-2">
-                  {app.title}
-                </h3>
-                {app.subdomain && (
-                  <p className="text-[10px] font-mono font-medium text-slate-500 truncate mt-0.5">
-                    {app.subdomain}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-4">
-              {app.description}
-            </p>
-          </div>
-
-          {/* Bottom Row: Link preview & Launch Button */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-[10px] text-slate-400 font-mono truncate max-w-[120px]" title={app.targetUrl}>
-              {extractDomain(app.targetUrl)}
-            </span>
-
-            <button
-              onClick={onLaunch}
-              className={`service-launch-btn px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 shadow-2xs ${
-                app.status === 'restricted'
-                  ? 'bg-purple-50 text-purple-700 hover:bg-purple-700 hover:text-white'
-                  : 'bg-slate-100 text-slate-800 hover:bg-brand-600 hover:text-white'
-              }`}
-            >
-              <span>{app.status === 'restricted' ? 'Authenticate' : 'Launch'}</span>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-              </svg>
-            </button>
-          </div>
-
+      <div class="topbar-actions">
+        <div id="syncStatus" class="status-pill status-local" title="Database status">
+          <span class="dot"></span>
+          <span id="syncStatusText">Local Mode</span>
         </div>
-      );
-    }
+        <button id="btnTheme" class="btn btn-outline btn-icon-text" title="Toggle Dark / Light theme" aria-label="Toggle theme">
+          <span id="themeIcon">☀️</span>
+          <span id="themeLabel">Light</span>
+        </button>
+        <button id="btnOpenEntry" class="btn btn-primary">+ Enter Bill</button>
+      </div>
+    </header>
 
-    // ================= RESTRICTED AUTH MODAL =================
-    function RestrictedModal({ app, authConfig, onClose, onSuccess, onForgot }) {
-      const [password, setPassword] = useState('');
-      const [showPassword, setShowPassword] = useState(false);
-      const [error, setError] = useState(false);
-      const [isVerifying, setIsVerifying] = useState(false);
-      const inputRef = useRef(null);
+    <!-- Primary View Tabs -->
+    <nav class="tabs" aria-label="Primary views">
+      <button class="tab active" data-tab="monthly">Monthly</button>
+      <button class="tab" data-tab="yearly">Yearly</button>
+      <button class="tab" data-tab="total">Total</button>
+      <button class="tab" data-tab="entry">Enter / Edit Bill</button>
+      <button class="tab" data-tab="ledger">Ledger</button>
+    </nav>
 
-      useEffect(() => {
-        inputRef.current?.focus();
-      }, []);
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- TAB 1: MONTHLY DASHBOARD -->
+      <section id="tab-monthly" class="tab-panel active">
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label for="monthlySelect">Select Month:</label>
+            <select id="monthlySelect"></select>
+          </div>
+          <div class="latest-badge" id="monthlyBadge">—</div>
+        </div>
 
-      const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsVerifying(true);
-        const hash = await sha256(password);
-        if (hash === authConfig.passwordHash) {
-          onSuccess();
-        } else {
-          setError(true);
-          setIsVerifying(false);
-        }
-      };
-
-      return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
-            
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center shadow-xs">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-              </div>
-              <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-
-            <div className="space-y-1.5">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                Restricted Enterprise Service
-              </span>
-              <h3 className="text-base font-extrabold text-slate-900">{app.title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                This endpoint requires administrator identity verification to execute. Please provide your administrator password.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Administrator Password</label>
-                <div className="relative">
-                  <input
-                    ref={inputRef}
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter administrator password"
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); setError(false); }}
-                    className="w-full pl-4 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    )}
-                  </button>
-                </div>
-                {error && (
-                  <p className="text-xs text-rose-500 font-semibold mt-1.5 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Incorrect administrator password. Access denied.
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={onForgot}
-                  className="text-[11px] text-purple-700 hover:text-purple-900 font-bold underline"
-                >
-                  Forgot Password?
-                </button>
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isVerifying}
-                    className="px-4 py-2 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
-                  >
-                    <span>{isVerifying ? 'Verifying...' : 'Authenticate & Launch'}</span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                  </button>
-                </div>
-              </div>
-            </form>
-
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Solar Generation</div>
+            <div class="kpi-value" id="mKpiSolar">—</div>
+            <div class="kpi-sub" id="mKpiSolarSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Net Export</div>
+            <div class="kpi-value" id="mKpiExport">—</div>
+            <div class="kpi-sub" id="mKpiExportSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Net Import</div>
+            <div class="kpi-value" id="mKpiImport">—</div>
+            <div class="kpi-sub" id="mKpiImportSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Direct Used</div>
+            <div class="kpi-value" id="mKpiDirect">—</div>
+            <div class="kpi-sub" id="mKpiDirectSub">—</div>
+          </div>
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Monthly &amp; Cum. Credit</div>
+            <div class="kpi-value" id="mKpiCredit">—</div>
+            <div class="kpi-sub" id="mKpiCreditSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Bill Amount</div>
+            <div class="kpi-value" id="mKpiBill">—</div>
+            <div class="kpi-sub" id="mKpiBillSub">—</div>
           </div>
         </div>
-      );
-    }
 
-    // ================= ADMIN MODAL COMPONENT =================
-    function AdminModal({
-      isOpen, onClose, isAuthenticated, onAuthenticate,
-      authConfig, setAuthConfig,
-      apps, tab, setTab, editingApp, setEditingApp,
-      onSave, onDelete, onMoveOrder, onCycleStatus,
-      onExport, onImport, onReset, showToast,
-      dbUrl, setDbUrl, dbStatus, onFetchFromSheet, onPushToSheet
-    }) {
-      const [view, setView] = useState('login'); // 'login' | 'recover' | 'panel'
-
-      useEffect(() => {
-        if (isAuthenticated) {
-          setView('panel');
-        } else {
-          setView('login');
-        }
-      }, [isAuthenticated]);
-
-      return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            
-            {/* Modal Header */}
-            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-xl bg-brand-600 text-white shadow-sm">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
-                    <span>RKdash Enterprise Gateway Console</span>
-                    <span className="text-[10px] font-mono bg-slate-800 text-brand-300 px-2 py-0.5 rounded border border-slate-700">
-                      v3.2
-                    </span>
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    Manage service endpoints, subdomains, display priorities, and cloud database sync.
-                  </p>
-                </div>
-              </div>
-
-              <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
+        <div class="charts-grid">
+          <div class="card chart-card">
+            <div class="card-header">
+              <h2>Solar Energy Split</h2>
+              <span class="card-hint">Exported vs Direct Used</span>
             </div>
+            <div class="chart-wrap">
+              <canvas id="monthlySolarSplitChart"></canvas>
+            </div>
+          </div>
 
-            {/* Modal Body */}
-            {!isAuthenticated ? (
-              view === 'login' ? (
-                <AdminLoginView
-                  authConfig={authConfig}
-                  onSuccess={onAuthenticate}
-                  onForgotPassword={() => setView('recover')}
-                />
-              ) : (
-                <AdminRecoveryView
-                  authConfig={authConfig}
-                  setAuthConfig={setAuthConfig}
-                  onSuccess={onAuthenticate}
-                  onBackToLogin={() => setView('login')}
-                  showToast={showToast}
-                />
-              )
-            ) : (
-              /* Authenticated Admin Management Tabs */
-              <div className="flex-1 flex flex-col overflow-hidden">
-                
-                {/* Navigation Bar */}
-                <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => { setTab('list'); setEditingApp(null); }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        tab === 'list'
-                          ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
-                          : 'text-slate-600 hover:bg-slate-200/60'
-                      }`}
-                    >
-                      Service Registry ({apps.length})
-                    </button>
-                    <button
-                      onClick={() => { setEditingApp(null); setTab('form'); }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        tab === 'form' && !editingApp
-                          ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
-                          : 'text-slate-600 hover:bg-slate-200/60'
-                      }`}
-                    >
-                      + Register Service
-                    </button>
-                    <button
-                      onClick={() => { setTab('database'); setEditingApp(null); }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
-                        tab === 'database'
-                          ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
-                          : 'text-slate-600 hover:bg-slate-200/60'
-                      }`}
-                    >
-                      <span>Cloud Database</span>
-                      <span className={`w-1.5 h-1.5 rounded-full ${dbUrl ? 'bg-emerald-500' : 'bg-amber-400'}`}></span>
-                    </button>
-                    <button
-                      onClick={() => { setTab('security'); setEditingApp(null); }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        tab === 'security'
-                          ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
-                          : 'text-slate-600 hover:bg-slate-200/60'
-                      }`}
-                    >
-                      Admin &amp; Security
-                    </button>
-                    <button
-                      onClick={() => { setTab('data'); setEditingApp(null); }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        tab === 'data'
-                          ? 'bg-white text-slate-900 shadow-xs border border-slate-200'
-                          : 'text-slate-600 hover:bg-slate-200/60'
-                      }`}
-                    >
-                      Backup &amp; Reset
-                    </button>
-                  </div>
+          <div class="card chart-card">
+            <div class="card-header">
+              <h2>Import Breakdown (ToD)</h2>
+              <span class="card-hint">Normal / Off-Peak / Peak</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="monthlyTodChart"></canvas>
+            </div>
+          </div>
 
-                  <div className="flex items-center space-x-2 text-xs">
-                    <span className="text-[11px] text-slate-400">Admin: <strong className="text-slate-700">{authConfig.username}</strong></span>
-                  </div>
-                </div>
-
-                {/* Tab Content Panes */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  {tab === 'list' && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-slate-500">
-                          Use <strong>▲ / ▼</strong> to re-prioritize. Click the stage pill to cycle between <strong>Production</strong>, <strong>Staging</strong>, and <strong>Restricted</strong>.
-                        </p>
-                      </div>
-
-                      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-                        <table className="w-full text-left border-collapse text-xs">
-                          <thead>
-                            <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
-                              <th className="py-2.5 px-3 w-16 text-center">Priority</th>
-                              <th className="py-2.5 px-4">Service Details</th>
-                              <th className="py-2.5 px-4 w-36">Stage</th>
-                              <th className="py-2.5 px-4 w-44">Target Endpoint</th>
-                              <th className="py-2.5 px-4 text-right w-28">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100">
-                            {[...apps].sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0)).map((app, idx, arr) => (
-                              <tr key={app.id} className="hover:bg-slate-50/80 transition-colors">
-                                <td className="py-2.5 px-3 text-center">
-                                  <div className="flex items-center justify-center space-x-1">
-                                    <span className="font-bold font-mono text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[11px]">{app.order}</span>
-                                    <div className="flex flex-col">
-                                      <button onClick={() => onMoveOrder(app.id, -1)} className={`text-slate-400 hover:text-slate-700 text-[10px] leading-none ${idx === 0 ? 'opacity-30' : ''}`}>▲</button>
-                                      <button onClick={() => onMoveOrder(app.id, 1)} className={`text-slate-400 hover:text-slate-700 text-[10px] leading-none ${idx === arr.length - 1 ? 'opacity-30' : ''}`}>▼</button>
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td className="py-2.5 px-4">
-                                  <div className="font-bold text-slate-900">{app.title}</div>
-                                  <div className="text-[11px] text-slate-500 line-clamp-1">{app.description}</div>
-                                  {app.subdomain && (
-                                    <div className="text-[10px] font-mono text-brand-600 font-medium">{app.subdomain}</div>
-                                  )}
-                                </td>
-
-                                <td className="py-2.5 px-4">
-                                  <button
-                                    onClick={() => onCycleStatus(app.id)}
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${
-                                      app.status === 'live'
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                        : app.status === 'testing'
-                                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                        : 'bg-purple-50 text-purple-700 border-purple-200'
-                                    }`}
-                                  >
-                                    <span className={`w-1.5 h-1.5 rounded-full ${app.status === 'live' ? 'bg-emerald-500 animate-pulse' : app.status === 'testing' ? 'bg-amber-500' : 'bg-purple-500'}`}></span>
-                                    <span className="capitalize">{app.status === 'live' ? 'Production' : app.status === 'testing' ? 'Staging' : 'Restricted'}</span>
-                                  </button>
-                                </td>
-
-                                <td className="py-2.5 px-4 font-mono text-[11px] text-slate-500 truncate max-w-[180px]">
-                                  <a href={app.targetUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-600 hover:underline">
-                                    {app.targetUrl}
-                                  </a>
-                                </td>
-
-                                <td className="py-2.5 px-4 text-right space-x-1 whitespace-nowrap">
-                                  <button
-                                    onClick={() => { setEditingApp(app); setTab('form'); }}
-                                    className="px-2.5 py-1 text-slate-700 hover:text-brand-700 hover:bg-brand-50 rounded-lg font-semibold transition-colors"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={() => onDelete(app.id, app.title)}
-                                    className="px-2.5 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg font-semibold transition-colors"
-                                  >
-                                    Delete
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {tab === 'form' && (
-                    <AdminAppForm
-                      initialData={editingApp}
-                      totalCount={apps.length}
-                      onCancel={() => { setTab('list'); setEditingApp(null); }}
-                      onSave={onSave}
-                    />
-                  )}
-
-                  {tab === 'database' && (
-                    <AdminDatabaseTab
-                      dbUrl={dbUrl}
-                      setDbUrl={setDbUrl}
-                      dbStatus={dbStatus}
-                      apps={apps}
-                      onFetchFromSheet={onFetchFromSheet}
-                      onPushToSheet={onPushToSheet}
-                      showToast={showToast}
-                    />
-                  )}
-
-                  {tab === 'security' && (
-                    <AdminSecurityTab
-                      authConfig={authConfig}
-                      setAuthConfig={setAuthConfig}
-                      showToast={showToast}
-                    />
-                  )}
-
-                  {tab === 'data' && (
-                    <div className="max-w-2xl mx-auto space-y-6">
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
-                        <h4 className="text-sm font-bold text-slate-900">Backup Gateway Catalog</h4>
-                        <p className="text-xs text-slate-500">
-                          Export your entire service catalog, orders, subdomains, and metadata to a timestamped JSON file.
-                        </p>
-                        <button
-                          onClick={onExport}
-                          className="px-4 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold shadow-2xs"
-                        >
-                          Export Catalog JSON
-                        </button>
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
-                        <h4 className="text-sm font-bold text-slate-900">Import Gateway Catalog</h4>
-                        <p className="text-xs text-slate-500">
-                          Restore or migrate services by uploading a JSON catalog file.
-                        </p>
-                        <label className="inline-block px-4 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold shadow-2xs cursor-pointer">
-                          Select JSON File
-                          <input type="file" accept=".json" onChange={onImport} className="hidden" />
-                        </label>
-                      </div>
-
-                      <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 space-y-3">
-                        <h4 className="text-sm font-bold text-rose-900">Factory Reset</h4>
-                        <p className="text-xs text-rose-600">
-                          Revert all gateway services back to standard default enterprise services.
-                        </p>
-                        <button
-                          onClick={onReset}
-                          className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-2xs"
-                        >
-                          Reset to Factory Baseline
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-
-              </div>
-            )}
-
+          <div class="card chart-card wide">
+            <div class="card-header">
+              <h2>Selected Month vs Previous Month (kWh)</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="monthlyCompareChart"></canvas>
+            </div>
           </div>
         </div>
-      );
-    }
+      </section>
 
-    // ================= ADMIN DATABASE TAB =================
-    function AdminDatabaseTab({ dbUrl, setDbUrl, dbStatus, apps, onFetchFromSheet, onPushToSheet, showToast }) {
-      const [inputUrl, setInputUrl] = useState(dbUrl || '');
-      const [isTesting, setIsTesting] = useState(false);
-      const [testResult, setTestResult] = useState(null);
-      const [copiedCode, setCopiedCode] = useState(false);
+      <!-- TAB 2: YEARLY DASHBOARD -->
+      <section id="tab-yearly" class="tab-panel">
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label for="yearlySelect">Select Year:</label>
+            <select id="yearlySelect"></select>
+          </div>
+          <div class="latest-badge" id="yearlyBadge">—</div>
+        </div>
 
-      const handleSaveUrl = (e) => {
-        e.preventDefault();
-        const cleaned = inputUrl.trim();
-        setDbUrl(cleaned);
-        onFetchFromSheet(cleaned);
-        showToast("Database Web App URL saved!");
-      };
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Yearly Solar Generation</div>
+            <div class="kpi-value" id="yKpiSolar">—</div>
+            <div class="kpi-sub" id="yKpiSolarSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Yearly Net Export</div>
+            <div class="kpi-value" id="yKpiExport">—</div>
+            <div class="kpi-sub" id="yKpiExportSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Yearly Net Import</div>
+            <div class="kpi-value" id="yKpiImport">—</div>
+            <div class="kpi-sub" id="yKpiImportSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Yearly Direct Used</div>
+            <div class="kpi-value" id="yKpiDirect">—</div>
+            <div class="kpi-sub" id="yKpiDirectSub">—</div>
+          </div>
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Year-End Cum. Credit</div>
+            <div class="kpi-value" id="yKpiCumCredit">—</div>
+            <div class="kpi-sub" id="yKpiCumCreditSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Bills Paid</div>
+            <div class="kpi-value" id="yKpiBills">—</div>
+            <div class="kpi-sub" id="yKpiBillsSub">—</div>
+          </div>
+        </div>
 
-      const handleTestConnection = async () => {
-        const target = inputUrl.trim();
-        if (!target) {
-          setTestResult({ success: false, message: 'Please enter a Google Apps Script Web App URL first.' });
-          return;
-        }
-        setIsTesting(true);
-        setTestResult(null);
-        const startTime = Date.now();
-        try {
-          const res = await fetch(`${target}?action=ping&t=${Date.now()}`);
-          const data = await res.json();
-          const latency = Date.now() - startTime;
-          if (data && data.status === 'success') {
-            setTestResult({
-              success: true,
-              message: `Connection Verified! Google Sheets API responded in ${latency}ms.`
-            });
-            showToast("Google Sheets database connection verified! 🟢");
-          } else {
-            setTestResult({
-              success: false,
-              message: `Endpoint responded, but returned unexpected payload: ${JSON.stringify(data)}`
-            });
-          }
-        } catch (err) {
-          setTestResult({
-            success: false,
-            message: `Connection failed: ${err.message}. Make sure your Web App deployment is set to 'Execute as: Me' and 'Who has access: Anyone'.`
-          });
-        } finally {
-          setIsTesting(false);
-        }
-      };
+        <div class="charts-grid">
+          <div class="card chart-card wide">
+            <div class="card-header">
+              <h2>Monthly Energy Balance (kWh)</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="yearlyEnergyChart"></canvas>
+            </div>
+          </div>
 
-      const handleCopyScript = () => {
-        const code = `/**
- * RKdash — Enterprise Gateway Google Sheets Database Backend (Code.gs)
- * Paste this in your Google Sheets Apps Script editor, then Deploy as Web App!
- */
-const SHEET_SERVICES = "Services";
-function doGet(e) {
-  var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : "getCatalog";
-  if (action === "ping") return ContentService.createTextOutput(JSON.stringify({status:"success",message:"Connected"})).setMimeType(ContentService.MimeType.JSON);
-  if (action === "getCatalog") {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(SHEET_SERVICES);
-    if (!sheet) return ContentService.createTextOutput(JSON.stringify({status:"success",data:[]})).setMimeType(ContentService.MimeType.JSON);
-    var data = sheet.getDataRange().getValues();
-    var services = [];
-    for (var i = 1; i < data.length; i++) {
-      var row = data[i]; if (!row[0] && !row[1]) continue;
-      services.push({ id: String(row[0]), title: String(row[1]), subdomain: String(row[2]||""), targetUrl: String(row[3]), description: String(row[4]||""), order: Number(row[5])||i, status: String(row[6]||"live"), category: String(row[7]||"General"), icon: String(row[8]||"chart"), color: String(row[9]||"from-indigo-600 to-sky-600"), version: String(row[10]||"v1.0") });
-    }
-    return ContentService.createTextOutput(JSON.stringify({status:"success",data:services})).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-function doPost(e) {
-  var body = JSON.parse(e.postData.contents);
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(SHEET_SERVICES) || ss.insertSheet(SHEET_SERVICES);
-  sheet.clearContents();
-  sheet.appendRow(['ID', 'Title', 'Subdomain', 'TargetUrl', 'Description', 'Order', 'Status', 'Category', 'Icon', 'Color', 'Version']);
-  var rows = (body.services || []).map(function(s, idx) { return [s.id, s.title, s.subdomain||"", s.targetUrl, s.description||"", Number(s.order)||(idx+1), s.status||"live", s.category||"General", s.icon||"chart", s.color||"from-indigo-600 to-sky-600", s.version||"v1.0"]; });
-  if (rows.length > 0) sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-  return ContentService.createTextOutput(JSON.stringify({status:"success",count:rows.length})).setMimeType(ContentService.MimeType.JSON);
-}`;
-        navigator.clipboard.writeText(code);
-        setCopiedCode(true);
-        setTimeout(() => setCopiedCode(false), 3000);
-        showToast("Apps Script code copied to clipboard!");
-      };
+          <div class="card chart-card">
+            <div class="card-header">
+              <h2>ToD Import Breakdown</h2>
+              <span class="card-hint">Normal / Off-Peak / Peak</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="yearlyTodChart"></canvas>
+            </div>
+          </div>
 
-      return (
-        <div className="max-w-2xl mx-auto space-y-6">
-          
-          {/* Status Overview Card */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <span>Google Sheets Database Sync</span>
-                  {dbUrl ? (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Live Cloud Sync
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                      Local Browser Mode
-                    </span>
-                  )}
-                </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Connect a Google Spreadsheet so any service you add, edit, or reorder is permanently stored in the cloud and instantly visible to every visitor and device.
-                </p>
-              </div>
+          <div class="card chart-card">
+            <div class="card-header">
+              <h2>Monthly Credit &amp; Cumulative Bank</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="yearlyCreditChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
-                </svg>
-              </div>
+      <!-- TAB 3: TOTAL (ALL-TIME) DASHBOARD -->
+      <section id="tab-total" class="tab-panel">
+        <div class="filter-bar">
+          <div class="filter-group">
+            <span class="muted">All-Time Cumulative Summary</span>
+          </div>
+          <div class="latest-badge" id="totalBadge">—</div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Total Solar Generation</div>
+            <div class="kpi-value" id="tKpiSolar">—</div>
+            <div class="kpi-sub" id="tKpiSolarSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Export vs Import</div>
+            <div class="kpi-value" id="tKpiExportImport">—</div>
+            <div class="kpi-sub" id="tKpiExportImportSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Direct Used</div>
+            <div class="kpi-value" id="tKpiDirect">—</div>
+            <div class="kpi-sub" id="tKpiDirectSub">—</div>
+          </div>
+          <div class="kpi-card highlight">
+            <div class="kpi-label">Current Cumulative Credit</div>
+            <div class="kpi-value" id="tKpiCumCredit">—</div>
+            <div class="kpi-sub" id="tKpiCumCreditSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Bills Paid</div>
+            <div class="kpi-value" id="tKpiBills">—</div>
+            <div class="kpi-sub" id="tKpiBillsSub">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Avg Export Efficiency</div>
+            <div class="kpi-value" id="tKpiExportEff">—</div>
+            <div class="kpi-sub" id="tKpiExportEffSub">—</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="card chart-card wide">
+            <div class="card-header">
+              <h2>All-Time Energy Balance (kWh)</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="totalEnergyChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="card-header">
+              <h2>Year-over-Year Totals (kWh)</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="totalYoyChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="card-header">
+              <h2>Banked Credit &amp; May Settlement Cycle</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="totalCreditChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card chart-card wide">
+            <div class="card-header">
+              <h2>Efficiency (%) &amp; Monthly Bill (₹)</h2>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="totalEffBillChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: ENTER / EDIT BILL -->
+      <section id="tab-entry" class="tab-panel">
+        <div class="entry-layout">
+          <form id="billForm" class="card form-card">
+            <div class="card-header">
+              <h2 id="formTitle">Enter Monthly KSEB Bill</h2>
+              <button type="button" id="btnResetForm" class="btn btn-ghost btn-sm">Clear / New</button>
             </div>
 
-            {/* URL Input Form */}
-            <form onSubmit={handleSaveUrl} className="space-y-3 pt-1">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Google Apps Script Web App Endpoint URL <span className="text-rose-500">*</span>
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="monthKey">Billing Month *</label>
+                <input type="month" id="monthKey" required />
+                <small>Format: YYYY-MM (e.g. 2026-11)</small>
+              </div>
+
+              <div class="form-field">
+                <label for="billAmount">Bill Amount (₹) *</label>
+                <input type="number" id="billAmount" step="1" min="0" required placeholder="e.g. 310" />
+              </div>
+
+              <div class="form-section-title">Import Readings (kWh)</div>
+
+              <div class="form-field checkbox-inline">
+                <label class="toggle-label">
+                  <input type="checkbox" id="useLegacyImport" />
+                  <span>Pre-ToD Legacy Meter (Prev / Curr Import)</span>
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    required
-                    placeholder="https://script.google.com/macros/s/AKfycb.../exec"
-                    value={inputUrl}
-                    onChange={(e) => setInputUrl(e.target.value)}
-                    className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-xs shrink-0 transition-all"
-                  >
-                    Save &amp; Connect
-                  </button>
+              </div>
+
+              <div id="todImportFields" class="subgrid-3">
+                <div class="form-field">
+                  <label for="normalImport">Normal Import *</label>
+                  <input type="number" id="normalImport" step="1" min="0" placeholder="e.g. 130" />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  Must be deployed with <strong>Execute as: Me</strong> and <strong>Who has access: Anyone</strong>.
-                </p>
-              </div>
-
-              {testResult && (
-                <div className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
-                  testResult.success
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-rose-50 text-rose-800 border border-rose-200'
-                }`}>
-                  {testResult.success ? (
-                    <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                  ) : (
-                    <svg className="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  )}
-                  <span>{testResult.message}</span>
+                <div class="form-field">
+                  <label for="offPeakImport">Off-Peak Import *</label>
+                  <input type="number" id="offPeakImport" step="1" min="0" placeholder="e.g. 283" />
                 </div>
-              )}
-
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={handleTestConnection}
-                  disabled={isTesting}
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
-                >
-                  {isTesting ? 'Pinging Sheets API...' : 'Test Connection'}
-                </button>
-
-                {dbUrl && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => onPushToSheet(apps, dbUrl)}
-                      className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition-all"
-                    >
-                      Push All to Sheet (Overwrite)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onFetchFromSheet(dbUrl)}
-                      className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-all"
-                    >
-                      Pull Fresh from Sheet
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDbUrl('');
-                        setInputUrl('');
-                        showToast("Disconnected from Google Sheets", "info");
-                      }}
-                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all ml-auto"
-                    >
-                      Disconnect
-                    </button>
-                  </>
-                )}
-              </div>
-            </form>
-          </div>
-
-          {/* Quick Setup Instructions Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  How to Create Your Google Sheets Database (2 Minutes)
-                </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Follow these 5 simple steps to get your live Google Apps Script database endpoint:
-                </p>
+                <div class="form-field">
+                  <label for="peakImport">Peak Import *</label>
+                  <input type="number" id="peakImport" step="1" min="0" placeholder="e.g. 72" />
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleCopyScript}
-                className="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold shadow-2xs flex items-center gap-1.5"
-              >
-                <span>{copiedCode ? '✓ Copied!' : 'Copy Code.gs Script'}</span>
-              </button>
-            </div>
+              <div id="legacyImportFields" class="subgrid-2 hidden">
+                <div class="form-field">
+                  <label for="prevImport">Previous Import Reading</label>
+                  <input type="number" id="prevImport" step="1" min="0" placeholder="e.g. 806" />
+                </div>
+                <div class="form-field">
+                  <label for="currImport">Current Import Reading</label>
+                  <input type="number" id="currImport" step="1" min="0" placeholder="e.g. 1001" />
+                </div>
+              </div>
 
-            <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside leading-relaxed">
-              <li>
-                Open <strong><a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-brand-600 underline font-semibold">sheets.new</a></strong> to create a new spreadsheet. Name it <strong>RKdash Database</strong>.
-              </li>
-              <li>
-                In the Google Sheets menu, click <strong>Extensions &rarr; Apps Script</strong>.
-              </li>
-              <li>
-                Delete any code in the editor and paste the contents of your <strong>Code.gs</strong> file (or click the <em>Copy Code.gs Script</em> button above).
-              </li>
-              <li>
-                Click <strong>Deploy &rarr; New deployment</strong>:
-                <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5 text-slate-500">
-                  <li>Click the gear icon next to "Select type" &rarr; Choose <strong>Web app</strong></li>
-                  <li>Execute as: <strong>Me</strong></li>
-                  <li>Who has access: <strong>Anyone</strong> (Important: allows your portal to read/write)</li>
-                </ul>
-              </li>
-              <li>
-                Click <strong>Deploy</strong>, grant permissions, and copy the <strong>Web app URL</strong> (ends with <code>/exec</code>). Paste it into the box above and click <strong>Save &amp; Connect</strong>!
-              </li>
-            </ol>
-          </div>
+              <div class="form-section-title">Export &amp; Solar Generation (kWh)</div>
 
-        </div>
-      );
-    }
+              <div class="form-field">
+                <label for="prevExport">Previous Export Reading *</label>
+                <input type="number" id="prevExport" step="1" min="0" required placeholder="Auto-filled from last month" />
+              </div>
 
-    // ================= ADMIN LOGIN VIEW =================
-    function AdminLoginView({ authConfig, onSuccess, onForgotPassword }) {
-      const [username, setUsername] = useState(authConfig.username || 'admin');
-      const [password, setPassword] = useState('');
-      const [showPassword, setShowPassword] = useState(false);
-      const [error, setError] = useState('');
-      const [isSubmitting, setIsSubmitting] = useState(false);
-      const [failedAttempts, setFailedAttempts] = useState(0);
-      const [lockoutSeconds, setLockoutSeconds] = useState(0);
+              <div class="form-field">
+                <label for="currExport">Current Export Reading *</label>
+                <input type="number" id="currExport" step="1" min="0" required placeholder="e.g. 13400" />
+              </div>
 
-      // Lockout countdown timer
-      useEffect(() => {
-        if (lockoutSeconds > 0) {
-          const timer = setTimeout(() => setLockoutSeconds(lockoutSeconds - 1), 1000);
-          return () => clearTimeout(timer);
-        }
-      }, [lockoutSeconds]);
+              <div class="form-field">
+                <label for="solarGeneration">Solar Generation (kWh) *</label>
+                <input type="number" id="solarGeneration" step="1" min="0" required placeholder="e.g. 757" />
+              </div>
 
-      const handleLogin = async (e) => {
-        e.preventDefault();
-        if (lockoutSeconds > 0) return;
+              <div class="form-field checkbox-inline">
+                <label class="toggle-label">
+                  <input type="checkbox" id="resetCumulative" />
+                  <span>Annual Settlement / Reset Cumulative Credit (May)</span>
+                </label>
+                <small>When checked, Cumulative Credit starts fresh from this month's Credit.</small>
+              </div>
 
-        setIsSubmitting(true);
-        setError('');
+              <div class="form-field checkbox-inline">
+                <label class="toggle-label">
+                  <input type="checkbox" id="overrideCumulativeToggle" />
+                  <span>Manually override Cumulative Credit</span>
+                </label>
+              </div>
 
-        const passwordDigest = await sha256(password);
-        const isUserMatch = username.trim().toLowerCase() === authConfig.username.toLowerCase();
-        const isPassMatch = passwordDigest === authConfig.passwordHash;
+              <div id="manualCumulativeWrap" class="form-field hidden">
+                <label for="manualCumulative">Manual Cumulative Credit (kWh)</label>
+                <input type="number" id="manualCumulative" step="1" placeholder="e.g. 1450" />
+              </div>
 
-        if (isUserMatch && isPassMatch) {
-          setFailedAttempts(0);
-          setIsSubmitting(false);
-          onSuccess();
-        } else {
-          setIsSubmitting(false);
-          const nextAttempts = failedAttempts + 1;
-          setFailedAttempts(nextAttempts);
-
-          if (nextAttempts >= 5) {
-            setLockoutSeconds(30);
-            setError('Too many failed attempts. Login temporarily locked for 30 seconds.');
-          } else {
-            setError(`Invalid username or password. (${5 - nextAttempts} attempts remaining)`);
-          }
-        }
-      };
-
-      return (
-        <div className="p-8 text-center flex-1 flex flex-col items-center justify-center">
-          <div className="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-3 shadow-xs">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">Administrator Access Gateway</h3>
-          <p className="text-xs text-slate-500 max-w-sm mt-1 mb-5">
-            Enter your credentials to manage enterprise services, priorities, and cloud database sync.
-          </p>
-
-          <form onSubmit={handleLogin} className="w-full max-w-xs space-y-3 text-left">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">Username</label>
-              <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => { setUsername(e.target.value); setError(''); }}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
-                required
-                disabled={lockoutSeconds > 0}
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                  className="w-full pl-3.5 pr-9 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                  disabled={lockoutSeconds > 0}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? (
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
-                  ) : (
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                  )}
-                </button>
+              <div class="form-field">
+                <label for="writeSecret">Admin Passphrase (if enabled)</label>
+                <input type="password" id="writeSecret" placeholder="Required only if set in Sheet" autocomplete="off" />
               </div>
             </div>
 
-            {error && (
-              <p className="text-[11px] text-rose-500 font-semibold flex items-center gap-1">
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={isSubmitting || lockoutSeconds > 0}
-              className="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50"
-            >
-              {lockoutSeconds > 0 ? `Locked (${lockoutSeconds}s)` : isSubmitting ? 'Authenticating...' : 'Sign In to Gateway'}
-            </button>
-
-            <div className="pt-2 text-center">
-              <button
-                type="button"
-                onClick={onForgotPassword}
-                className="text-[11px] text-brand-600 hover:text-brand-800 font-bold transition-colors"
-              >
-                Forgot Password? / Recover Access
-              </button>
+            <div class="form-actions">
+              <button type="submit" id="btnSaveBill" class="btn btn-primary">Save Monthly Bill</button>
+              <span id="formFeedback" class="form-feedback"></span>
             </div>
           </form>
+
+          <!-- Live Calculated Preview (All DB Fields) -->
+          <aside class="card preview-card">
+            <div class="card-header">
+              <h2>Auto-Calculated DB Fields</h2>
+              <span class="card-hint">Live preview</span>
+            </div>
+            <div class="preview-list">
+              <div class="preview-row">
+                <span>Month Label</span>
+                <strong id="prevMonthLabel">—</strong>
+              </div>
+              <div class="preview-row">
+                <span>Net Import</span>
+                <strong id="prevNetImport">0 kWh</strong>
+              </div>
+              <div class="preview-row">
+                <span>Net Export</span>
+                <strong id="prevNetExport">0 kWh</strong>
+              </div>
+              <div class="preview-row">
+                <span>Direct Used (Solar − Export)</span>
+                <strong id="prevDirectUsed">0 kWh</strong>
+              </div>
+              <div class="preview-row">
+                <span>% Export Efficiency</span>
+                <strong id="prevExportEff">0.00%</strong>
+              </div>
+              <div class="preview-row">
+                <span>% Direct Usage Efficiency</span>
+                <strong id="prevDirectEff">0.00%</strong>
+              </div>
+              <hr />
+              <div class="preview-row">
+                <span>Monthly Credit (Export − Import)</span>
+                <strong id="prevCredit">0 kWh</strong>
+              </div>
+              <div class="preview-row highlight-row">
+                <span>New Cumulative Credit</span>
+                <strong id="prevCumCredit">0 kWh</strong>
+              </div>
+            </div>
+          </aside>
         </div>
-      );
-    }
+      </section>
 
-    // ================= ADMIN RECOVERY VIEW =================
-    function AdminRecoveryView({ authConfig, setAuthConfig, onSuccess, onBackToLogin, showToast }) {
-      const [step, setStep] = useState('verify'); // 'verify' | 'reset'
-      const [recoveryMethod, setRecoveryMethod] = useState('key'); // 'key' | 'question'
-      const [recoveryKeyInput, setRecoveryKeyInput] = useState('');
-      const [securityAnswerInput, setSecurityAnswerInput] = useState('');
-      const [newPassword, setNewPassword] = useState('');
-      const [confirmPassword, setConfirmPassword] = useState('');
-      const [error, setError] = useState('');
-      const [isVerifying, setIsVerifying] = useState(false);
-
-      const handleVerifyRecovery = async (e) => {
-        e.preventDefault();
-        setIsVerifying(true);
-        setError('');
-
-        if (recoveryMethod === 'key') {
-          const keyHash = await sha256(recoveryKeyInput.trim());
-          if (keyHash === authConfig.recoveryKeyHash) {
-            setStep('reset');
-            setIsVerifying(false);
-          } else {
-            setError('Invalid Master Recovery Key. Please check your credentials.');
-            setIsVerifying(false);
-          }
-        } else {
-          const ansHash = await sha256(securityAnswerInput.trim().toLowerCase());
-          if (ansHash === authConfig.securityAnswerHash) {
-            setStep('reset');
-            setIsVerifying(false);
-          } else {
-            setError('Incorrect security question answer.');
-            setIsVerifying(false);
-          }
-        }
-      };
-
-      const handleResetPassword = async (e) => {
-        e.preventDefault();
-        if (newPassword.length < 6) {
-          setError('Password must be at least 6 characters.');
-          return;
-        }
-        if (newPassword !== confirmPassword) {
-          setError('Passwords do not match.');
-          return;
-        }
-
-        const newHash = await sha256(newPassword);
-        setAuthConfig(prev => ({
-          ...prev,
-          passwordHash: newHash,
-          updatedAt: Date.now()
-        }));
-
-        showToast("Password reset successfully. Signed in.");
-        onSuccess();
-      };
-
-      return (
-        <div className="p-8 text-center flex-1 flex flex-col items-center justify-center">
-          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-3 shadow-xs">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-            </svg>
+      <!-- TAB 5: MONTHLY LEDGER -->
+      <section id="tab-ledger" class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <h2>All Monthly Bill Records (DB)</h2>
+            <span class="card-hint" id="ledgerCount">22 months</span>
           </div>
-
-          <h3 className="text-lg font-bold text-slate-900">
-            {step === 'verify' ? 'Account Recovery' : 'Create New Password'}
-          </h3>
-          <p className="text-xs text-slate-500 max-w-sm mt-1 mb-5">
-            {step === 'verify'
-              ? 'Verify your identity using your Master Recovery Key or Security Question.'
-              : 'Choose a strong new password for your administrator account.'}
-          </p>
-
-          {step === 'verify' ? (
-            <div className="w-full max-w-xs text-left space-y-4">
-              
-              <div className="flex rounded-xl bg-slate-100 p-1 text-[11px] font-bold">
-                <button
-                  type="button"
-                  onClick={() => { setRecoveryMethod('key'); setError(''); }}
-                  className={`flex-1 py-1.5 rounded-lg transition-all ${recoveryMethod === 'key' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'}`}
-                >
-                  Recovery Key
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setRecoveryMethod('question'); setError(''); }}
-                  className={`flex-1 py-1.5 rounded-lg transition-all ${recoveryMethod === 'question' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'}`}
-                >
-                  Security Question
-                </button>
-              </div>
-
-              <form onSubmit={handleVerifyRecovery} className="space-y-3">
-                {recoveryMethod === 'key' ? (
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Master Recovery Key
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. RKDASH-RECOVER-2026-KEY"
-                      value={recoveryKeyInput}
-                      onChange={(e) => { setRecoveryKeyInput(e.target.value); setError(''); }}
-                      className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono tracking-wider"
-                      required
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      {authConfig.securityQuestion || "What is your primary gateway domain?"}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Your secret answer"
-                      value={securityAnswerInput}
-                      onChange={(e) => { setSecurityAnswerInput(e.target.value); setError(''); }}
-                      className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                      required
-                    />
-                  </div>
-                )}
-
-                {error && (
-                  <p className="text-[11px] text-rose-500 font-semibold flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    {error}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isVerifying}
-                  className="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition-all"
-                >
-                  {isVerifying ? 'Verifying...' : 'Verify Recovery Key'}
-                </button>
-
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={onBackToLogin}
-                    className="text-[11px] text-slate-500 hover:text-slate-800 font-medium"
-                  >
-                    &larr; Back to Login
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : (
-            <form onSubmit={handleResetPassword} className="w-full max-w-xs text-left space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">New Password</label>
-                <input
-                  type="password"
-                  placeholder="Minimum 6 characters"
-                  value={newPassword}
-                  onChange={(e) => { setNewPassword(e.target.value); setError(''); }}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">Confirm New Password</label>
-                <input
-                  type="password"
-                  placeholder="Re-enter password"
-                  value={confirmPassword}
-                  onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
-              </div>
-
-              {error && (
-                <p className="text-[11px] text-rose-500 font-semibold flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all"
-              >
-                Save New Password &amp; Sign In
-              </button>
-            </form>
-          )}
-
+          <div class="table-wrap">
+            <table id="ledgerTable">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Prev Imp</th>
+                  <th>Curr Imp</th>
+                  <th>Normal</th>
+                  <th>Off-Peak</th>
+                  <th>Peak</th>
+                  <th>Net Imp</th>
+                  <th>Prev Exp</th>
+                  <th>Curr Exp</th>
+                  <th>Net Exp</th>
+                  <th>Solar Gen</th>
+                  <th>Export %</th>
+                  <th>Direct Used</th>
+                  <th>Direct %</th>
+                  <th>Credit</th>
+                  <th>Cum. Credit</th>
+                  <th>Bill (₹)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerBody"></tbody>
+            </table>
+          </div>
         </div>
-      );
-    }
+      </section>
+    </main>
+  </div>
 
-    // ================= ADMIN SECURITY TAB =================
-    function AdminSecurityTab({ authConfig, setAuthConfig, showToast }) {
-      // Change Password Form State
-      const [currentPass, setCurrentPass] = useState('');
-      const [newPass, setNewPass] = useState('');
-      const [confirmPass, setConfirmPass] = useState('');
-      const [passError, setPassError] = useState('');
-
-      // Change Username Form State
-      const [newUsername, setNewUsername] = useState(authConfig.username);
-      const [userMsg, setUserMsg] = useState('');
-
-      // Recovery Key & Security Question
-      const [showKey, setShowKey] = useState(false);
-      const [questionInput, setQuestionInput] = useState(authConfig.securityQuestion || "What is your primary gateway domain?");
-      const [answerInput, setAnswerInput] = useState('');
-
-      const handlePasswordChange = async (e) => {
-        e.preventDefault();
-        setPassError('');
-
-        const currentHash = await sha256(currentPass);
-        if (currentHash !== authConfig.passwordHash) {
-          setPassError('Current password is incorrect.');
-          return;
-        }
-        if (newPass.length < 6) {
-          setPassError('New password must be at least 6 characters.');
-          return;
-        }
-        if (newPass !== confirmPass) {
-          setPassError('New passwords do not match.');
-          return;
-        }
-
-        const newHash = await sha256(newPass);
-        setAuthConfig(prev => ({
-          ...prev,
-          passwordHash: newHash,
-          updatedAt: Date.now()
-        }));
-
-        setCurrentPass('');
-        setNewPass('');
-        setConfirmPass('');
-        showToast("Password updated successfully!");
-      };
-
-      const handleUsernameChange = (e) => {
-        e.preventDefault();
-        if (!newUsername.trim()) return;
-        setAuthConfig(prev => ({ ...prev, username: newUsername.trim() }));
-        setUserMsg('Username updated');
-        setTimeout(() => setUserMsg(''), 2500);
-      };
-
-      const handleGenerateNewKey = async () => {
-        const randStr = Array.from(crypto.getRandomValues(new Uint8Array(8)))
-          .map(b => b.toString(36).padStart(2, '0').toUpperCase())
-          .join('')
-          .slice(0, 12);
-        const newKey = `RKDASH-${randStr.slice(0, 4)}-${randStr.slice(4, 8)}-${randStr.slice(8, 12)}`;
-        const newKeyHash = await sha256(newKey);
-
-        setAuthConfig(prev => ({
-          ...prev,
-          recoveryKey: newKey,
-          recoveryKeyHash: newKeyHash,
-          updatedAt: Date.now()
-        }));
-
-        setShowKey(true);
-        showToast("New Master Recovery Key generated!");
-      };
-
-      const handleSaveSecurityQuestion = async (e) => {
-        e.preventDefault();
-        if (!answerInput.trim()) return;
-
-        const ansHash = await sha256(answerInput.trim().toLowerCase());
-        setAuthConfig(prev => ({
-          ...prev,
-          securityQuestion: questionInput.trim(),
-          securityAnswerHash: ansHash,
-          updatedAt: Date.now()
-        }));
-
-        setAnswerInput('');
-        showToast("Security question and answer updated!");
-      };
-
-      return (
-        <div className="max-w-2xl mx-auto space-y-6">
-          
-          {/* Change Password Card */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-900">Change Administrator Password</h4>
-              <p className="text-xs text-slate-500">Update your gateway master password. Hashes are securely computed via client-side SHA-256.</p>
-            </div>
-
-            <form onSubmit={handlePasswordChange} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Current Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter current password"
-                  value={currentPass}
-                  onChange={(e) => { setCurrentPass(e.target.value); setPassError(''); }}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">New Password</label>
-                  <input
-                    type="password"
-                    placeholder="Min 6 characters"
-                    value={newPass}
-                    onChange={(e) => { setNewPass(e.target.value); setPassError(''); }}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Confirm New Password</label>
-                  <input
-                    type="password"
-                    placeholder="Confirm password"
-                    value={confirmPass}
-                    onChange={(e) => { setConfirmPass(e.target.value); setPassError(''); }}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              {passError && (
-                <p className="text-xs text-rose-500 font-semibold">{passError}</p>
-              )}
-
-              <button
-                type="submit"
-                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
-              >
-                Update Password
-              </button>
-            </form>
-          </div>
-
-          {/* Master Recovery Key Management Card */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-900">Master Recovery Key</h4>
-              <p className="text-xs text-slate-500">
-                Use this emergency key to reset your administrator password if lost. Store it in a safe password vault.
-              </p>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-              <div className="font-mono text-xs font-bold text-slate-800 tracking-wider">
-                {showKey ? (authConfig.recoveryKey || 'RKDASH-RECOVER-2026-KEY') : '••••••••••••••••••••••••'}
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
-                >
-                  {showKey ? 'Hide' : 'Reveal'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(authConfig.recoveryKey || 'RKDASH-RECOVER-2026-KEY');
-                    showToast("Recovery key copied to clipboard");
-                  }}
-                  className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="button"
-                onClick={handleGenerateNewKey}
-                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all"
-              >
-                Generate New Recovery Key
-              </button>
-            </div>
-          </div>
-
-          {/* Security Question Card */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-900">Security Question Recovery</h4>
-              <p className="text-xs text-slate-500">Secondary recovery method for identity validation.</p>
-            </div>
-
-            <form onSubmit={handleSaveSecurityQuestion} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Security Question</label>
-                <input
-                  type="text"
-                  value={questionInput}
-                  onChange={(e) => setQuestionInput(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Secret Answer</label>
-                <input
-                  type="text"
-                  placeholder="Set secret answer (stored hashed)"
-                  value={answerInput}
-                  onChange={(e) => setAnswerInput(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
-              >
-                Save Security Question
-              </button>
-            </form>
-          </div>
-
-          {/* Username Settings Card */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="border-b border-slate-100 pb-3">
-              <h4 className="text-sm font-bold text-slate-900">Administrator Identity</h4>
-              <p className="text-xs text-slate-500">Configure your administrator handle.</p>
-            </div>
-
-            <form onSubmit={handleUsernameChange} className="flex items-center gap-3">
-              <input
-                type="text"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
-                required
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all"
-              >
-                Save Username
-              </button>
-              {userMsg && <span className="text-xs text-emerald-600 font-bold">{userMsg}</span>}
-            </form>
-          </div>
-
-        </div>
-      );
-    }
-
-    // ================= APP FORM COMPONENT =================
-    function AdminAppForm({ initialData, totalCount, onCancel, onSave }) {
-      const [title, setTitle] = useState(initialData ? initialData.title : '');
-      const [subdomain, setSubdomain] = useState(initialData ? initialData.subdomain || '' : '');
-      const [description, setDescription] = useState(initialData ? initialData.description : '');
-      const [targetUrl, setTargetUrl] = useState(initialData ? initialData.targetUrl : '');
-      const [order, setOrder] = useState(initialData ? initialData.order : totalCount + 1);
-      const [status, setStatus] = useState(initialData ? initialData.status : 'live');
-      const [category, setCategory] = useState(initialData ? initialData.category || 'Operations' : 'Operations');
-      const [icon, setIcon] = useState(initialData ? initialData.icon : 'chart');
-      const [color, setColor] = useState(initialData ? initialData.color || 'from-indigo-600 to-sky-600' : 'from-indigo-600 to-sky-600');
-
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        let url = targetUrl.trim();
-        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-
-        onSave({
-          id: initialData ? initialData.id : null,
-          title: title.trim(),
-          subdomain: subdomain.trim(),
-          description: description.trim(),
-          targetUrl: url,
-          order: Number(order) || 1,
-          status,
-          category: category.trim() || 'General',
-          icon,
-          color
-        });
-      };
-
-      return (
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-            <h3 className="text-sm font-extrabold text-slate-900">
-              {initialData ? `Edit Service: ${initialData.title}` : 'Register New Gateway Service'}
-            </h3>
-            <button type="button" onClick={onCancel} className="text-xs text-slate-500 hover:text-slate-800">
-              Cancel
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Service Title <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Invoice & Billing Engine"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Subdomain or Service Identifier
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. billing.rkdash.in"
-                value={subdomain}
-                onChange={(e) => setSubdomain(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              One-Sentence Description <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              maxLength={160}
-              placeholder="e.g. Automated GST/VAT compliance, real-time invoice generation, and ledger syncing."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-            <p className="text-[10px] text-slate-400 mt-1">Keep it concise and readable (1 clear sentence).</p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Target URL / Service Endpoint <span className="text-rose-500">*</span>
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                required
-                placeholder="https://..."
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                className="flex-1 px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (targetUrl) {
-                    let u = targetUrl;
-                    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
-                    window.open(u, '_blank');
-                  }
-                }}
-                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold shrink-0"
-              >
-                Test Endpoint
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Priority Order (#) <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                required
-                value={order}
-                onChange={(e) => setOrder(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Deployment Stage <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-              >
-                <option value="live">● Production</option>
-                <option value="testing">◐ Staging / Beta</option>
-                <option value="restricted">🔒 Restricted (Admin Auth Required)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Category
-              </label>
-              <input
-                type="text"
-                placeholder="Finance, HR, Operations..."
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Service Icon
-              </label>
-              <select
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-              >
-                <option value="chart">📊 Chart / Analytics / Finance</option>
-                <option value="shield">🛡️ Shield / Security / Compliance</option>
-                <option value="building">🏢 Building / Enterprise Operations</option>
-                <option value="mail">✉️ Mail / Broadcast / Comms</option>
-                <option value="webhook">⚡ Webhook / Integration / API</option>
-                <option value="lock">🔒 Lock / Governance / Audit</option>
-                <option value="file-text">📝 Document / Contracts Vault</option>
-                <option value="database">💾 Database / Storage</option>
-                <option value="server">🖥️ Server / Cloud Infrastructure</option>
-                <option value="code">💻 Code / Developer Tooling</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Card Gradient Theme
-              </label>
-              <select
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-              >
-                <option value="from-indigo-600 to-sky-600">Indigo to Sky (Classic)</option>
-                <option value="from-emerald-600 to-teal-700">Emerald to Teal (Finance/Success)</option>
-                <option value="from-amber-500 to-orange-700">Amber to Orange (Operations)</option>
-                <option value="from-purple-600 to-indigo-700">Purple to Indigo (Integration)</option>
-                <option value="from-rose-600 to-red-800">Rose to Red (Security/Restricted)</option>
-                <option value="from-cyan-600 to-teal-700">Cyan to Teal (Reporting)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-xs"
-            >
-              Save Service
-            </button>
-          </div>
-        </form>
-      );
-    }
-
-    // Helpers
-    function extractDomain(url) {
-      try {
-        const parsed = new URL(url);
-        return parsed.hostname + (parsed.pathname !== '/' ? parsed.pathname.substring(0, 15) : '');
-      } catch (e) {
-        return url ? url.substring(0, 25) : '';
-      }
-    }
-
-    // Mount React App
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<RKdashApp />);
-  </script>
+  <script src="config.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

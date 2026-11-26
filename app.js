@@ -1,1013 +1,748 @@
-/**
- * RKdash - Google Apps Script & Subdomain Application Portal
- * Core Client Application Logic
- */
+(() => {
+  const STORAGE_KEY = 'kseb_bills_v1';
+  const CONFIG_KEY = 'kseb_sheets_config_v1';
+  const THEME_KEY = 'kseb_theme_v1';
 
-// Default Seed Applications
-const DEFAULT_APPS = [
-  {
-    id: "app-1",
-    title: "Invoice & Billing Automator",
-    subdomain: "billing.rkdash.internal",
-    url: "https://script.google.com/macros/s/AKfycbxExampleInvoiceApp/exec",
-    category: "Finance",
-    description: "Automated GST/VAT invoice generation from Google Sheets with one-click PDF email delivery.",
-    icon: "💳",
-    tags: ["sheets", "finance", "pdf"],
-    status: "active",
-    pinned: true,
-    allowPreview: true,
-    createdAt: 1700000000000
-  },
-  {
-    id: "app-2",
-    title: "Employee Leave & Attendance Portal",
-    subdomain: "leave.rkdash.internal",
-    url: "https://script.google.com/macros/s/AKfycbxLeavePortalExample/exec",
-    category: "HR & Operations",
-    description: "Staff leave applications, supervisor approval matrix, and annual quota calculation engine.",
-    icon: "🌴",
-    tags: ["hr", "approval", "workflow"],
-    status: "active",
-    pinned: true,
-    allowPreview: true,
-    createdAt: 1700000100000
-  },
-  {
-    id: "app-3",
-    title: "Inventory & Barcode Scanner Hub",
-    subdomain: "inventory.rkdash.internal",
-    url: "https://script.google.com/macros/s/AKfycbxInventoryBarcodeScanner/exec",
-    category: "Operations",
-    description: "Real-time stock tracking with mobile camera barcode scanner and low-stock automated alerts.",
-    icon: "📦",
-    tags: ["warehouse", "qr-code", "mobile"],
-    status: "beta",
-    pinned: false,
-    allowPreview: true,
-    createdAt: 1700000200000
-  },
-  {
-    id: "app-4",
-    title: "Bulk Mail Merge & Campaign Engine",
-    subdomain: "mailmerge.rkdash.internal",
-    url: "https://script.google.com/macros/s/AKfycbxBulkMailerApp/exec",
-    category: "Automation",
-    description: "Personalized mass email dispatch using Gmail API with read tracking & bounce logging.",
-    icon: "✉️",
-    tags: ["gmail", "email", "marketing"],
-    status: "active",
-    pinned: false,
-    allowPreview: false,
-    createdAt: 1700000300000
-  },
-  {
-    id: "app-5",
-    title: "Google Forms to CRM Lead Router",
-    subdomain: "crm-sync.rkdash.internal",
-    url: "https://script.google.com/macros/s/AKfycbxFormSyncApp/exec",
-    category: "Automation",
-    description: "Webhooks ingestion from customer intake forms into centralized CRM with WhatsApp notifications.",
-    icon: "⚡",
-    tags: ["webhook", "crm", "forms"],
-    status: "active",
-    pinned: false,
-    allowPreview: true,
-    createdAt: 1700000400000
-  },
-  {
-    id: "app-6",
-    title: "Executive KPI & Analytics Dashboard",
-    subdomain: "kpi.rkdash.internal",
-    url: "https://script.google.com/macros/s/AKfycbxExecutiveReportApp/exec",
-    category: "Reporting",
-    description: "Consolidated monthly performance charts, revenue projections, and department metrics.",
-    icon: "📊",
-    tags: ["analytics", "charts", "management"],
-    status: "maintenance",
-    pinned: false,
-    allowPreview: true,
-    createdAt: 1700000500000
-  }
-];
+  let bills = [];
+  let config = { url: '', secret: '' };
+  let theme = 'dark';
+  const charts = {};
 
-// App State
-const state = {
-  apps: [],
-  isAdmin: false,
-  adminPin: "admin123",
-  searchQuery: "",
-  activeCategory: "All",
-  activeTag: null,
-  sortMode: "custom",
-  viewMode: "grid", // "grid" | "list"
-  gasEndpoint: ""
-};
+  // ---------- Helpers ----------
+  const num = (v) => (v === '' || v === null || v === undefined ? 0 : Number(v));
+  const fmt = (v, d = 0) => Number(v || 0).toLocaleString('en-IN', {
+    minimumFractionDigits: d,
+    maximumFractionDigits: d
+  });
 
-// Storage Keys
-const STORAGE_KEYS = {
-  APPS: "rkdash_apps_v1",
-  ADMIN_PIN: "rkdash_admin_pin",
-  THEME: "rkdash_theme",
-  VIEW_MODE: "rkdash_view_mode",
-  GAS_ENDPOINT: "rkdash_gas_endpoint"
-};
-
-// ==================== INITIALIZATION ====================
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadSavedPreferences();
-  loadApps();
-  setupEventListeners();
-  renderCategories();
-  renderApps();
-  updateMetrics();
-  refreshIcons();
-});
-
-// Load preferences from localStorage
-function loadSavedPreferences() {
-  // Theme setup
-  const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || "dark";
-  if (savedTheme === "dark") {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
+  function monthKeyToLabel(monthKey) {
+    if (!monthKey || !monthKey.includes('-')) return monthKey;
+    const [y, m] = monthKey.split('-').map(Number);
+    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${names[m - 1]}-${String(y).slice(-2)}`;
   }
 
-  // View Mode
-  const savedView = localStorage.getItem(STORAGE_KEYS.VIEW_MODE);
-  if (savedView === "list" || savedView === "grid") {
-    state.viewMode = savedView;
-    applyViewModeUI();
+  function nextMonthKey(monthKey) {
+    const [y, m] = monthKey.split('-').map(Number);
+    const nm = m === 12 ? 1 : m + 1;
+    const ny = m === 12 ? y + 1 : y;
+    return `${ny}-${String(nm).padStart(2, '0')}`;
   }
 
-  // Admin PIN
-  const savedPin = localStorage.getItem(STORAGE_KEYS.ADMIN_PIN);
-  if (savedPin) state.adminPin = savedPin;
-
-  // GAS Endpoint
-  const savedEndpoint = localStorage.getItem(STORAGE_KEYS.GAS_ENDPOINT);
-  if (savedEndpoint) {
-    state.gasEndpoint = savedEndpoint;
-    const input = document.getElementById("gasApiEndpointInput");
-    if (input) input.value = savedEndpoint;
-  }
-}
-
-// Load applications from localStorage or seed
-function loadApps() {
-  const stored = localStorage.getItem(STORAGE_KEYS.APPS);
-  if (stored) {
-    try {
-      state.apps = JSON.parse(stored);
-    } catch (e) {
-      console.error("Failed to parse stored apps, reverting to default.", e);
-      state.apps = [...DEFAULT_APPS];
-      saveApps();
-    }
-  } else {
-    state.apps = [...DEFAULT_APPS];
-    saveApps();
-  }
-}
-
-// Persist applications to localStorage
-function saveApps() {
-  localStorage.setItem(STORAGE_KEYS.APPS, JSON.stringify(state.apps));
-}
-
-// ==================== EVENT LISTENERS ====================
-
-function setupEventListeners() {
-  // Theme Toggle
-  const themeToggleBtn = document.getElementById("themeToggleBtn");
-  themeToggleBtn.addEventListener("click", () => {
-    const isDark = document.documentElement.classList.toggle("dark");
-    localStorage.setItem(STORAGE_KEYS.THEME, isDark ? "dark" : "light");
-    refreshIcons();
-  });
-
-  // Admin Mode Toggle
-  const adminToggleBtn = document.getElementById("adminToggleBtn");
-  adminToggleBtn.addEventListener("click", () => {
-    if (state.isAdmin) {
-      exitAdminMode();
-    } else {
-      openAdminPinModal();
-    }
-  });
-
-  const exitAdminBtn = document.getElementById("exitAdminBtn");
-  if (exitAdminBtn) {
-    exitAdminBtn.addEventListener("click", exitAdminMode);
+  function sortBills(arr) {
+    return [...arr].sort((a, b) => String(a.monthKey).localeCompare(String(b.monthKey)));
   }
 
-  // Admin PIN Modal
-  document.getElementById("closeAdminPinModal").addEventListener("click", closeAdminPinModal);
-  document.getElementById("submitAdminPinBtn").addEventListener("click", handlePinSubmit);
-  document.getElementById("adminPinInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handlePinSubmit();
-  });
-
-  // Quick Add App Button
-  const quickAddAppBtn = document.getElementById("quickAddAppBtn");
-  quickAddAppBtn.addEventListener("click", () => {
-    if (!state.isAdmin) {
-      showToast("Unlocking Admin Mode is required to add apps.", "info");
-      openAdminPinModal(() => openAppFormModal());
-    } else {
-      openAppFormModal();
-    }
-  });
-
-  // App Form Modal
-  document.getElementById("closeAppFormModal").addEventListener("click", closeAppFormModal);
-  document.getElementById("cancelAppFormBtn").addEventListener("click", closeAppFormModal);
-  document.getElementById("appForm").addEventListener("submit", handleAppFormSubmit);
-
-  // Icon Preset Buttons in Form
-  document.querySelectorAll(".icon-preset-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.getElementById("formAppIcon").value = btn.dataset.icon;
-    });
-  });
-
-  // Search Inputs (Desktop and Mobile)
-  const searchInput = document.getElementById("searchInput");
-  const mobileSearchInput = document.getElementById("mobileSearchInput");
-  const clearSearchBtn = document.getElementById("clearSearchBtn");
-
-  const handleSearch = (e) => {
-    state.searchQuery = e.target.value.trim().toLowerCase();
-    if (clearSearchBtn) {
-      clearSearchBtn.classList.toggle("hidden", !state.searchQuery);
-    }
-    renderApps();
-  };
-
-  searchInput.addEventListener("input", handleSearch);
-  mobileSearchInput.addEventListener("input", handleSearch);
-
-  clearSearchBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    mobileSearchInput.value = "";
-    state.searchQuery = "";
-    clearSearchBtn.classList.add("hidden");
-    renderApps();
-  });
-
-  // Keyboard shortcut '/' to search
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "/" && document.activeElement !== searchInput && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA") {
-      e.preventDefault();
-      searchInput.focus();
-    }
-  });
-
-  // Reset Search / Filters Button
-  document.getElementById("resetSearchBtn").addEventListener("click", () => {
-    state.searchQuery = "";
-    state.activeCategory = "All";
-    state.activeTag = null;
-    searchInput.value = "";
-    mobileSearchInput.value = "";
-    clearSearchBtn.classList.add("hidden");
-    renderCategories();
-    renderApps();
-  });
-
-  // Tag filter remover
-  document.getElementById("removeTagFilterBtn").addEventListener("click", () => {
-    state.activeTag = null;
-    document.getElementById("activeTagContainer").classList.add("hidden");
-    document.getElementById("activeTagContainer").classList.remove("flex");
-    renderApps();
-  });
-
-  // Sort Selector
-  document.getElementById("sortSelect").addEventListener("change", (e) => {
-    state.sortMode = e.target.value;
-    renderApps();
-  });
-
-  // View Mode Buttons
-  const viewGridBtn = document.getElementById("viewGridBtn");
-  const viewListBtn = document.getElementById("viewListBtn");
-
-  viewGridBtn.addEventListener("click", () => {
-    state.viewMode = "grid";
-    localStorage.setItem(STORAGE_KEYS.VIEW_MODE, "grid");
-    applyViewModeUI();
-  });
-
-  viewListBtn.addEventListener("click", () => {
-    state.viewMode = "list";
-    localStorage.setItem(STORAGE_KEYS.VIEW_MODE, "list");
-    applyViewModeUI();
-  });
-
-  // Preview Modal
-  document.getElementById("closePreviewBtn").addEventListener("click", closePreviewModal);
-
-  // Backup / JSON Modal
-  document.getElementById("exportDataBtn").addEventListener("click", () => openBackupModal("export"));
-  document.getElementById("importDataBtn").addEventListener("click", () => openBackupModal("import"));
-  document.getElementById("closeBackupModal").addEventListener("click", closeBackupModal);
-  document.getElementById("copyJsonBtn").addEventListener("click", copyBackupJson);
-  document.getElementById("applyImportJsonBtn").addEventListener("click", applyImportedJson);
-
-  // GAS Sync Modal
-  document.getElementById("gasSyncModalBtn").addEventListener("click", openGasSyncModal);
-  document.getElementById("closeGasSyncModal").addEventListener("click", closeGasSyncModal);
-  document.getElementById("footerGasGuideBtn").addEventListener("click", openGasSyncModal);
-  document.getElementById("saveGasEndpointBtn").addEventListener("click", handleSaveGasEndpoint);
-
-  // Footer Reset Button
-  document.getElementById("footerResetBtn").addEventListener("click", () => {
-    if (confirm("Reset applications list back to initial sample apps?")) {
-      state.apps = JSON.parse(JSON.stringify(DEFAULT_APPS));
-      saveApps();
-      renderCategories();
-      renderApps();
-      updateMetrics();
-      showToast("Reset to sample applications data.", "info");
-    }
-  });
-}
-
-// ==================== RENDERING ====================
-
-// Render Category Filter Pills
-function renderCategories() {
-  const container = document.getElementById("categoryPillList");
-  if (!container) return;
-
-  const categories = ["All", ...new Set(state.apps.map(a => a.category).filter(Boolean))];
-
-  container.innerHTML = categories.map(cat => {
-    const isSelected = state.activeCategory === cat;
-    const baseClasses = "px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer";
-    const activeClasses = isSelected
-      ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30"
-      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700";
-
-    return `<button class="category-pill ${baseClasses} ${activeClasses}" data-category="${escapeHtml(cat)}">${escapeHtml(cat)}</button>`;
-  }).join("");
-
-  // Attach click events
-  container.querySelectorAll(".category-pill").forEach(btn => {
-    btn.addEventListener("click", () => {
-      state.activeCategory = btn.dataset.category;
-      renderCategories();
-      renderApps();
-    });
-  });
-}
-
-// Render Application Cards
-function renderApps() {
-  const container = document.getElementById("appsContainer");
-  const emptyState = document.getElementById("emptyState");
-  if (!container) return;
-
-  // Filter apps
-  let filtered = state.apps.filter(app => {
-    // Category match
-    if (state.activeCategory !== "All" && app.category !== state.activeCategory) {
-      return false;
-    }
-    // Tag match
-    if (state.activeTag && (!app.tags || !app.tags.includes(state.activeTag))) {
-      return false;
-    }
-    // Search query match
-    if (state.searchQuery) {
-      const q = state.searchQuery;
-      const titleMatch = app.title && app.title.toLowerCase().includes(q);
-      const subMatch = app.subdomain && app.subdomain.toLowerCase().includes(q);
-      const urlMatch = app.url && app.url.toLowerCase().includes(q);
-      const descMatch = app.description && app.description.toLowerCase().includes(q);
-      const tagMatch = app.tags && app.tags.some(t => t.toLowerCase().includes(q));
-      const catMatch = app.category && app.category.toLowerCase().includes(q);
-      if (!titleMatch && !subMatch && !urlMatch && !descMatch && !tagMatch && !catMatch) {
-        return false;
-      }
-    }
-    return true;
-  });
-
-  // Sorting
-  filtered = sortApps(filtered, state.sortMode);
-
-  // Empty state handling
-  if (filtered.length === 0) {
-    container.innerHTML = "";
-    emptyState.classList.remove("hidden");
-    emptyState.classList.add("flex");
-    return;
-  } else {
-    emptyState.classList.add("hidden");
-    emptyState.classList.remove("flex");
+  // ---------- Theme ----------
+  function applyTheme(nextTheme) {
+    theme = nextTheme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+    document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+    document.getElementById('themeLabel').textContent = theme === 'dark' ? 'Light' : 'Dark';
+    renderAll();
   }
 
-  // Generate cards
-  container.innerHTML = filtered.map(app => renderSingleCard(app)).join("");
-
-  // Post-render attachments (Lucide icons and action listeners)
-  attachCardActionListeners(container);
-  refreshIcons();
-}
-
-// Render individual card HTML
-function renderSingleCard(app) {
-  const statusBadge = getStatusBadgeHtml(app.status);
-  const iconDisplay = getAppIconHtml(app.icon);
-  const tagsHtml = (app.tags || []).map(t => 
-    `<span class="tag-pill text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-500 cursor-pointer" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</span>`
-  ).join("");
-
-  return `
-    <div class="app-card relative bg-white dark:bg-darkCard border border-slate-200/90 dark:border-darkBorder rounded-2xl p-5 shadow-sm hover:border-indigo-500/40 flex flex-col justify-between group" data-app-id="${app.id}">
-      
-      <!-- Top Card Row: Icon, Title, Subdomain, Pinned & Status -->
-      <div>
-        <div class="flex items-start justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
-              ${iconDisplay}
-            </div>
-            <div>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white leading-tight">${escapeHtml(app.title)}</h3>
-                ${app.pinned ? '<span title="Pinned Application" class="text-amber-500"><i data-lucide="pin" class="w-3.5 h-3.5 fill-amber-500"></i></span>' : ''}
-              </div>
-              ${app.subdomain ? `<p class="text-[11px] font-mono text-indigo-500 dark:text-indigo-400 font-medium">${escapeHtml(app.subdomain)}</p>` : `<p class="text-[11px] text-slate-400 font-medium">${escapeHtml(app.category || 'General')}</p>`}
-            </div>
-          </div>
-
-          <!-- Status Badge -->
-          <div class="shrink-0">
-            ${statusBadge}
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div class="app-card-body mt-3">
-          <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-            ${escapeHtml(app.description || 'No description provided for this application.')}
-          </p>
-
-          <!-- Tags list -->
-          ${tagsHtml ? `<div class="flex flex-wrap gap-1.5 mt-3">${tagsHtml}</div>` : ''}
-        </div>
-      </div>
-
-      <!-- Card Footer Actions -->
-      <div class="app-card-footer mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
-        
-        <!-- Left: Launch & Preview -->
-        <div class="flex items-center gap-2">
-          <a 
-            href="${escapeHtml(app.url)}" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-indigo-600/20 transition-all hover:gap-2"
-          >
-            <span>Launch</span>
-            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-          </a>
-
-          ${app.allowPreview ? `
-            <button 
-              class="card-preview-btn p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
-              title="Preview inside RKdash"
-              data-id="${app.id}"
-            >
-              <i data-lucide="eye" class="w-3.5 h-3.5"></i>
-            </button>
-          ` : ''}
-
-          <button 
-            class="card-copy-btn p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
-            title="Copy URL"
-            data-url="${escapeHtml(app.url)}"
-          >
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-
-        <!-- Right: Admin Edit/Delete Controls -->
-        <div class="flex items-center gap-1 ${state.isAdmin ? '' : 'hidden'}">
-          <button 
-            class="card-edit-btn p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
-            title="Edit Application"
-            data-id="${app.id}"
-          >
-            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-          </button>
-          <button 
-            class="card-clone-btn p-1.5 rounded-lg text-slate-400 hover:text-emerald-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
-            title="Duplicate Application"
-            data-id="${app.id}"
-          >
-            <i data-lucide="copy-plus" class="w-3.5 h-3.5"></i>
-          </button>
-          <button 
-            class="card-delete-btn p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
-            title="Delete Application"
-            data-id="${app.id}"
-          >
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-
-      </div>
-    </div>
-  `;
-}
-
-// Attach action listeners to card buttons
-function attachCardActionListeners(container) {
-  // Preview
-  container.querySelectorAll(".card-preview-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const app = state.apps.find(a => a.id === btn.dataset.id);
-      if (app) openPreviewModal(app);
-    });
-  });
-
-  // Copy URL
-  container.querySelectorAll(".card-copy-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const url = btn.dataset.url;
-      navigator.clipboard.writeText(url).then(() => {
-        showToast("Link copied to clipboard!", "success");
-      }).catch(() => {
-        showToast("Failed to copy link.", "error");
-      });
-    });
-  });
-
-  // Edit App
-  container.querySelectorAll(".card-edit-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const app = state.apps.find(a => a.id === btn.dataset.id);
-      if (app) openAppFormModal(app);
-    });
-  });
-
-  // Duplicate App
-  container.querySelectorAll(".card-clone-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const original = state.apps.find(a => a.id === btn.dataset.id);
-      if (!original) return;
-      const clone = {
-        ...original,
-        id: "app-" + Date.now(),
-        title: original.title + " (Copy)",
-        createdAt: Date.now()
-      };
-      state.apps.unshift(clone);
-      saveApps();
-      renderCategories();
-      renderApps();
-      updateMetrics();
-      showToast(`Duplicated "${original.title}"`, "success");
-    });
-  });
-
-  // Delete App
-  container.querySelectorAll(".card-delete-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const app = state.apps.find(a => a.id === btn.dataset.id);
-      if (!app) return;
-      if (confirm(`Are you sure you want to delete "${app.title}"?`)) {
-        state.apps = state.apps.filter(a => a.id !== app.id);
-        saveApps();
-        renderCategories();
-        renderApps();
-        updateMetrics();
-        showToast(`Deleted "${app.title}"`, "info");
-      }
-    });
-  });
-
-  // Tag filter click
-  container.querySelectorAll(".tag-pill").forEach(pill => {
-    pill.addEventListener("click", (e) => {
-      e.stopPropagation();
-      state.activeTag = pill.dataset.tag;
-      const container = document.getElementById("activeTagContainer");
-      document.getElementById("activeTagName").textContent = "#" + state.activeTag;
-      container.classList.remove("hidden");
-      container.classList.add("flex");
-      renderApps();
-    });
-  });
-}
-
-// Helpers for badges and icons
-function getStatusBadgeHtml(status) {
-  switch (status) {
-    case "active":
-      return `<span class="badge-status-active px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Live</span>`;
-    case "beta":
-      return `<span class="badge-status-beta px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider">Beta</span>`;
-    case "maintenance":
-      return `<span class="badge-status-maintenance px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider">Maint</span>`;
-    case "internal":
-      return `<span class="badge-status-internal px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider">Internal</span>`;
-    default:
-      return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase">Unknown</span>`;
-  }
-}
-
-function getAppIconHtml(icon) {
-  if (!icon) return "🚀";
-  // Check if it's emoji or text
-  if (icon.length <= 4) {
-    return icon;
-  }
-  // If it's a lucide icon identifier
-  return `<i data-lucide="${escapeHtml(icon)}" class="w-5 h-5 text-indigo-500"></i>`;
-}
-
-// Sorting logic
-function sortApps(apps, mode) {
-  const list = [...apps];
-  switch (mode) {
-    case "titleAsc":
-      return list.sort((a, b) => a.title.localeCompare(b.title));
-    case "titleDesc":
-      return list.sort((a, b) => b.title.localeCompare(a.title));
-    case "status":
-      return list.sort((a, b) => a.status.localeCompare(b.status));
-    case "newest":
-      return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    case "custom":
-    default:
-      // Pinned apps first, then default order
-      return list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-  }
-}
-
-// Update Top Metric Counters
-function updateMetrics() {
-  const total = state.apps.length;
-  const active = state.apps.filter(a => a.status === "active").length;
-  const categories = new Set(state.apps.map(a => a.category).filter(Boolean)).size;
-  const pinned = state.apps.filter(a => a.pinned).length;
-
-  document.getElementById("statTotalApps").textContent = total;
-  document.getElementById("statActiveApps").textContent = active;
-  document.getElementById("statCategories").textContent = categories;
-  document.getElementById("statPinnedApps").textContent = pinned;
-}
-
-function applyViewModeUI() {
-  const container = document.getElementById("appsContainer");
-  const viewGridBtn = document.getElementById("viewGridBtn");
-  const viewListBtn = document.getElementById("viewListBtn");
-
-  if (state.viewMode === "list") {
-    container.classList.add("list-view-mode");
-    viewListBtn.classList.add("bg-white", "dark:bg-slate-700", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
-    viewListBtn.classList.remove("text-slate-500", "dark:text-slate-400");
-    viewGridBtn.classList.remove("bg-white", "dark:bg-slate-700", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
-    viewGridBtn.classList.add("text-slate-500", "dark:text-slate-400");
-  } else {
-    container.classList.remove("list-view-mode");
-    viewGridBtn.classList.add("bg-white", "dark:bg-slate-700", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
-    viewGridBtn.classList.remove("text-slate-500", "dark:text-slate-400");
-    viewListBtn.classList.remove("bg-white", "dark:bg-slate-700", "text-indigo-600", "dark:text-indigo-400", "shadow-sm");
-    viewListBtn.classList.add("text-slate-500", "dark:text-slate-400");
-  }
-}
-
-// ==================== ADMIN MODE HANDLING ====================
-
-let pendingAdminCallback = null;
-
-function openAdminPinModal(callback = null) {
-  pendingAdminCallback = callback;
-  const modal = document.getElementById("adminPinModal");
-  const input = document.getElementById("adminPinInput");
-  const error = document.getElementById("adminPinError");
-
-  input.value = "";
-  error.classList.add("hidden");
-  modal.classList.remove("hidden");
-  setTimeout(() => input.focus(), 50);
-}
-
-function closeAdminPinModal() {
-  document.getElementById("adminPinModal").classList.add("hidden");
-  pendingAdminCallback = null;
-}
-
-function handlePinSubmit() {
-  const input = document.getElementById("adminPinInput");
-  const error = document.getElementById("adminPinError");
-
-  if (input.value === state.adminPin) {
-    state.isAdmin = true;
-    updateAdminUI();
-    closeAdminPinModal();
-    showToast("Admin Mode unlocked successfully.", "success");
-    if (pendingAdminCallback) {
-      pendingAdminCallback();
-      pendingAdminCallback = null;
-    }
-  } else {
-    error.classList.remove("hidden");
-    input.select();
-  }
-}
-
-function exitAdminMode() {
-  state.isAdmin = false;
-  updateAdminUI();
-  showToast("Admin Mode locked.", "info");
-}
-
-function updateAdminUI() {
-  const adminBtnLabel = document.getElementById("adminBtnLabel");
-  const adminBadge = document.getElementById("adminBadge");
-  const adminLockIcon = document.getElementById("adminLockIconContainer");
-  const adminNoticeBar = document.getElementById("adminNoticeBar");
-
-  if (state.isAdmin) {
-    adminBtnLabel.textContent = "Admin Active";
-    adminBadge.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-    adminLockIcon.innerHTML = `<i data-lucide="unlock" class="w-3.5 h-3.5 text-emerald-500"></i>`;
-    adminNoticeBar.classList.remove("hidden");
-  } else {
-    adminBtnLabel.textContent = "Admin Mode";
-    adminBadge.className = "w-2 h-2 rounded-full bg-slate-400";
-    adminLockIcon.innerHTML = `<i data-lucide="lock" class="w-3.5 h-3.5 text-slate-500"></i>`;
-    adminNoticeBar.classList.add("hidden");
-  }
-
-  // Re-render apps to show or hide edit/delete buttons
-  renderApps();
-}
-
-// ==================== APP FORM MODAL (ADD / EDIT) ====================
-
-function openAppFormModal(appToEdit = null) {
-  const modal = document.getElementById("appFormModal");
-  const form = document.getElementById("appForm");
-  const modalTitle = document.getElementById("formModalTitle");
-  const modalIcon = document.getElementById("formModalIcon");
-
-  form.reset();
-
-  if (appToEdit) {
-    modalTitle.textContent = "Edit Application Details";
-    modalIcon.setAttribute("data-lucide", "pencil");
-    document.getElementById("formAppId").value = appToEdit.id;
-    document.getElementById("formAppTitle").value = appToEdit.title || "";
-    document.getElementById("formAppSubdomain").value = appToEdit.subdomain || "";
-    document.getElementById("formAppUrl").value = appToEdit.url || "";
-    document.getElementById("formAppCategory").value = appToEdit.category || "";
-    document.getElementById("formAppStatus").value = appToEdit.status || "active";
-    document.getElementById("formAppDescription").value = appToEdit.description || "";
-    document.getElementById("formAppIcon").value = appToEdit.icon || "";
-    document.getElementById("formAppTags").value = (appToEdit.tags || []).join(", ");
-    document.getElementById("formAppPinned").checked = !!appToEdit.pinned;
-    document.getElementById("formAppAllowPreview").checked = appToEdit.allowPreview !== false;
-  } else {
-    modalTitle.textContent = "Add New Application";
-    modalIcon.setAttribute("data-lucide", "plus-circle");
-    document.getElementById("formAppId").value = "";
-    document.getElementById("formAppStatus").value = "active";
-    document.getElementById("formAppIcon").value = "🚀";
-    document.getElementById("formAppPinned").checked = false;
-    document.getElementById("formAppAllowPreview").checked = true;
-  }
-
-  modal.classList.remove("hidden");
-  refreshIcons();
-}
-
-function closeAppFormModal() {
-  document.getElementById("appFormModal").classList.add("hidden");
-}
-
-function handleAppFormSubmit(e) {
-  e.preventDefault();
-
-  const id = document.getElementById("formAppId").value;
-  const title = document.getElementById("formAppTitle").value.trim();
-  const subdomain = document.getElementById("formAppSubdomain").value.trim();
-  const url = document.getElementById("formAppUrl").value.trim();
-  const category = document.getElementById("formAppCategory").value.trim() || "General";
-  const status = document.getElementById("formAppStatus").value;
-  const description = document.getElementById("formAppDescription").value.trim();
-  const icon = document.getElementById("formAppIcon").value.trim() || "🚀";
-  const rawTags = document.getElementById("formAppTags").value;
-  const tags = rawTags ? rawTags.split(",").map(t => t.trim().toLowerCase()).filter(Boolean) : [];
-  const pinned = document.getElementById("formAppPinned").checked;
-  const allowPreview = document.getElementById("formAppAllowPreview").checked;
-
-  if (id) {
-    // Edit existing
-    const index = state.apps.findIndex(a => a.id === id);
-    if (index !== -1) {
-      state.apps[index] = {
-        ...state.apps[index],
-        title,
-        subdomain,
-        url,
-        category,
-        status,
-        description,
-        icon,
-        tags,
-        pinned,
-        allowPreview,
-        updatedAt: Date.now()
-      };
-      showToast(`Updated "${title}"`, "success");
-    }
-  } else {
-    // Add new
-    const newApp = {
-      id: "app-" + Date.now(),
-      title,
-      subdomain,
-      url,
-      category,
-      status,
-      description,
-      icon,
-      tags,
-      pinned,
-      allowPreview,
-      createdAt: Date.now()
+  function getChartColors() {
+    const isLight = theme === 'light';
+    return {
+      text: isLight ? '#374151' : '#d1d5db',
+      muted: isLight ? '#6b7280' : '#9ca3af',
+      grid: isLight ? 'rgba(17, 24, 39, 0.08)' : 'rgba(255, 255, 255, 0.06)'
     };
-    state.apps.unshift(newApp);
-    showToast(`Added "${title}"`, "success");
   }
 
-  saveApps();
-  closeAppFormModal();
-  renderCategories();
-  renderApps();
-  updateMetrics();
-}
-
-// ==================== PREVIEW MODAL ====================
-
-function openPreviewModal(app) {
-  const modal = document.getElementById("previewModal");
-  const iconEl = document.getElementById("previewAppIcon");
-  const titleEl = document.getElementById("previewAppTitle");
-  const urlEl = document.getElementById("previewAppUrl");
-  const extBtn = document.getElementById("previewExternalLinkBtn");
-  const iframe = document.getElementById("previewIframe");
-  const loader = document.getElementById("previewLoadingIndicator");
-
-  iconEl.textContent = app.icon || "🚀";
-  titleEl.textContent = app.title;
-  urlEl.textContent = app.url;
-  extBtn.href = app.url;
-
-  loader.classList.remove("hidden");
-  iframe.src = app.url;
-
-  iframe.onload = () => {
-    loader.classList.add("hidden");
-  };
-
-  modal.classList.remove("hidden");
-}
-
-function closePreviewModal() {
-  const modal = document.getElementById("previewModal");
-  const iframe = document.getElementById("previewIframe");
-  iframe.src = "";
-  modal.classList.add("hidden");
-}
-
-// ==================== BACKUP / IMPORT / EXPORT ====================
-
-function openBackupModal(mode = "export") {
-  const modal = document.getElementById("backupModal");
-  const title = document.getElementById("backupModalTitle");
-  const textarea = document.getElementById("backupJsonTextarea");
-
-  if (mode === "export") {
-    title.textContent = "Export Applications JSON";
-    textarea.value = JSON.stringify(state.apps, null, 2);
-  } else {
-    title.textContent = "Import Applications JSON";
-    textarea.value = "";
-    textarea.placeholder = "Paste your exported JSON array here...";
+  function getBaseChartOptions(extra = {}) {
+    const c = getChartColors();
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: c.text, boxWidth: 12 } }
+      },
+      scales: {
+        x: { ticks: { color: c.muted }, grid: { color: c.grid } },
+        y: { ticks: { color: c.muted }, grid: { color: c.grid } }
+      },
+      ...extra
+    };
   }
 
-  modal.classList.remove("hidden");
-}
+  function upsertChart(id, cfg) {
+    if (charts[id]) charts[id].destroy();
+    const el = document.getElementById(id);
+    if (el) charts[id] = new Chart(el, cfg);
+  }
 
-function closeBackupModal() {
-  document.getElementById("backupModal").classList.add("hidden");
-}
+  // ---------- Local & Google Sheets Storage ----------
+  function loadLocal() {
+    theme = localStorage.getItem(THEME_KEY) || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+    document.getElementById('themeLabel').textContent = theme === 'dark' ? 'Light' : 'Dark';
 
-function copyBackupJson() {
-  const textarea = document.getElementById("backupJsonTextarea");
-  navigator.clipboard.writeText(textarea.value).then(() => {
-    showToast("JSON copied to clipboard!", "success");
-  });
-}
+    config = {
+      url: (window.KSEB_CONFIG && window.KSEB_CONFIG.SHEETS_WEB_APP_URL) || '',
+      secret: ''
+    };
 
-function applyImportedJson() {
-  const textarea = document.getElementById("backupJsonTextarea");
-  const text = textarea.value.trim();
-
-  try {
-    const parsed = JSON.parse(text);
-    if (!Array.isArray(parsed)) {
-      throw new Error("JSON must be an array of application objects.");
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      bills = Array.isArray(saved) && saved.length ? sortBills(saved) : sortBills(window.SEED_KSEB_BILLS);
+    } catch {
+      bills = sortBills(window.SEED_KSEB_BILLS);
     }
-    state.apps = parsed;
-    saveApps();
-    closeBackupModal();
-    renderCategories();
-    renderApps();
-    updateMetrics();
-    showToast(`Successfully imported ${parsed.length} applications!`, "success");
-  } catch (err) {
-    alert("Invalid JSON format: " + err.message);
-  }
-}
-
-// ==================== GAS BACKEND SYNC ====================
-
-function openGasSyncModal() {
-  document.getElementById("gasSyncModal").classList.remove("hidden");
-}
-
-function closeGasSyncModal() {
-  document.getElementById("gasSyncModal").classList.add("hidden");
-}
-
-function handleSaveGasEndpoint() {
-  const input = document.getElementById("gasApiEndpointInput");
-  const status = document.getElementById("gasSyncStatus");
-  const url = input.value.trim();
-
-  if (!url) {
-    localStorage.removeItem(STORAGE_KEYS.GAS_ENDPOINT);
-    state.gasEndpoint = "";
-    status.textContent = "GAS sync endpoint cleared.";
-    return;
   }
 
-  state.gasEndpoint = url;
-  localStorage.setItem(STORAGE_KEYS.GAS_ENDPOINT, url);
-  status.textContent = "Endpoint saved. You can use Code.gs to read/write apps to Google Sheets.";
-  showToast("GAS Endpoint URL saved.", "success");
-}
-
-// ==================== UTILITIES & HELPERS ====================
-
-function refreshIcons() {
-  if (window.lucide && typeof window.lucide.createIcons === "function") {
-    window.lucide.createIcons();
+  function saveLocal() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bills));
   }
-}
 
-function showToast(message, type = "info") {
-  const container = document.getElementById("toastContainer");
-  if (!container) return;
+  function updateSyncPill(mode, text) {
+    const pill = document.getElementById('syncStatus');
+    const label = document.getElementById('syncStatusText');
+    pill.className = `status-pill ${mode === 'connected' ? 'status-connected' : 'status-local'}`;
+    label.textContent = text;
+  }
 
-  const toast = document.createElement("div");
-  const colors = {
-    success: "bg-emerald-600 text-white",
-    error: "bg-rose-600 text-white",
-    info: "bg-slate-800 text-white border border-slate-700"
-  };
+  async function fetchFromSheets() {
+    if (!config.url) {
+      updateSyncPill('local', `Local Mode (${bills.length} mo)`);
+      return;
+    }
+    updateSyncPill('local', 'Syncing...');
+    try {
+      const res = await fetch(config.url);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Failed to read sheet');
+      if (Array.isArray(data.rows) && data.rows.length > 0) {
+        bills = sortBills(data.rows.map(normalizeRecord));
+        saveLocal();
+      }
+      updateSyncPill('connected', `Google Sheet (${bills.length} mo)`);
+      populateSelectors();
+      renderAll();
+    } catch (err) {
+      updateSyncPill('local', 'Sheet Sync Error');
+      console.error(err);
+    }
+  }
 
-  toast.className = `toast-item pointer-events-auto px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 ${colors[type] || colors.info}`;
-  toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+  async function postToSheets(payload) {
+    if (!config.url) return { ok: true, localOnly: true };
+    const res = await fetch(config.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ secret: config.secret || '', ...payload })
+    });
+    return await res.json();
+  }
 
-  container.appendChild(toast);
+  function normalizeRecord(r) {
+    return {
+      monthKey: String(r.monthKey),
+      monthLabel: r.monthLabel || monthKeyToLabel(String(r.monthKey)),
+      prevImport: r.prevImport === '' || r.prevImport === null ? null : Number(r.prevImport),
+      currImport: r.currImport === '' || r.currImport === null ? null : Number(r.currImport),
+      normalImport: r.normalImport === '' || r.normalImport === null ? null : Number(r.normalImport),
+      offPeakImport: r.offPeakImport === '' || r.offPeakImport === null ? null : Number(r.offPeakImport),
+      peakImport: r.peakImport === '' || r.peakImport === null ? null : Number(r.peakImport),
+      netImport: Number(r.netImport || 0),
+      prevExport: Number(r.prevExport || 0),
+      currExport: Number(r.currExport || 0),
+      netExport: Number(r.netExport || 0),
+      solarGeneration: Number(r.solarGeneration || 0),
+      exportEfficiency: Number(r.exportEfficiency || 0),
+      directUsed: Number(r.directUsed || 0),
+      directEfficiency: Number(r.directEfficiency || 0),
+      credit: Number(r.credit || 0),
+      cumulativeCredit: Number(r.cumulativeCredit || 0),
+      billAmount: Number(r.billAmount || 0),
+      resetCumulative: r.resetCumulative === true || r.resetCumulative === 'true'
+    };
+  }
 
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateX(20px)";
-    toast.style.transition = "all 0.3s ease";
-    setTimeout(() => toast.remove(), 300);
-  }, 3200);
-}
+  // ---------- Selectors ----------
+  function populateSelectors() {
+    const mSel = document.getElementById('monthlySelect');
+    const prevM = mSel.value;
+    const reversed = [...bills].reverse();
+    mSel.innerHTML = reversed.map((b) => `<option value="${b.monthKey}">${b.monthLabel} (${b.monthKey})</option>`).join('');
+    if (prevM && bills.some((b) => b.monthKey === prevM)) mSel.value = prevM;
+    else if (reversed.length) mSel.value = reversed[0].monthKey;
 
-function escapeHtml(str) {
-  if (typeof str !== "string") return str;
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+    const ySel = document.getElementById('yearlySelect');
+    const prevY = ySel.value;
+    const years = [...new Set(bills.map((b) => b.monthKey.slice(0, 4)))].sort().reverse();
+    ySel.innerHTML = years.map((y) => `<option value="${y}">${y}</option>`).join('');
+    if (prevY && years.includes(prevY)) ySel.value = prevY;
+    else if (years.length) ySel.value = years[0];
+  }
+
+  // ---------- 1. MONTHLY DASHBOARD ----------
+  function renderMonthlyDashboard() {
+    if (!bills.length) return;
+    const key = document.getElementById('monthlySelect').value || bills[bills.length - 1].monthKey;
+    const idx = bills.findIndex((b) => b.monthKey === key);
+    const b = bills[idx >= 0 ? idx : bills.length - 1];
+    const prev = idx > 0 ? bills[idx - 1] : null;
+
+    document.getElementById('monthlyBadge').textContent = b.resetCumulative
+      ? `${b.monthLabel} • May Settlement Reset`
+      : b.monthLabel;
+
+    document.getElementById('mKpiSolar').textContent = `${fmt(b.solarGeneration)} kWh`;
+    document.getElementById('mKpiSolarSub').textContent = prev
+      ? `vs ${prev.monthLabel}: ${b.solarGeneration - prev.solarGeneration >= 0 ? '+' : ''}${fmt(b.solarGeneration - prev.solarGeneration)} kWh`
+      : 'First recorded month';
+
+    document.getElementById('mKpiExport').textContent = `${fmt(b.netExport)} kWh`;
+    document.getElementById('mKpiExportSub').textContent = `Export eff: ${Number(b.exportEfficiency).toFixed(2)}%`;
+
+    document.getElementById('mKpiImport').textContent = `${fmt(b.netImport)} kWh`;
+    document.getElementById('mKpiImportSub').textContent = b.normalImport !== null
+      ? `N:${b.normalImport} / OP:${b.offPeakImport} / P:${b.peakImport}`
+      : `Meter: ${b.prevImport} → ${b.currImport}`;
+
+    document.getElementById('mKpiDirect').textContent = `${fmt(b.directUsed)} kWh`;
+    document.getElementById('mKpiDirectSub').textContent = `Direct usage: ${Number(b.directEfficiency).toFixed(2)}%`;
+
+    document.getElementById('mKpiCredit').textContent = `+${fmt(b.credit)} kWh`;
+    document.getElementById('mKpiCreditSub').textContent = `Cumulative bank: ${fmt(b.cumulativeCredit)} kWh`;
+
+    document.getElementById('mKpiBill').textContent = `₹${fmt(b.billAmount)}`;
+    document.getElementById('mKpiBillSub').textContent = prev
+      ? `Prev month (${prev.monthLabel}): ₹${fmt(prev.billAmount)}`
+      : 'Monthly KSEB bill';
+
+    const c = getChartColors();
+
+    upsertChart('monthlySolarSplitChart', {
+      type: 'doughnut',
+      data: {
+        labels: ['Net Exported', 'Direct Used'],
+        datasets: [{
+          data: [b.netExport, Math.max(0, b.directUsed)],
+          backgroundColor: ['#10b981', '#f59e0b'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: c.text } } }
+      }
+    });
+
+    const isLegacy = b.normalImport === null;
+    upsertChart('monthlyTodChart', {
+      type: isLegacy ? 'bar' : 'doughnut',
+      data: isLegacy
+        ? {
+            labels: ['Total Net Import (Pre-ToD)'],
+            datasets: [{ label: 'kWh', data: [b.netImport], backgroundColor: ['#38bdf8'] }]
+          }
+        : {
+            labels: ['Normal', 'Off-Peak', 'Peak'],
+            datasets: [{
+              data: [b.normalImport, b.offPeakImport, b.peakImport],
+              backgroundColor: ['#38bdf8', '#a78bfa', '#f43f5e'],
+              borderWidth: 0
+            }]
+          },
+      options: isLegacy
+        ? getBaseChartOptions()
+        : {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: c.text } } }
+          }
+    });
+
+    const compareLabels = ['Solar Gen', 'Net Export', 'Net Import', 'Direct Used', 'Credit'];
+    const currVals = [b.solarGeneration, b.netExport, b.netImport, b.directUsed, b.credit];
+    const datasets = [{ label: b.monthLabel, data: currVals, backgroundColor: 'rgba(245, 158, 11, 0.85)' }];
+    if (prev) {
+      datasets.unshift({
+        label: prev.monthLabel,
+        data: [prev.solarGeneration, prev.netExport, prev.netImport, prev.directUsed, prev.credit],
+        backgroundColor: 'rgba(56, 189, 248, 0.55)'
+      });
+    }
+    upsertChart('monthlyCompareChart', {
+      type: 'bar',
+      data: { labels: compareLabels, datasets },
+      options: getBaseChartOptions()
+    });
+  }
+
+  // ---------- 2. YEARLY DASHBOARD ----------
+  function renderYearlyDashboard() {
+    if (!bills.length) return;
+    const year = document.getElementById('yearlySelect').value || bills[bills.length - 1].monthKey.slice(0, 4);
+    const data = bills.filter((b) => b.monthKey.startsWith(year));
+    if (!data.length) return;
+
+    const latest = data[data.length - 1];
+    document.getElementById('yearlyBadge').textContent = `${year} (${data.length} months)`;
+
+    const totalSolar = data.reduce((s, b) => s + b.solarGeneration, 0);
+    const totalExport = data.reduce((s, b) => s + b.netExport, 0);
+    const totalImport = data.reduce((s, b) => s + b.netImport, 0);
+    const totalDirect = data.reduce((s, b) => s + b.directUsed, 0);
+    const totalBill = data.reduce((s, b) => s + b.billAmount, 0);
+    const avgExportEff = data.reduce((s, b) => s + b.exportEfficiency, 0) / data.length;
+    const avgDirectEff = data.reduce((s, b) => s + b.directEfficiency, 0) / data.length;
+
+    document.getElementById('yKpiSolar').textContent = `${fmt(totalSolar)} kWh`;
+    document.getElementById('yKpiSolarSub').textContent = `Avg ${fmt(totalSolar / data.length, 1)} kWh / mo`;
+
+    document.getElementById('yKpiExport').textContent = `${fmt(totalExport)} kWh`;
+    document.getElementById('yKpiExportSub').textContent = `Avg export eff: ${avgExportEff.toFixed(1)}%`;
+
+    document.getElementById('yKpiImport').textContent = `${fmt(totalImport)} kWh`;
+    document.getElementById('yKpiImportSub').textContent = `Net surplus: +${fmt(totalExport - totalImport)} kWh`;
+
+    document.getElementById('yKpiDirect').textContent = `${fmt(totalDirect)} kWh`;
+    document.getElementById('yKpiDirectSub').textContent = `Avg direct usage: ${avgDirectEff.toFixed(1)}%`;
+
+    document.getElementById('yKpiCumCredit').textContent = `${fmt(latest.cumulativeCredit)} kWh`;
+    document.getElementById('yKpiCumCreditSub').textContent = `As of ${latest.monthLabel}`;
+
+    document.getElementById('yKpiBills').textContent = `₹${fmt(totalBill)}`;
+    document.getElementById('yKpiBillsSub').textContent = `Avg ₹${fmt(totalBill / data.length, 0)} / mo`;
+
+    const labels = data.map((b) => b.monthLabel);
+    const base = getBaseChartOptions();
+
+    upsertChart('yearlyEnergyChart', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Net Export', data: data.map((b) => b.netExport), backgroundColor: 'rgba(16, 185, 129, 0.8)', stack: 's' },
+          { label: 'Direct Used', data: data.map((b) => b.directUsed), backgroundColor: 'rgba(245, 158, 11, 0.85)', stack: 's' },
+          { label: 'Net Import', data: data.map((b) => b.netImport), backgroundColor: 'rgba(244, 63, 94, 0.8)' },
+          { label: 'Solar Gen', data: data.map((b) => b.solarGeneration), type: 'line', borderColor: '#38bdf8', backgroundColor: '#38bdf8', tension: 0.3 }
+        ]
+      },
+      options: base
+    });
+
+    upsertChart('yearlyTodChart', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Normal', data: data.map((b) => b.normalImport ?? 0), backgroundColor: '#38bdf8', stack: 'tod' },
+          { label: 'Off-Peak', data: data.map((b) => b.offPeakImport ?? 0), backgroundColor: '#a78bfa', stack: 'tod' },
+          { label: 'Peak', data: data.map((b) => b.peakImport ?? 0), backgroundColor: '#f43f5e', stack: 'tod' }
+        ]
+      },
+      options: base
+    });
+
+    upsertChart('yearlyCreditChart', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Monthly Credit', data: data.map((b) => b.credit), backgroundColor: 'rgba(56, 189, 248, 0.7)', yAxisID: 'y' },
+          {
+            label: 'Cumulative Credit',
+            data: data.map((b) => b.cumulativeCredit),
+            type: 'line',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.14)',
+            fill: true,
+            tension: 0.25,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        ...base,
+        scales: {
+          ...base.scales,
+          y1: { position: 'right', ticks: { color: '#10b981' }, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+  }
+
+  // ---------- 3. TOTAL (ALL-TIME) DASHBOARD ----------
+  function renderTotalDashboard() {
+    if (!bills.length) return;
+    const first = bills[0];
+    const latest = bills[bills.length - 1];
+    document.getElementById('totalBadge').textContent = `${first.monthLabel} → ${latest.monthLabel} (${bills.length} mo)`;
+
+    const totalSolar = bills.reduce((s, b) => s + b.solarGeneration, 0);
+    const totalExport = bills.reduce((s, b) => s + b.netExport, 0);
+    const totalImport = bills.reduce((s, b) => s + b.netImport, 0);
+    const totalDirect = bills.reduce((s, b) => s + b.directUsed, 0);
+    const totalBill = bills.reduce((s, b) => s + b.billAmount, 0);
+    const avgExportEff = bills.reduce((s, b) => s + b.exportEfficiency, 0) / bills.length;
+    const avgDirectEff = bills.reduce((s, b) => s + b.directEfficiency, 0) / bills.length;
+    const peakSolar = bills.reduce((max, b) => (b.solarGeneration > max.solarGeneration ? b : max), bills[0]);
+
+    document.getElementById('tKpiSolar').textContent = `${fmt(totalSolar)} kWh`;
+    document.getElementById('tKpiSolarSub').textContent = `Avg ${fmt(totalSolar / bills.length, 1)} kWh / mo`;
+
+    document.getElementById('tKpiExportImport').textContent = `${fmt(totalExport)} / ${fmt(totalImport)}`;
+    document.getElementById('tKpiExportImportSub').textContent = `Net surplus: +${fmt(totalExport - totalImport)} kWh`;
+
+    document.getElementById('tKpiDirect').textContent = `${fmt(totalDirect)} kWh`;
+    document.getElementById('tKpiDirectSub').textContent = `Avg direct usage: ${avgDirectEff.toFixed(1)}%`;
+
+    document.getElementById('tKpiCumCredit').textContent = `${fmt(latest.cumulativeCredit)} kWh`;
+    document.getElementById('tKpiCumCreditSub').textContent = `${latest.monthLabel} credit: +${fmt(latest.credit)} kWh`;
+
+    document.getElementById('tKpiBills').textContent = `₹${fmt(totalBill)}`;
+    document.getElementById('tKpiBillsSub').textContent = `Avg ₹${fmt(totalBill / bills.length, 0)} / mo`;
+
+    document.getElementById('tKpiExportEff').textContent = `${avgExportEff.toFixed(1)}%`;
+    document.getElementById('tKpiExportEffSub').textContent = `Peak: ${peakSolar.monthLabel} (${fmt(peakSolar.solarGeneration)} kWh)`;
+
+    const labels = bills.map((b) => b.monthLabel);
+    const base = getBaseChartOptions();
+
+    upsertChart('totalEnergyChart', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Net Export', data: bills.map((b) => b.netExport), backgroundColor: 'rgba(16, 185, 129, 0.8)', stack: 's' },
+          { label: 'Direct Used', data: bills.map((b) => b.directUsed), backgroundColor: 'rgba(245, 158, 11, 0.85)', stack: 's' },
+          { label: 'Net Import', data: bills.map((b) => b.netImport), backgroundColor: 'rgba(244, 63, 94, 0.8)' },
+          { label: 'Solar Gen', data: bills.map((b) => b.solarGeneration), type: 'line', borderColor: '#38bdf8', backgroundColor: '#38bdf8', tension: 0.3 }
+        ]
+      },
+      options: base
+    });
+
+    const years = [...new Set(bills.map((b) => b.monthKey.slice(0, 4)))].sort();
+    const sumByYear = (fn) => years.map((y) => bills.filter((b) => b.monthKey.startsWith(y)).reduce((s, b) => s + fn(b), 0));
+    upsertChart('totalYoyChart', {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: [
+          { label: 'Solar Gen', data: sumByYear((b) => b.solarGeneration), backgroundColor: '#38bdf8' },
+          { label: 'Net Export', data: sumByYear((b) => b.netExport), backgroundColor: '#10b981' },
+          { label: 'Net Import', data: sumByYear((b) => b.netImport), backgroundColor: '#f43f5e' },
+          { label: 'Direct Used', data: sumByYear((b) => b.directUsed), backgroundColor: '#f59e0b' }
+        ]
+      },
+      options: base
+    });
+
+    upsertChart('totalCreditChart', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Monthly Credit', data: bills.map((b) => b.credit), backgroundColor: 'rgba(56, 189, 248, 0.7)', yAxisID: 'y' },
+          {
+            label: 'Cumulative Credit',
+            data: bills.map((b) => b.cumulativeCredit),
+            type: 'line',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.14)',
+            fill: true,
+            tension: 0.25,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        ...base,
+        scales: {
+          ...base.scales,
+          y1: { position: 'right', ticks: { color: '#10b981' }, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+
+    upsertChart('totalEffBillChart', {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: '% Export Eff', data: bills.map((b) => b.exportEfficiency), borderColor: '#10b981', tension: 0.3, yAxisID: 'y' },
+          { label: '% Direct Usage', data: bills.map((b) => b.directEfficiency), borderColor: '#f59e0b', tension: 0.3, yAxisID: 'y' },
+          { label: 'Bill (₹)', data: bills.map((b) => b.billAmount), type: 'bar', backgroundColor: 'rgba(167, 139, 250, 0.45)', yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        ...base,
+        scales: {
+          ...base.scales,
+          y: { ticks: { color: getChartColors().muted, callback: (v) => `${v}%` }, grid: { color: getChartColors().grid } },
+          y1: { position: 'right', ticks: { color: '#a78bfa', callback: (v) => `₹${v}` }, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+  }
+
+  // ---------- Calculations & Entry Form ----------
+  function getPreviousMonthCumulative(targetMonthKey) {
+    const prior = bills.filter((b) => b.monthKey < targetMonthKey);
+    if (!prior.length) return 0;
+    return Number(prior[prior.length - 1].cumulativeCredit || 0);
+  }
+
+  function computeBillFromForm() {
+    const monthKey = document.getElementById('monthKey').value;
+    const useLegacy = document.getElementById('useLegacyImport').checked;
+    const prevImport = useLegacy ? num(document.getElementById('prevImport').value) : null;
+    const currImport = useLegacy ? num(document.getElementById('currImport').value) : null;
+    const normalImport = useLegacy ? null : num(document.getElementById('normalImport').value);
+    const offPeakImport = useLegacy ? null : num(document.getElementById('offPeakImport').value);
+    const peakImport = useLegacy ? null : num(document.getElementById('peakImport').value);
+
+    const netImport = useLegacy
+      ? Math.max(0, currImport - prevImport)
+      : normalImport + offPeakImport + peakImport;
+
+    const prevExport = num(document.getElementById('prevExport').value);
+    const currExport = num(document.getElementById('currExport').value);
+    const netExport = Math.max(0, currExport - prevExport);
+
+    const solarGeneration = num(document.getElementById('solarGeneration').value);
+    const directUsed = solarGeneration - netExport;
+    const exportEfficiency = solarGeneration > 0 ? +(netExport / solarGeneration * 100).toFixed(3) : 0;
+    const directEfficiency = solarGeneration > 0 ? +(directUsed / solarGeneration * 100).toFixed(3) : 0;
+
+    const credit = netExport - netImport;
+    const resetCumulative = document.getElementById('resetCumulative').checked;
+    const overrideToggle = document.getElementById('overrideCumulativeToggle').checked;
+    const prevCum = getPreviousMonthCumulative(monthKey);
+    const autoCum = resetCumulative ? credit : prevCum + credit;
+    const cumulativeCredit = overrideToggle ? num(document.getElementById('manualCumulative').value) : autoCum;
+    const billAmount = num(document.getElementById('billAmount').value);
+
+    return {
+      monthKey,
+      monthLabel: monthKeyToLabel(monthKey),
+      prevImport,
+      currImport,
+      normalImport,
+      offPeakImport,
+      peakImport,
+      netImport,
+      prevExport,
+      currExport,
+      netExport,
+      solarGeneration,
+      exportEfficiency,
+      directUsed,
+      directEfficiency,
+      credit,
+      cumulativeCredit,
+      billAmount,
+      resetCumulative
+    };
+  }
+
+  function updatePreview() {
+    const calc = computeBillFromForm();
+    document.getElementById('prevMonthLabel').textContent = calc.monthLabel || '—';
+    document.getElementById('prevNetImport').textContent = `${fmt(calc.netImport)} kWh`;
+    document.getElementById('prevNetExport').textContent = `${fmt(calc.netExport)} kWh`;
+    document.getElementById('prevDirectUsed').textContent = `${fmt(calc.directUsed)} kWh`;
+    document.getElementById('prevExportEff').textContent = `${calc.exportEfficiency.toFixed(2)}%`;
+    document.getElementById('prevDirectEff').textContent = `${calc.directEfficiency.toFixed(2)}%`;
+    document.getElementById('prevCredit').textContent = `${fmt(calc.credit)} kWh`;
+    document.getElementById('prevCumCredit').textContent = `${fmt(calc.cumulativeCredit)} kWh`;
+  }
+
+  // ---------- Ledger ----------
+  function renderLedger() {
+    const tbody = document.getElementById('ledgerBody');
+    document.getElementById('ledgerCount').textContent = `${bills.length} months`;
+    const reversed = [...bills].reverse();
+
+    tbody.innerHTML = reversed.map((b) => `
+      <tr>
+        <td>${b.monthLabel}${b.resetCumulative ? ' 🔄' : ''}</td>
+        <td>${b.prevImport ?? '—'}</td>
+        <td>${b.currImport ?? '—'}</td>
+        <td>${b.normalImport ?? '—'}</td>
+        <td>${b.offPeakImport ?? '—'}</td>
+        <td>${b.peakImport ?? '—'}</td>
+        <td><strong>${fmt(b.netImport)}</strong></td>
+        <td>${fmt(b.prevExport)}</td>
+        <td>${fmt(b.currExport)}</td>
+        <td><strong>${fmt(b.netExport)}</strong></td>
+        <td>${fmt(b.solarGeneration)}</td>
+        <td>${Number(b.exportEfficiency).toFixed(2)}%</td>
+        <td>${fmt(b.directUsed)}</td>
+        <td>${Number(b.directEfficiency).toFixed(2)}%</td>
+        <td>${fmt(b.credit)}</td>
+        <td><strong>${fmt(b.cumulativeCredit)}</strong></td>
+        <td>₹${fmt(b.billAmount)}</td>
+        <td>
+          <button class="action-btn" data-edit="${b.monthKey}">Edit</button>
+          <button class="action-btn" data-delete="${b.monthKey}">Del</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderAll() {
+    renderMonthlyDashboard();
+    renderYearlyDashboard();
+    renderTotalDashboard();
+    renderLedger();
+    updatePreview();
+  }
+
+  // ---------- Tabs & Form Helpers ----------
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === `tab-${name}`));
+  }
+
+  function prepareNewEntryForm() {
+    document.getElementById('billForm').reset();
+    document.getElementById('formTitle').textContent = 'Enter Monthly KSEB Bill';
+    document.getElementById('useLegacyImport').checked = false;
+    document.getElementById('todImportFields').classList.remove('hidden');
+    document.getElementById('legacyImportFields').classList.add('hidden');
+    document.getElementById('manualCumulativeWrap').classList.add('hidden');
+
+    if (bills.length > 0) {
+      const latest = bills[bills.length - 1];
+      const nextKey = nextMonthKey(latest.monthKey);
+      document.getElementById('monthKey').value = nextKey;
+      document.getElementById('prevExport').value = latest.currExport;
+      document.getElementById('resetCumulative').checked = nextKey.endsWith('-05');
+    }
+    updatePreview();
+  }
+
+  function loadRecordIntoForm(monthKey) {
+    const b = bills.find((x) => x.monthKey === monthKey);
+    if (!b) return;
+    document.getElementById('formTitle').textContent = `Edit ${b.monthLabel} Bill`;
+    document.getElementById('monthKey').value = b.monthKey;
+    document.getElementById('billAmount').value = b.billAmount;
+    const isLegacy = b.normalImport === null && b.prevImport !== null;
+    document.getElementById('useLegacyImport').checked = isLegacy;
+    document.getElementById('todImportFields').classList.toggle('hidden', isLegacy);
+    document.getElementById('legacyImportFields').classList.toggle('hidden', !isLegacy);
+
+    document.getElementById('normalImport').value = b.normalImport ?? '';
+    document.getElementById('offPeakImport').value = b.offPeakImport ?? '';
+    document.getElementById('peakImport').value = b.peakImport ?? '';
+    document.getElementById('prevImport').value = b.prevImport ?? '';
+    document.getElementById('currImport').value = b.currImport ?? '';
+    document.getElementById('prevExport').value = b.prevExport;
+    document.getElementById('currExport').value = b.currExport;
+    document.getElementById('solarGeneration').value = b.solarGeneration;
+    document.getElementById('resetCumulative').checked = !!b.resetCumulative;
+    document.getElementById('overrideCumulativeToggle').checked = false;
+    document.getElementById('manualCumulativeWrap').classList.add('hidden');
+    document.getElementById('manualCumulative').value = b.cumulativeCredit;
+
+    updatePreview();
+    switchTab('entry');
+  }
+
+  // ---------- Event Wiring ----------
+  function bindEvents() {
+    document.querySelectorAll('.tab').forEach((t) => {
+      t.addEventListener('click', () => switchTab(t.dataset.tab));
+    });
+
+    document.getElementById('btnTheme').addEventListener('click', () => {
+      applyTheme(theme === 'dark' ? 'light' : 'dark');
+    });
+
+    document.getElementById('btnOpenEntry').addEventListener('click', () => {
+      prepareNewEntryForm();
+      switchTab('entry');
+    });
+
+    document.getElementById('btnResetForm').addEventListener('click', prepareNewEntryForm);
+    document.getElementById('monthlySelect').addEventListener('change', renderMonthlyDashboard);
+    document.getElementById('yearlySelect').addEventListener('change', renderYearlyDashboard);
+
+    document.getElementById('useLegacyImport').addEventListener('change', (e) => {
+      document.getElementById('todImportFields').classList.toggle('hidden', e.target.checked);
+      document.getElementById('legacyImportFields').classList.toggle('hidden', !e.target.checked);
+      updatePreview();
+    });
+
+    document.getElementById('overrideCumulativeToggle').addEventListener('change', (e) => {
+      document.getElementById('manualCumulativeWrap').classList.toggle('hidden', !e.target.checked);
+      updatePreview();
+    });
+
+    document.getElementById('monthKey').addEventListener('change', (e) => {
+      document.getElementById('resetCumulative').checked = e.target.value.endsWith('-05');
+      updatePreview();
+    });
+
+    document.getElementById('billForm').addEventListener('input', updatePreview);
+
+    document.getElementById('billForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const feedback = document.getElementById('formFeedback');
+      feedback.className = 'form-feedback';
+      feedback.textContent = 'Saving...';
+
+      const record = computeBillFromForm();
+      const idx = bills.findIndex((x) => x.monthKey === record.monthKey);
+      if (idx >= 0) bills[idx] = record;
+      else bills.push(record);
+      bills = sortBills(bills);
+      saveLocal();
+      populateSelectors();
+
+      try {
+        const secret = document.getElementById('writeSecret').value || '';
+        const res = await postToSheets({ action: 'upsert', record, secret });
+        if (!res.ok) throw new Error(res.error || 'Sheet save failed');
+        feedback.textContent = res.localOnly
+          ? `Saved ${record.monthLabel} locally!`
+          : `Saved ${record.monthLabel} to Google Sheet!`;
+      } catch (err) {
+        feedback.className = 'form-feedback error';
+        feedback.textContent = `Saved locally, but Google Sheet error: ${err.message}`;
+      }
+
+      renderAll();
+    });
+
+    document.getElementById('ledgerBody').addEventListener('click', async (e) => {
+      const editKey = e.target.dataset.edit;
+      const delKey = e.target.dataset.delete;
+      if (editKey) {
+        loadRecordIntoForm(editKey);
+      } else if (delKey && confirm(`Delete record for ${delKey}?`)) {
+        const secret = config.url ? (prompt('Enter Admin Passphrase (leave blank if none):') || '') : '';
+        try {
+          const res = await postToSheets({ action: 'delete', monthKey: delKey, secret });
+          if (!res.ok) throw new Error(res.error || 'Delete failed');
+          bills = bills.filter((b) => b.monthKey !== delKey);
+          saveLocal();
+          populateSelectors();
+          renderAll();
+        } catch (err) {
+          alert(`Could not delete from Google Sheet: ${err.message}`);
+        }
+      }
+    });
+  }
+
+  // ---------- Init ----------
+  loadLocal();
+  populateSelectors();
+  bindEvents();
+  prepareNewEntryForm();
+  renderAll();
+  if (config.url) fetchFromSheets();
+})();
