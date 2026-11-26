@@ -851,6 +851,10 @@
       <path d="M21.5 2v6h-6"></path>
       <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
     </symbol>
+    <symbol id="icon-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m21 2-2 2m-1.5 1.5L14 9a5 5 0 1 0 3 3l3.5-3.5L21 8l-1.5-1.5L21 5l-2-2z"></path>
+      <circle cx="7.5" cy="15.5" r="1.5"></circle>
+    </symbol>
     <symbol id="icon-award" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="8" r="7"></circle>
       <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
@@ -2586,6 +2590,50 @@
   </div>
 </div>
 
+<!-- 12. ADMIN RESET USER PASSWORD MODAL -->
+<div id="modalAdminResetPassword" class="modal-overlay">
+  <div class="modal-box" style="max-width: 420px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #fffbeb; color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+          <svg style="width: 18px; height: 18px;"><use href="#icon-key"></use></svg>
+        </div>
+        <h3 style="font-size: 16px; font-weight: 800;">Reset User Password</h3>
+      </div>
+      <button onclick="closeModal('modalAdminResetPassword')" class="btn btn-secondary btn-icon" style="border: none;"><svg style="width: 16px; height: 16px;"><use href="#icon-close"></use></svg></button>
+    </div>
+    
+    <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-md); margin-bottom: 14px;">
+      <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">EMPLOYEE</div>
+      <div style="font-weight: 800; font-size: 14px; color: var(--text-main);" id="adminResetTargetName">--</div>
+      <div style="font-size: 12px; color: var(--primary); font-family: monospace; font-weight: 700;" id="adminResetTargetPen">PEN --</div>
+    </div>
+
+    <form onsubmit="handleSaveAdminResetPassword(event)">
+      <input type="hidden" id="adminResetPen">
+      
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="adminResetNewPass" class="form-input font-mono" placeholder="Enter new password (min 4 chars)" required minlength="4">
+          <button type="button" onclick="document.getElementById('adminResetNewPass').value = '1234'" class="btn btn-secondary btn-sm" title="Quick Fill 1234">Set 1234</button>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Share this new password with the user so they can log in.</div>
+      </div>
+
+      <div id="adminResetStatusMsg" style="font-size: 12px; margin-bottom: 12px; display: none;"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+        <button type="button" onclick="handleClearUserPassword()" class="btn btn-secondary btn-sm" style="color: var(--danger);" title="Allow user to pick password on next login">Clear Password</button>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" onclick="closeModal('modalAdminResetPassword')" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnAdminSubmitResetPass">Save Password</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ========================================================================= -->
 <!-- JAVASCRIPT: PURE LEAN LOGIC, REST API / GAS RUNNER, STAGED DATA LOADING     -->
 <!-- ========================================================================= -->
@@ -3935,7 +3983,7 @@
       const btn = document.getElementById(`filterLeave${f}`);
       if (btn) btn.classList.toggle('active', f === state.leaveTableFilter);
     });
-    renderLeaveRegisterSubTab();
+    renderLeaveRegister();
   }
 
   async function renderODRegister() {
@@ -4921,6 +4969,9 @@
         <td>${statusBadge}</td>
         <td style="text-align: right;">
           <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+            <button onclick="openAdminResetPasswordModal('${emp.pen}', '${(emp.name || '').replace(/'/g, "\\'")}')" class="btn btn-secondary btn-icon" style="width: 28px; height: 28px; color: #f59e0b;" title="Reset Password">
+              <svg style="width: 14px; height: 14px;"><use href="#icon-key"></use></svg>
+            </button>
             <button onclick="handleAdminViewUser('${emp.pen}')" class="btn btn-secondary btn-icon" style="width: 28px; height: 28px;" title="View Details">
               <svg style="width: 14px; height: 14px;"><use href="#icon-search"></use></svg>
             </button>
@@ -5599,6 +5650,69 @@
       }
     } catch (err) {
       alert('Change password error');
+    }
+  }
+
+  // ADMIN RESET USER PASSWORD
+  function openAdminResetPasswordModal(pen, name) {
+    document.getElementById('adminResetPen').value = pen;
+    document.getElementById('adminResetTargetName').innerText = name || 'Employee';
+    document.getElementById('adminResetTargetPen').innerText = `PEN: ${pen}`;
+    document.getElementById('adminResetNewPass').value = '';
+    const st = document.getElementById('adminResetStatusMsg');
+    if (st) st.style.display = 'none';
+    openModal('modalAdminResetPassword');
+  }
+
+  async function handleSaveAdminResetPassword(e) {
+    e.preventDefault();
+    const pen = document.getElementById('adminResetPen').value;
+    const newPass = document.getElementById('adminResetNewPass').value.trim();
+    if (!newPass || newPass.length < 4) {
+      alert('Password must be at least 4 characters long.');
+      return;
+    }
+
+    const btn = document.getElementById('btnAdminSubmitResetPass');
+    const st = document.getElementById('adminResetStatusMsg');
+    if (btn) { btn.disabled = true; btn.innerText = 'Updating...'; }
+
+    try {
+      const res = await callApi('apiAdminResetPassword', state.token, pen, newPass);
+      if (res && res.ok) {
+        alert(`Password for PEN ${pen} has been successfully updated to: ${newPass}`);
+        closeModal('modalAdminResetPassword');
+      } else {
+        const msg = (res && (res.error || res.message)) ? (res.error || res.message) : 'Failed to update password.';
+        if (st) {
+          st.style.display = 'block';
+          st.innerHTML = `<span style="color: var(--danger); font-weight: 700;">${msg}</span>`;
+        } else {
+          alert(msg);
+        }
+      }
+    } catch (err) {
+      alert('Network error: ' + (err.message || err));
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerText = 'Save Password'; }
+    }
+  }
+
+  async function handleClearUserPassword() {
+    const pen = document.getElementById('adminResetPen').value;
+    if (!confirm(`Are you sure you want to clear the password for PEN ${pen}?\n\nOn their next login, the user will be asked to choose their preferred password.`)) {
+      return;
+    }
+    try {
+      const res = await callApi('apiAdminResetPassword', state.token, pen, 'CLEAR');
+      if (res && res.ok) {
+        alert(`Password for PEN ${pen} has been cleared. The employee can now enter their preferred password upon next login.`);
+        closeModal('modalAdminResetPassword');
+      } else {
+        alert((res && (res.error || res.message)) ? (res.error || res.message) : 'Error clearing password.');
+      }
+    } catch (err) {
+      alert('Error clearing password: ' + (err.message || err));
     }
   }
 
