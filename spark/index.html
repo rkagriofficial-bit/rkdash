@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1299,9 +1299,7 @@
           </div>
           <div>
             <div style="font-size: 11px; font-weight: 800; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.5px;">Comp-Off Bank</div>
-            <div id="kpiCoff" style="font-size: 22px; font-weight: 900; color: #7c3aed; margin-top: 2px;">2 COFF Available</div>
-            <div id="kpiCoffSub" style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Earned: 8 | Availed: 6</div>
-            <div id="kpiCoffExtra" style="font-size: 11px; color: #7c3aed; font-weight: 700; margin-top: 2px;">Extra: +354m this month (+9109m YTD)</div>
+            <div id="kpiCoff" style="font-size: 22px; font-weight: 900; color: #7c3aed; margin-top: 2px;">1 COFF Available</div>
           </div>
         </div>
 
@@ -1313,7 +1311,6 @@
           <div>
             <div style="font-size: 11px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.5px;">Casual Leaves (CL)</div>
             <div id="kpiCL" style="font-size: 22px; font-weight: 900; color: #059669; margin-top: 2px;">2 Days Remaining</div>
-            <div id="kpiCLSub" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Used: 18 / Limit: 20</div>
           </div>
         </div>
 
@@ -1633,12 +1630,22 @@
 
       <!-- Table: Leaves Taken (STRICTLY NO TIMING!) -->
       <div class="card" style="margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-          <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 6px;">
-            <svg style="width: 15px; height: 15px; color: #e11d48;"><use href="#icon-calendar"></use></svg>
-            <span id="leaveRegisterTableTitle">Leaves Taken Log</span>
-          </h3>
-          <span class="badge-pill-soft" id="leaveRegisterCountBadge">0 leaves</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 6px;">
+              <svg style="width: 15px; height: 15px; color: #e11d48;"><use href="#icon-calendar"></use></svg>
+              <span id="leaveRegisterTableTitle">Leaves Taken Log</span>
+            </h3>
+            <span class="badge-pill-soft" id="leaveRegisterCountBadge">0 leaves</span>
+          </div>
+          <!-- Leave Type Filter Pills -->
+          <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+            <button onclick="setLeaveTableFilter('ALL')" id="filterLeaveALL" class="filter-pill active">All</button>
+            <button onclick="setLeaveTableFilter('CL')" id="filterLeaveCL" class="filter-pill">CL</button>
+            <button onclick="setLeaveTableFilter('FNCL')" id="filterLeaveFNCL" class="filter-pill">FNCL</button>
+            <button onclick="setLeaveTableFilter('ANCL')" id="filterLeaveANCL" class="filter-pill">ANCL</button>
+            <button onclick="setLeaveTableFilter('COFF')" id="filterLeaveCOFF" class="filter-pill">COFF</button>
+          </div>
         </div>
         <div class="table-container">
           <table class="data-table">
@@ -1940,7 +1947,7 @@
           <svg style="width: 18px; height: 18px;"><use href="#icon-history"></use></svg>
         </div>
         <div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Late Time</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Late Time (Month)</div>
           <div id="attKpiLateTime" style="font-size: 16px; font-weight: 900; color: #ef4444;">0m</div>
         </div>
       </div>
@@ -2601,6 +2608,7 @@
     dashViewMode: 'monthly',
     workDiaryFilter: 'ALL',
     attendanceViewMode: 'calendar',
+    leaveTableFilter: 'ALL',
     registerSubTab: 'leave', // 'leave' or 'od'
     registerPeriod: 'month',  // 'month' or 'year'
     registerMonthNumber: '11',
@@ -3313,25 +3321,21 @@
     const prevSub = document.getElementById('kpiGracePrevSub');
     if (prevSub) prevSub.innerText = prev.overBy > 0 ? `Over by ${prev.overBy}m` : `${prev.remaining || 300}m remaining`;
 
-    // Comp-Off Bank
+    // Comp-Off Bank (Balance only per user request)
     const coffAvail = extra.coffsAvailable !== undefined ? extra.coffsAvailable : ((extra.coffsEarned || 0) - (extra.coffsUsed || 0));
     const coffEl = document.getElementById('kpiCoff');
     if (coffEl) coffEl.innerText = `${coffAvail} COFF Available`;
     const coffSub = document.getElementById('kpiCoffSub');
-    if (coffSub) coffSub.innerText = `Earned: ${extra.coffsEarned || 0} | Availed: ${extra.coffsUsed || 0}`;
+    if (coffSub) coffSub.style.display = 'none';
     const coffExtraEl = document.getElementById('kpiCoffExtra');
-    if (coffExtraEl) {
-      const thisM = Number(extra.thisMonthExtras || extra.earnedMins || 0);
-      const ytdM = Number(extra.totalExtraMinsYear || extra.thisMonthExtras || 0);
-      coffExtraEl.innerText = `Extra: +${thisM}m this month (+${ytdM}m YTD)`;
-    }
+    if (coffExtraEl) coffExtraEl.style.display = 'none';
 
-    // Casual Leaves (CL)
+    // Casual Leaves (CL) (Balance only per user request)
     const remainingDays = (cl.remaining !== undefined && cl.remaining !== null) ? cl.remaining : (20 - (cl.used || 0));
     const clEl = document.getElementById('kpiCL');
     if (clEl) clEl.innerText = `${remainingDays} Days Remaining`;
     const clSub = document.getElementById('kpiCLSub');
-    if (clSub) clSub.innerText = `Used: ${cl.used || 0} / Limit: ${cl.limit || 20}`;
+    if (clSub) clSub.style.display = 'none';
   }
 
   function updateWorkDiaryKPIs(st) {
@@ -3884,17 +3888,30 @@
       renderCoffLedger(state.summary);
     }
 
+    const filter = state.leaveTableFilter || 'ALL';
+    let displayLeaves = filteredLeaves;
+    if (filter !== 'ALL') {
+      displayLeaves = filteredLeaves.filter(item => {
+        const type = (item.type || '').toUpperCase();
+        if (filter === 'CL') return type === 'CL';
+        if (filter === 'FNCL') return type === 'FNCL';
+        if (filter === 'ANCL') return type === 'ANCL';
+        if (filter === 'COFF') return type === 'COFF';
+        return true;
+      });
+    }
+
     const tbody = document.getElementById('leaveRegisterTableBody');
     const countBadge = document.getElementById('leaveRegisterCountBadge');
-    if (countBadge) countBadge.innerText = `${filteredLeaves.length} leaves`;
+    if (countBadge) countBadge.innerText = `${displayLeaves.length} leaves`;
     if (!tbody) return;
 
-    if (filteredLeaves.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No leaves recorded for ${periodLabel}.</td></tr>`;
+    if (displayLeaves.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No ${filter !== 'ALL' ? filter : ''} leaves recorded for ${periodLabel}.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = filteredLeaves.map(item => {
+    tbody.innerHTML = displayLeaves.map(item => {
       const type = (item.type || '').toUpperCase();
       let badgeClass = 'badge-status-cl';
       if (type === 'COFF') badgeClass = 'badge-status-coff';
@@ -3910,6 +3927,15 @@
         </tr>
       `;
     }).join('');
+  }
+
+  function setLeaveTableFilter(filter) {
+    state.leaveTableFilter = filter || 'ALL';
+    ['ALL', 'CL', 'FNCL', 'ANCL', 'COFF'].forEach(f => {
+      const btn = document.getElementById(`filterLeave${f}`);
+      if (btn) btn.classList.toggle('active', f === state.leaveTableFilter);
+    });
+    renderLeaveRegisterSubTab();
   }
 
   async function renderODRegister() {
