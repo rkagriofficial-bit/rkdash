@@ -3769,12 +3769,20 @@
           const coffDays = Number(m.coffDays) || 0;
           const wHrs = parseFloat(m.workHours) || 0;
           const mHrs = parseFloat(m.meetingHours) || 0;
-          let eHrs = (m.extraHours != null) ? parseFloat(m.extraHours) : ((Number(m.extraMinutes) || 0) / 60);
-          if ((!eHrs || eHrs === 0) && extraMinsByMonth[m.month] != null && extraMinsByMonth[m.month] > 0) {
-            eHrs = extraMinsByMonth[m.month] / 60;
-          } else if ((!eHrs || eHrs === 0) && m.month === state.activeMonth && state.summary && state.summary.extra && Number(state.summary.extra.thisMonthExtras) > 0) {
-            eHrs = Number(state.summary.extra.thisMonthExtras) / 60;
+          let eMins = 0;
+          if (m.extraMinutes != null && Number(m.extraMinutes) > 0) {
+            eMins = Number(m.extraMinutes);
+          } else if (m.extraHours != null) {
+            eMins = parseFloat(m.extraHours) * 60;
           }
+          // Prioritize the official Comp-Off Ledger earned minutes
+          if (extraMinsByMonth[m.month] != null && extraMinsByMonth[m.month] > 0) {
+            eMins = Math.max(eMins, extraMinsByMonth[m.month]);
+          }
+          if (m.month === state.activeMonth && state.summary && state.summary.extra && Number(state.summary.extra.thisMonthExtras) > 0) {
+            eMins = Math.max(eMins, Number(state.summary.extra.thisMonthExtras));
+          }
+          const eHrs = eMins / 60;
 
           totWorkDays += wDays;
           totPres += pDays;
