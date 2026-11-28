@@ -1279,8 +1279,8 @@
           </div>
           <div>
             <div style="font-size: 11px; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px;">Current Grace (16&rarr;15)</div>
-            <div id="kpiGraceCur" style="font-size: 24px; font-weight: 900; color: var(--text-main); margin-top: 2px;">0m</div>
-            <div id="kpiGraceCurSub" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">300m remaining</div>
+            <div id="kpiGraceCur" style="font-size: 24px; font-weight: 900; color: var(--text-main); margin-top: 2px;">300m</div>
+            <div id="kpiGraceCurSub" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">0m used</div>
           </div>
         </div>
 
@@ -1291,8 +1291,8 @@
           </div>
           <div>
             <div style="font-size: 11px; font-weight: 800; color: #0369a1; text-transform: uppercase; letter-spacing: 0.5px;">Prev Grace (16&rarr;15)</div>
-            <div id="kpiGracePrev" style="font-size: 24px; font-weight: 900; color: var(--text-main); margin-top: 2px;">158m</div>
-            <div id="kpiGracePrevSub" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">142m remaining</div>
+            <div id="kpiGracePrev" style="font-size: 24px; font-weight: 900; color: var(--text-main); margin-top: 2px;">300m</div>
+            <div id="kpiGracePrevSub" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">0m used</div>
           </div>
         </div>
 
@@ -3359,16 +3359,28 @@
       }
     }
 
-    // Grace KPI Cards
+    // Grace KPI Cards (Remaining in BIG FONT, Used in SMALL FONT per user request)
     const curEl = document.getElementById('kpiGraceCur');
-    if (curEl) curEl.innerText = `${cur.totalLate || 0}m`;
+    if (curEl) {
+      if (cur.overBy > 0) {
+        curEl.innerHTML = `<span style="color: var(--danger);">0m</span> <span style="font-size: 13px; font-weight: 700; color: var(--danger);">(Over by ${cur.overBy}m)</span>`;
+      } else {
+        curEl.innerText = `${cur.remaining != null ? cur.remaining : 300}m`;
+      }
+    }
     const curSub = document.getElementById('kpiGraceCurSub');
-    if (curSub) curSub.innerText = cur.overBy > 0 ? `Over by ${cur.overBy}m` : `${cur.remaining || 300}m remaining`;
+    if (curSub) curSub.innerText = `${cur.totalLate || 0}m used`;
 
     const prevEl = document.getElementById('kpiGracePrev');
-    if (prevEl) prevEl.innerText = `${prev.totalLate || 0}m`;
+    if (prevEl) {
+      if (prev.overBy > 0) {
+        prevEl.innerHTML = `<span style="color: var(--danger);">0m</span> <span style="font-size: 13px; font-weight: 700; color: var(--danger);">(Over by ${prev.overBy}m)</span>`;
+      } else {
+        prevEl.innerText = `${prev.remaining != null ? prev.remaining : 300}m`;
+      }
+    }
     const prevSub = document.getElementById('kpiGracePrevSub');
-    if (prevSub) prevSub.innerText = prev.overBy > 0 ? `Over by ${prev.overBy}m` : `${prev.remaining || 300}m remaining`;
+    if (prevSub) prevSub.innerText = `${prev.totalLate || 0}m used`;
 
     // Comp-Off Bank (Balance only per user request)
     const coffAvail = extra.coffsAvailable !== undefined ? extra.coffsAvailable : ((extra.coffsEarned || 0) - (extra.coffsUsed || 0));
@@ -3734,6 +3746,21 @@
         tbody.innerHTML = '';
         let totWorkDays = 0, totPres = 0, totOD = 0, totCL = 0, totCOFF = 0, totWorkH = 0, totMtgH = 0, totExtraH = 0;
 
+        // Build fallback map of monthly extra minutes from state.summary or CompOff ledger
+        const extraMinsByMonth = {};
+        if (state.summary && state.summary.extra && Array.isArray(state.summary.extra.coffLedgerHistory)) {
+          state.summary.extra.coffLedgerHistory.forEach(cl => {
+            if (cl.monthKey) extraMinsByMonth[cl.monthKey] = Number(cl.extraMins) || 0;
+          });
+        }
+        if (res.compOffMap) {
+          Object.keys(res.compOffMap).forEach(mk => {
+            if (res.compOffMap[mk] && Number(res.compOffMap[mk].extraMins) > 0) {
+              extraMinsByMonth[mk] = Number(res.compOffMap[mk].extraMins);
+            }
+          });
+        }
+
         res.months.forEach(m => {
           const wDays = Number(m.workingDays) || 0;
           const pDays = Number(m.presentDays) || 0;
@@ -3742,7 +3769,12 @@
           const coffDays = Number(m.coffDays) || 0;
           const wHrs = parseFloat(m.workHours) || 0;
           const mHrs = parseFloat(m.meetingHours) || 0;
-          const eHrs = (m.extraHours != null) ? parseFloat(m.extraHours) : ((Number(m.extraMinutes) || 0) / 60);
+          let eHrs = (m.extraHours != null) ? parseFloat(m.extraHours) : ((Number(m.extraMinutes) || 0) / 60);
+          if ((!eHrs || eHrs === 0) && extraMinsByMonth[m.month] != null && extraMinsByMonth[m.month] > 0) {
+            eHrs = extraMinsByMonth[m.month] / 60;
+          } else if ((!eHrs || eHrs === 0) && m.month === state.activeMonth && state.summary && state.summary.extra && Number(state.summary.extra.thisMonthExtras) > 0) {
+            eHrs = Number(state.summary.extra.thisMonthExtras) / 60;
+          }
 
           totWorkDays += wDays;
           totPres += pDays;
@@ -4208,9 +4240,17 @@
 
     const daysData = [];
     for (let day = 1; day <= daysInMonth; day++) {
-      const padDay = String(day).padStart(2, '0');
+      const dateObj = new Date(year, month - 1, day);
+      const isSunday = (dateObj.getDay() === 0);
+      const isSecondSat = (dateObj.getDay() === 6 && day >= 8 && day <= 14);
       const d = diaryMap[day];
       const a = attMap[day];
+
+      // Strict filter: Graph shows working days only, no holidays (exclude Sundays, 2nd Saturdays, and Public Holidays)
+      const isHoliday = isSunday || isSecondSat || (d && (d.isHoliday || d.isFullHoliday)) || (a && (a.status === 'PH' || a.status === 'H' || a.status === 'HOLIDAY' || a.status === 'OFF'));
+      if (isHoliday) continue;
+
+      const padDay = String(day).padStart(2, '0');
 
       // Upper Line: Total Work Hours
       let totalHours = 0;
@@ -4283,7 +4323,7 @@
     // Points for upper & lower
     const pointsTotal = [];
     const pointsMtg = [];
-    const stepX = chartW / (daysData.length - 1);
+    const stepX = daysData.length > 1 ? (chartW / (daysData.length - 1)) : chartW;
 
     daysData.forEach((d, i) => {
       const x = padLeft + (i * stepX);
