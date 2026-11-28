@@ -3746,13 +3746,41 @@
         tbody.innerHTML = '';
         let totWorkDays = 0, totPres = 0, totOD = 0, totCL = 0, totCOFF = 0, totWorkH = 0, totMtgH = 0, totExtraH = 0;
 
-        // Build fallback map of monthly extra minutes from state.summary or CompOff ledger
+        // Build fallback map of monthly extra minutes from CompOff ledger
         const extraMinsByMonth = {};
-        if (state.summary && state.summary.extra && Array.isArray(state.summary.extra.coffLedgerHistory)) {
-          state.summary.extra.coffLedgerHistory.forEach(cl => {
-            if (cl.monthKey) extraMinsByMonth[cl.monthKey] = Number(cl.extraMins) || 0;
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+        const ledgerHistory = (res && Array.isArray(res.coffLedgerHistory) && res.coffLedgerHistory.length > 0)
+          ? res.coffLedgerHistory
+          : ((state.summary && Array.isArray(state.summary.coffLedgerHistory))
+            ? state.summary.coffLedgerHistory
+            : ((state.summary && state.summary.extra && Array.isArray(state.summary.extra.coffLedgerHistory))
+              ? state.summary.extra.coffLedgerHistory
+              : []));
+
+        if (Array.isArray(ledgerHistory)) {
+          ledgerHistory.forEach(cl => {
+            const eVal = Number(cl.extraMins) || 0;
+            if (cl.monthKey) {
+              extraMinsByMonth[cl.monthKey] = eVal;
+              const parts = String(cl.monthKey).split('-');
+              if (parts.length === 2) {
+                const idx = parseInt(parts[1], 10);
+                if (idx >= 1 && idx <= 12) {
+                  extraMinsByMonth[idx] = eVal;
+                  extraMinsByMonth[String(idx)] = eVal;
+                  extraMinsByMonth[monthNames[idx - 1]] = eVal;
+                }
+              }
+            }
+            if (cl.monthName) {
+              const shortM = String(cl.monthName).trim().substring(0, 3);
+              extraMinsByMonth[shortM] = eVal;
+              extraMinsByMonth[cl.monthName] = eVal;
+            }
           });
         }
+
         if (res.compOffMap) {
           Object.keys(res.compOffMap).forEach(mk => {
             if (res.compOffMap[mk] && Number(res.compOffMap[mk].extraMins) > 0) {
@@ -3761,25 +3789,58 @@
           });
         }
 
-        res.months.forEach(m => {
+        // Build authoritative map of monthly CL days from res.leaveRegister or state.leaveRegister
+        const clByMonth = {};
+        const lList = (res && Array.isArray(res.leaveRegister) && res.leaveRegister.length > 0)
+          ? res.leaveRegister
+          : (state.leaveRegister || []);
+        lList.forEach(lv => {
+          const lType = String(lv.type || '').toUpperCase();
+          if (['CL', 'FNCL', 'ANCL'].includes(lType)) {
+            let mo = 0;
+            if (lv.date) {
+              const dParts = String(lv.date).trim().split(/[\/\-]/);
+              if (dParts.length >= 2) {
+                if (dParts[0].length === 4) mo = parseInt(dParts[1], 10);
+                else mo = parseInt(dParts[1], 10);
+              }
+            }
+            if (mo >= 1 && mo <= 12) {
+              const isHalf = ['FNCL', 'ANCL'].includes(lType) || (lv.duration && String(lv.duration).includes('0.5'));
+              clByMonth[mo] = (clByMonth[mo] || 0) + (isHalf ? 0.5 : 1.0);
+            }
+          }
+        });
+
+        res.months.forEach((m, idx) => {
+          const mNum = idx + 1;
+          const mKey = m.month || `${state.activeYear}-${String(mNum).padStart(2, '0')}`;
+          const mName = m.monthName || monthNames[idx];
+
           const wDays = Number(m.workingDays) || 0;
           const pDays = Number(m.presentDays) || 0;
           const odDays = Number(m.odDays) || 0;
-          const clDays = Number(m.clDays) || 0;
+          let clDays = Number(m.clDays) || 0;
+          if (clByMonth[mNum] != null) {
+            clDays = Math.max(clDays, clByMonth[mNum]);
+          }
           const coffDays = Number(m.coffDays) || 0;
           const wHrs = parseFloat(m.workHours) || 0;
           const mHrs = parseFloat(m.meetingHours) || 0;
+
           let eMins = 0;
           if (m.extraMinutes != null && Number(m.extraMinutes) > 0) {
             eMins = Number(m.extraMinutes);
           } else if (m.extraHours != null) {
             eMins = parseFloat(m.extraHours) * 60;
           }
+
           // Prioritize the official Comp-Off Ledger earned minutes
-          if (extraMinsByMonth[m.month] != null && extraMinsByMonth[m.month] > 0) {
-            eMins = Math.max(eMins, extraMinsByMonth[m.month]);
+          const ledgerM = extraMinsByMonth[mKey] ?? extraMinsByMonth[mName] ?? extraMinsByMonth[mNum] ?? extraMinsByMonth[String(mNum)] ?? 0;
+          if (ledgerM > 0) {
+            eMins = Math.max(eMins, ledgerM);
           }
-          if (m.month === state.activeMonth && state.summary && state.summary.extra && Number(state.summary.extra.thisMonthExtras) > 0) {
+          if (mKey === state.activeMonth && state.summary && state.summary.extra && Number(state.summary.extra.thisMonthExtras) > 0) {
             eMins = Math.max(eMins, Number(state.summary.extra.thisMonthExtras));
           }
           const eHrs = eMins / 60;
@@ -3795,7 +3856,7 @@
 
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td style="font-weight: 800; color: var(--text-main);">${m.monthName} ${state.activeYear}</td>
+            <td style="font-weight: 800; color: var(--text-main);">${mName} ${state.activeYear}</td>
             <td><span class="badge-pill-soft" style="background: var(--bg-card-subtle); font-weight: 700; color: #2563eb;">${wDays}</span></td>
             <td style="font-weight: 700; color: #16a34a;">${pDays}</td>
             <td style="font-weight: 700; color: #0284c7;">${odDays}</td>
@@ -3808,7 +3869,14 @@
           tbody.appendChild(row);
         });
 
-        // Add summary row at bottom
+        // Add summary row at bottom (ensuring exact match with yearlyCounts if available)
+        if (res.yearlyCounts && Number(res.yearlyCounts.clUsed) > 0) {
+          totCL = Math.max(totCL, Number(res.yearlyCounts.clUsed));
+        }
+        if (res.yearlyCounts && Number(res.yearlyCounts.coffUsed) > 0) {
+          totCOFF = Math.max(totCOFF, Number(res.yearlyCounts.coffUsed));
+        }
+
         const summaryRow = document.createElement('tr');
         summaryRow.style.background = 'var(--bg-card-subtle)';
         summaryRow.style.fontWeight = '900';
