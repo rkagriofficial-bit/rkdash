@@ -110,7 +110,7 @@
     label.textContent = text;
   }
 
-  async function fetchFromSheets() {
+  async function fetchFromSheets(isInitialLoad = false) {
     if (!config.url) {
       updateSyncPill('local', `Local Mode (${bills.length} mo)`);
       return;
@@ -125,7 +125,8 @@
         saveLocal();
       }
       updateSyncPill('connected', `Google Sheet (${bills.length} mo)`);
-      populateSelectors();
+      populateSelectors(isInitialLoad);
+      if (isInitialLoad) prepareNewEntryForm();
       renderAll();
     } catch (err) {
       updateSyncPill('local', 'Sheet Sync Error');
@@ -182,21 +183,43 @@
     };
   }
 
+  function getCurrentMonthKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+
   // ---------- Selectors ----------
-  function populateSelectors() {
+  function populateSelectors(selectDefault = false) {
     const mSel = document.getElementById('monthlySelect');
     const prevM = mSel.value;
     const reversed = [...bills].reverse();
     mSel.innerHTML = reversed.map((b) => `<option value="${b.monthKey}">${b.monthLabel}</option>`).join('');
-    if (prevM && bills.some((b) => b.monthKey === prevM)) mSel.value = prevM;
-    else if (reversed.length) mSel.value = reversed[0].monthKey;
+
+    const presentKey = getCurrentMonthKey();
+    if (selectDefault) {
+      if (bills.some((b) => b.monthKey === presentKey)) mSel.value = presentKey;
+      else if (reversed.length) mSel.value = reversed[0].monthKey;
+    } else if (prevM && bills.some((b) => b.monthKey === prevM)) {
+      mSel.value = prevM;
+    } else if (bills.some((b) => b.monthKey === presentKey)) {
+      mSel.value = presentKey;
+    } else if (reversed.length) {
+      mSel.value = reversed[0].monthKey;
+    }
 
     const ySel = document.getElementById('yearlySelect');
     const prevY = ySel.value;
     const years = [...new Set(bills.map((b) => b.monthKey.slice(0, 4)))].sort().reverse();
     ySel.innerHTML = years.map((y) => `<option value="${y}">${y}</option>`).join('');
-    if (prevY && years.includes(prevY)) ySel.value = prevY;
-    else if (years.length) ySel.value = years[0];
+    const presentYear = String(new Date().getFullYear());
+    if (selectDefault) {
+      if (years.includes(presentYear)) ySel.value = presentYear;
+      else if (years.length) ySel.value = years[0];
+    } else if (prevY && years.includes(prevY)) {
+      ySel.value = prevY;
+    } else if (years.length) {
+      ySel.value = years[0];
+    }
   }
 
   // ---------- 1. MONTHLY DASHBOARD ----------
@@ -794,9 +817,9 @@
 
   // ---------- Init ----------
   loadLocal();
-  populateSelectors();
+  populateSelectors(true);
   bindEvents();
   prepareNewEntryForm();
   renderAll();
-  if (config.url) fetchFromSheets();
+  if (config.url) fetchFromSheets(true);
 })();
