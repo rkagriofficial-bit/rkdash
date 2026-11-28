@@ -1033,13 +1033,13 @@
         <svg style="width: 15px; height: 15px;"><use href="#icon-pie"></use></svg>
         <span>Dashboard</span>
       </button>
-      <button onclick="switchTab('timeline')" id="navTabTimeline" class="nav-pill">
-        <svg style="width: 15px; height: 15px;"><use href="#icon-calendar"></use></svg>
-        <span>Work Diary</span>
-      </button>
       <button onclick="switchTab('attendance')" id="navTabAttendance" class="nav-pill">
         <svg style="width: 15px; height: 15px;"><use href="#icon-calendar-check"></use></svg>
         <span>Attendance Log</span>
+      </button>
+      <button onclick="switchTab('timeline')" id="navTabTimeline" class="nav-pill">
+        <svg style="width: 15px; height: 15px;"><use href="#icon-calendar"></use></svg>
+        <span>Work Diary</span>
       </button>
       <button onclick="switchTab('leaveRegister')" id="navTabLeaveRegister" class="nav-pill">
         <svg style="width: 15px; height: 15px;"><use href="#icon-layers"></use></svg>
@@ -1525,6 +1525,7 @@
               <th>COFF Days</th>
               <th>Work Hours</th>
               <th>Meeting Hours</th>
+              <th style="color: #10b981;">Extra Hours</th>
             </tr>
           </thead>
           <tbody id="yearlyMonthsTableBody"></tbody>
@@ -3108,7 +3109,7 @@
       return;
     }
 
-    const tabs = ['quick', 'dash', 'timeline', 'attendance', 'admin', 'leaveRegister'];
+    const tabs = ['quick', 'dash', 'attendance', 'timeline', 'admin', 'leaveRegister'];
     tabs.forEach(t => {
       const sec = document.getElementById(`view${capitalize(t)}`);
       const btn = document.getElementById(`navTab${capitalize(t)}`);
@@ -3725,13 +3726,13 @@
   async function loadYearlyDashboard() {
     const tbody = document.getElementById('yearlyMonthsTableBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">Loading yearly records...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px; color: var(--text-muted);">Loading yearly records...</td></tr>';
     
     try {
       const res = await callApi('apiGetYearlyDashboard', state.token, state.activeYear, state.activePen);
       if (res && res.ok && res.months) {
         tbody.innerHTML = '';
-        let totWorkDays = 0, totPres = 0, totOD = 0, totCL = 0, totCOFF = 0, totWorkH = 0, totMtgH = 0;
+        let totWorkDays = 0, totPres = 0, totOD = 0, totCL = 0, totCOFF = 0, totWorkH = 0, totMtgH = 0, totExtraH = 0;
 
         res.months.forEach(m => {
           const wDays = Number(m.workingDays) || 0;
@@ -3741,6 +3742,7 @@
           const coffDays = Number(m.coffDays) || 0;
           const wHrs = parseFloat(m.workHours) || 0;
           const mHrs = parseFloat(m.meetingHours) || 0;
+          const eHrs = (m.extraHours != null) ? parseFloat(m.extraHours) : ((Number(m.extraMinutes) || 0) / 60);
 
           totWorkDays += wDays;
           totPres += pDays;
@@ -3749,6 +3751,7 @@
           totCOFF += coffDays;
           totWorkH += wHrs;
           totMtgH += mHrs;
+          totExtraH += eHrs;
 
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -3760,6 +3763,7 @@
             <td style="font-weight: 700; color: #7c3aed;">${coffDays}</td>
             <td style="font-weight: 600;">${m.workHours} hrs</td>
             <td style="color: #9333ea; font-weight: 700;">${m.meetingHours} hrs</td>
+            <td style="color: #10b981; font-weight: 700;">${eHrs > 0 ? '+' + eHrs.toFixed(1) + ' hrs' : '0.0 hrs'}</td>
           `;
           tbody.appendChild(row);
         });
@@ -3777,6 +3781,7 @@
           <td style="color: #7c3aed;">${totCOFF}</td>
           <td>${totWorkH.toFixed(1)} hrs</td>
           <td style="color: #9333ea;">${totMtgH.toFixed(1)} hrs</td>
+          <td style="color: #10b981;">+${totExtraH.toFixed(1)} hrs</td>
         `;
         tbody.appendChild(summaryRow);
 
@@ -3788,10 +3793,10 @@
           state.odRegister = res.odRegister;
         }
       } else {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--text-muted);">No yearly records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px; color: var(--text-muted);">No yearly records found.</td></tr>';
       }
     } catch (e) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: var(--danger);">Failed to load yearly records.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px; color: var(--danger);">Failed to load yearly records.</td></tr>';
     }
   }
 
@@ -4705,9 +4710,13 @@
       });
     }
 
+    const now = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
     const fullList = [];
     for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
       const dateObj = new Date(y, m - 1, dayNum);
+      const isFuture = (dateObj > todayMidnight);
       const isSunday = (dateObj.getDay() === 0);
       const isSecondSat = (dateObj.getDay() === 6 && dayNum >= 8 && dayNum <= 14);
       const dmy = `${String(dayNum).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
@@ -4723,7 +4732,7 @@
             item.status = 'PH';
             item.remarks = di.holidayName || 'Official Holiday';
             item.note = `PH: ${item.remarks}`;
-          } else if (di && (di.isOD || di.isFullOD || di.isHalfOD || (di.meetings && di.meetings.length > 0) || di.hasMeetings)) {
+          } else if (!isFuture && di && (di.isOD || di.isFullOD || di.isHalfOD || (di.meetings && di.meetings.length > 0) || di.hasMeetings)) {
             item.status = di.isHalfOD ? 'FNOD' : 'OD';
             item.remarks = di.odReason || (di.meetings && di.meetings.length ? di.meetings[0].subject : 'On Duty (OD)');
             item.note = `${item.status}: ${item.remarks}`;
@@ -4746,7 +4755,7 @@
         if (di && di.isHoliday) {
           st = 'PH';
           rem = di.holidayName || 'Official Holiday';
-        } else if (di && (di.isOD || di.isFullOD || di.isHalfOD || (di.meetings && di.meetings.length > 0) || di.hasMeetings)) {
+        } else if (!isFuture && di && (di.isOD || di.isFullOD || di.isHalfOD || (di.meetings && di.meetings.length > 0) || di.hasMeetings)) {
           st = di.isHalfOD ? 'FNOD' : 'OD';
           rem = di.odReason || (di.meetings && di.meetings.length ? di.meetings[0].subject : 'On Duty (OD)');
           if (di.effectiveStartTime) inT = di.effectiveStartTime;
@@ -4762,7 +4771,7 @@
           rem = 'Second Saturday';
         } else {
           st = '--';
-          rem = 'No punch recorded';
+          rem = isFuture ? 'Upcoming' : 'No punch recorded';
         }
 
         fullList.push({
@@ -5024,35 +5033,179 @@
   // =========================================================================
   async function quickPunchIn() {
     const btn = document.getElementById('btnQuickIn');
-    btn.disabled = true;
+    if (btn) btn.disabled = true;
+
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    const timeHms = `${hh}:${mm}:${ss}`;
+    const timeHm = `${hh}:${mm}`;
+    const todayDmy = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const todayYmd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    // Snapshot for rollback if network fails
+    const prevTodayRecord = state.summary ? { ...(state.summary.todayRecord || {}) } : null;
+    const prevDaysJson = state.days ? JSON.stringify(state.days) : null;
+
+    // 1. Instant Optimistic UI Update (<50ms)
+    const previewEl = document.getElementById('todayPunchPreview');
+    const prevPreviewText = previewEl ? previewEl.innerText : '-- / --';
+    let existingOut = '--';
+    if (prevPreviewText && prevPreviewText.includes('/')) {
+      const parts = prevPreviewText.split('/');
+      if (parts[1] && parts[1].trim() !== '--') existingOut = parts[1].trim();
+    }
+    if (existingOut === '--' && state.summary && state.summary.todayRecord && state.summary.todayRecord.outTime) {
+      existingOut = fmtTime(state.summary.todayRecord.outTime) || '--';
+    }
+
+    if (previewEl) {
+      previewEl.innerText = `${timeHm} / ${existingOut}`;
+      previewEl.style.transition = 'color 0.3s';
+      previewEl.style.color = '#10b981';
+      setTimeout(() => { if (previewEl) previewEl.style.color = ''; }, 1500);
+    }
+
+    if (!state.summary) state.summary = {};
+    if (!state.summary.todayRecord) state.summary.todayRecord = {};
+    state.summary.todayRecord.inTime = timeHms;
+    state.summary.todayRecord.date = todayDmy;
+    state.summary.todayRecord.status = 'P';
+
+    if (state.days && Array.isArray(state.days)) {
+      const todayDay = state.days.find(d => {
+        if (!d || !d.date) return false;
+        if (d.date === todayDmy || d.date === todayYmd) return true;
+        if (d.date.includes('/')) {
+          const p = d.date.split('/');
+          return parseInt(p[0], 10) === now.getDate() && parseInt(p[1], 10) === (now.getMonth() + 1) && parseInt(p[2], 10) === now.getFullYear();
+        }
+        return false;
+      });
+      if (todayDay) {
+        todayDay.inTime = timeHms;
+        todayDay.status = 'P';
+        renderAttendanceCalendarGrid(state.days);
+        renderAttendanceTable(state.days);
+      }
+    }
+
+    // 2. Dispatch API call asynchronously in background
     try {
       const res = await callApi('apiQuickPunchIn', state.token);
       if (res && res.ok) {
-        loadFullData();
+        loadFullData(true);
       } else {
+        if (previewEl) previewEl.innerText = prevPreviewText;
+        if (state.summary && prevTodayRecord) state.summary.todayRecord = prevTodayRecord;
+        if (prevDaysJson) {
+          state.days = JSON.parse(prevDaysJson);
+          renderAttendanceCalendarGrid(state.days);
+          renderAttendanceTable(state.days);
+        }
         alert((res && res.message) ? res.message : 'Punch In recorded');
       }
     } catch (e) {
-      alert('Punch In error');
+      if (previewEl) previewEl.innerText = prevPreviewText;
+      if (state.summary && prevTodayRecord) state.summary.todayRecord = prevTodayRecord;
+      if (prevDaysJson) {
+        state.days = JSON.parse(prevDaysJson);
+        renderAttendanceCalendarGrid(state.days);
+        renderAttendanceTable(state.days);
+      }
+      alert('Punch In error: ' + (e.message || e));
     } finally {
-      btn.disabled = false;
+      if (btn) btn.disabled = false;
     }
   }
 
   async function quickPunchOut() {
     const btn = document.getElementById('btnQuickOut');
-    btn.disabled = true;
+    if (btn) btn.disabled = true;
+
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    const timeHms = `${hh}:${mm}:${ss}`;
+    const timeHm = `${hh}:${mm}`;
+    const todayDmy = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const todayYmd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    // Snapshot for rollback if network fails
+    const prevTodayRecord = state.summary ? { ...(state.summary.todayRecord || {}) } : null;
+    const prevDaysJson = state.days ? JSON.stringify(state.days) : null;
+
+    // 1. Instant Optimistic UI Update (<50ms)
+    const previewEl = document.getElementById('todayPunchPreview');
+    const prevPreviewText = previewEl ? previewEl.innerText : '-- / --';
+    let existingIn = '--';
+    if (prevPreviewText && prevPreviewText.includes('/')) {
+      const parts = prevPreviewText.split('/');
+      if (parts[0] && parts[0].trim() !== '--') existingIn = parts[0].trim();
+    }
+    if (existingIn === '--' && state.summary && state.summary.todayRecord && state.summary.todayRecord.inTime) {
+      existingIn = fmtTime(state.summary.todayRecord.inTime) || '--';
+    }
+
+    if (previewEl) {
+      previewEl.innerText = `${existingIn} / ${timeHm}`;
+      previewEl.style.transition = 'color 0.3s';
+      previewEl.style.color = '#2563eb';
+      setTimeout(() => { if (previewEl) previewEl.style.color = ''; }, 1500);
+    }
+
+    if (!state.summary) state.summary = {};
+    if (!state.summary.todayRecord) state.summary.todayRecord = {};
+    state.summary.todayRecord.outTime = timeHms;
+    state.summary.todayRecord.date = todayDmy;
+    state.summary.todayRecord.status = 'P';
+
+    if (state.days && Array.isArray(state.days)) {
+      const todayDay = state.days.find(d => {
+        if (!d || !d.date) return false;
+        if (d.date === todayDmy || d.date === todayYmd) return true;
+        if (d.date.includes('/')) {
+          const p = d.date.split('/');
+          return parseInt(p[0], 10) === now.getDate() && parseInt(p[1], 10) === (now.getMonth() + 1) && parseInt(p[2], 10) === now.getFullYear();
+        }
+        return false;
+      });
+      if (todayDay) {
+        todayDay.outTime = timeHms;
+        todayDay.status = 'P';
+        renderAttendanceCalendarGrid(state.days);
+        renderAttendanceTable(state.days);
+      }
+    }
+
+    // 2. Dispatch API call asynchronously in background
     try {
       const res = await callApi('apiQuickPunchOut', state.token);
       if (res && res.ok) {
-        loadFullData();
+        loadFullData(true);
       } else {
+        if (previewEl) previewEl.innerText = prevPreviewText;
+        if (state.summary && prevTodayRecord) state.summary.todayRecord = prevTodayRecord;
+        if (prevDaysJson) {
+          state.days = JSON.parse(prevDaysJson);
+          renderAttendanceCalendarGrid(state.days);
+          renderAttendanceTable(state.days);
+        }
         alert((res && res.message) ? res.message : 'Punch Out recorded');
       }
     } catch (e) {
-      alert('Punch Out error');
+      if (previewEl) previewEl.innerText = prevPreviewText;
+      if (state.summary && prevTodayRecord) state.summary.todayRecord = prevTodayRecord;
+      if (prevDaysJson) {
+        state.days = JSON.parse(prevDaysJson);
+        renderAttendanceCalendarGrid(state.days);
+        renderAttendanceTable(state.days);
+      }
+      alert('Punch Out error: ' + (e.message || e));
     } finally {
-      btn.disabled = false;
+      if (btn) btn.disabled = false;
     }
   }
 
