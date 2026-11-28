@@ -3825,10 +3825,11 @@
           state.odRegister = res.odRegister;
         }
       } else {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px; color: var(--text-muted);">No yearly records found.</td></tr>';
+        const errMsg = (res && (res.error || res.message)) ? (res.error || res.message) : 'No yearly records found.';
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 20px; color: var(--danger); font-weight: 600;">${errMsg}</td></tr>`;
       }
     } catch (e) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px; color: var(--danger);">Failed to load yearly records.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 20px; color: var(--danger);">Failed to load yearly records: ${(e && e.message) ? e.message : e}</td></tr>`;
     }
   }
 
